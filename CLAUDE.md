@@ -68,11 +68,14 @@ npm run test:e2e       # playwright
 ```
 
 ## Screen checklist (update as screens land)
-Foundation: [ ] scaffold [ ] tokens [ ] API client [ ] i18n [ ] auth/shell [ ] design-system page
-Screens (per role — see `docs/frontend-plan.md`): [ ] Overview [ ] Live Map [ ] Trips [ ] Booking desk
-[ ] Bookings [ ] Fleet+Maintenance [ ] People (drivers/agents) [ ] Network (routes/stops/fares) [ ] Analytics
-[ ] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit) [ ] Settings
-[ ] Passenger portal [ ] Driver portal
+Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
+Screens (per role — see `docs/frontend-plan.md`): [x] Overview [ ] Live Map (LAST — MapLibre) [x] Trips
+[ ] Booking desk [x] Bookings [x] Fleet+Maintenance [ ] People (drivers/agents) [ ] Network (routes/stops/fares)
+[x] Analytics [x] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit)
+[ ] Settings [ ] Passenger portal [ ] Driver portal · Auth: [x] Login/Continue with Google (Clerk)
+
+Ops-manager stub screens (Overview/Fleet/Trips/Bookings/Parcels/Analytics) render from local stub data +
+full EN/KIN i18n + global date-range; next is wiring them to live TanStack Query hooks, then Live Map last.
 
 ## Status
 Foundation being set up while final visual designs are prepared (Stitch → Figma). Design-dependent screens
