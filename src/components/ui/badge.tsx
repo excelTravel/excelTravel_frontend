@@ -41,6 +41,7 @@ const statusTone: Record<string, BadgeProps['tone']> = {
   paid: 'success',
   unpaid: 'warning',
   pending: 'neutral',
+  hold: 'info',
 };
 
 export function StatusPill({
