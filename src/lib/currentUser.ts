@@ -9,10 +9,10 @@ export function useCurrentUser(): CurrentUser {
   return { firstName: 'Aline', role: 'Ops Manager', location: 'Kigali HQ' };
 }
 
-// Time-of-day greeting for the dashboard welcome.
-export function getGreeting(date = new Date()): string {
+// Time-of-day period key ('morning' | 'afternoon' | 'evening') — translated in the header via i18n.
+export function getGreetingPeriod(date = new Date()): 'morning' | 'afternoon' | 'evening' {
   const h = date.getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'morning';
+  if (h < 18) return 'afternoon';
+  return 'evening';
 }

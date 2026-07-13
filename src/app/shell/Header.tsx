@@ -1,9 +1,10 @@
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/store/theme';
-import { useCurrentUser, getGreeting } from '@/lib/currentUser';
+import { useCurrentUser, getGreetingPeriod } from '@/lib/currentUser';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
+import { DateRangePicker } from '@/components/date-range-picker';
 import { cn } from '@/lib/utils';
 import { opsNav } from './nav';
 
@@ -13,13 +14,13 @@ function usePageTitle(): string {
   return match?.label ?? 'excelTravel';
 }
 
-// 88px top bar. On the home route it greets the manager and sets up their day; elsewhere it shows the page title.
+// 88px top bar. On the home route it greets the manager; elsewhere it shows the page title.
 export function Header() {
   const { pathname } = useLocation();
   const isHome = pathname === '/';
   const title = usePageTitle();
   const { theme, toggle } = useTheme();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language === 'kin' ? 'kin' : 'en';
   const user = useCurrentUser();
 
@@ -28,29 +29,21 @@ export function Header() {
       {isHome ? (
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
-            {getGreeting()}, {user.firstName}
+            {t(`home.${getGreetingPeriod()}`, { name: user.firstName })}
           </h1>
-          <p className="text-sm text-muted-foreground">Here's your operation at a glance for today.</p>
+          <p className="text-sm text-muted-foreground">{t('home.subtitle')}</p>
         </div>
       ) : (
         <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">{title}</h1>
       )}
 
       <div className="flex items-center gap-4">
-        {/* Date range — placeholder trigger; deep-teal for readable white text (contrast fix over the mint mockup). */}
-        <button
-          type="button"
-          className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform active:scale-[0.98]"
-        >
-          <Calendar className="size-4" aria-hidden />
-          Oct 12 – Oct 18, 2023
-          <ChevronDown className="size-3.5" aria-hidden />
-        </button>
+        <DateRangePicker />
 
         <button
           type="button"
           onClick={toggle}
-          aria-label="Toggle theme"
+          aria-label={t('common.toggleTheme')}
           className="text-muted-foreground transition-colors hover:text-foreground"
         >
           {theme === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}

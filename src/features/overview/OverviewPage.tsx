@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { AlertTriangle, ArrowUpRight, Bus, MapPin, TrendingUp } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
@@ -5,8 +6,9 @@ import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
 import { formatRWF } from '@/lib/utils';
 
-// NOTE: values below are placeholders annotated with the backend endpoint each will read from once wired.
-// GET /analytics/* , /bookings , /tracking — hooks replace these with TanStack Query + loading skeletons.
+// NOTE: values are placeholders annotated with the backend endpoint each will read from. When wired, the
+// hooks take the global date range (useDateRange → rangeToSince) so ALL cards/charts re-scope to it, and
+// each KPI delta is computed as this-period vs previous-period from real data (not hardcoded).
 
 const passengerVolume = [
   { day: 'Mon', value: 620 },
@@ -37,14 +39,15 @@ const recentAlerts: { text: string; time: string; tone: 'info' | 'warning' | 'da
 ];
 
 export function OverviewPage() {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6">
       {/* KPI row — /analytics (revenue), /bookings (tickets), /tracking (buses active) */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard hero label="Daily Revenue" value="4,250K" unit="RWF" delta={{ value: '+12.5% vs yesterday', direction: 'up' }} />
-        <KpiCard label="Revenue (MTD)" value="85.4M" unit="RWF" delta={{ value: '+8.2% vs last month', direction: 'up' }} />
-        <KpiCard label="Tickets sold today" value="750" delta={{ value: '-5.2% vs yesterday', direction: 'down' }} />
-        <KpiCard label="Buses active now" value="18" delta={{ value: '+3 vs average', direction: 'up' }} />
+        <KpiCard hero label={t('overview.dailyRevenue')} value="4,250K" unit="RWF" delta={{ value: '+12.5%', direction: 'up' }} />
+        <KpiCard label={t('overview.revenueMtd')} value="85.4M" unit="RWF" delta={{ value: '+8.2%', direction: 'up' }} />
+        <KpiCard label={t('overview.ticketsToday')} value="750" delta={{ value: '-5.2%', direction: 'down' }} />
+        <KpiCard label={t('overview.busesActive')} value="18" delta={{ value: '+3', direction: 'up' }} />
       </div>
 
       {/* Passenger volume + live map */}
@@ -52,11 +55,11 @@ export function OverviewPage() {
         <GlassCard className="p-6 xl:col-span-2">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold">Passenger Volume</h3>
-              <p className="text-sm text-muted-foreground">Peak hours 07:00 – 09:30</p>
+              <h3 className="text-base font-semibold">{t('overview.passengerVolume')}</h3>
+              <p className="text-sm text-muted-foreground">{t('overview.peakHours')}</p>
             </div>
             <Badge tone="success">
-              <TrendingUp className="size-3" /> +14% this week
+              <TrendingUp className="size-3" /> {t('overview.thisWeek')}
             </Badge>
           </div>
           <div className="mt-6 h-64">
@@ -72,7 +75,7 @@ export function OverviewPage() {
                     color: 'hsl(var(--popover-foreground))',
                     fontSize: 12,
                   }}
-                  formatter={(v: number) => [`${v} passengers`, '']}
+                  formatter={(v: number) => [t('overview.passengers', { count: v }), '']}
                 />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                   {passengerVolume.map((d) => (
@@ -85,12 +88,12 @@ export function OverviewPage() {
         </GlassCard>
 
         <GlassCard className="p-6">
-          <h3 className="text-base font-semibold">Active Routes Map</h3>
-          <p className="text-sm text-muted-foreground">Live dispatch board</p>
+          <h3 className="text-base font-semibold">{t('overview.activeRoutesMap')}</h3>
+          <p className="text-sm text-muted-foreground">{t('overview.liveDispatch')}</p>
           <div className="mt-4 flex h-64 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/40 text-muted-foreground">
             <div className="text-center">
               <MapPin className="mx-auto size-6" aria-hidden />
-              <p className="mt-2 text-sm">Full live map on the Map screen</p>
+              <p className="mt-2 text-sm">{t('overview.mapOnMapScreen')}</p>
             </div>
           </div>
         </GlassCard>
@@ -99,7 +102,7 @@ export function OverviewPage() {
       {/* Bottom row */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <GlassCard className="p-6">
-          <h3 className="text-base font-semibold">Top performing routes</h3>
+          <h3 className="text-base font-semibold">{t('overview.topRoutes')}</h3>
           <ul className="mt-4 space-y-4">
             {topRoutes.map((r) => (
               <li key={r.route} className="flex items-center justify-between gap-3">
@@ -109,7 +112,7 @@ export function OverviewPage() {
                   </span>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{r.route}</p>
-                    <p className="text-xs text-muted-foreground">{r.passengers.toLocaleString()} passengers</p>
+                    <p className="text-xs text-muted-foreground">{t('overview.passengers', { count: r.passengers })}</p>
                   </div>
                 </div>
                 <span className="text-sm font-semibold tabular-nums">{formatRWF(r.revenue)}</span>
@@ -119,7 +122,7 @@ export function OverviewPage() {
         </GlassCard>
 
         <GlassCard className="p-6">
-          <h3 className="text-base font-semibold">Booking source</h3>
+          <h3 className="text-base font-semibold">{t('overview.bookingSource')}</h3>
           <ul className="mt-4 space-y-4">
             {bookingSources.map((b) => (
               <li key={b.source}>
@@ -137,7 +140,7 @@ export function OverviewPage() {
 
         <GlassCard className="p-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold">Recent alerts</h3>
+            <h3 className="text-base font-semibold">{t('overview.recentAlerts')}</h3>
             <ArrowUpRight className="size-4 text-muted-foreground" aria-hidden />
           </div>
           <ul className="mt-4 space-y-3">

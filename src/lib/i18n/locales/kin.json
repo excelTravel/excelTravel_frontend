@@ -3,9 +3,27 @@
     "name": "excelTravel",
     "tagline": "Genzura amamodoka yawe ako kanya"
   },
-  "foundation": {
-    "title": "Urufatiro rwiteguye",
-    "body": "React + Vite + Tailwind + shadcn/ui n'ibara ry'imiterere byashyizweho. Ibara rya teal, amakarita ya glass, n'uburyo bw'umukara birakora. Amapaji akurikira, iyo igishushanyo cyaje."
+  "home": {
+    "morning": "Mwaramutse, {{name}}",
+    "afternoon": "Mwiriwe, {{name}}",
+    "evening": "Muramuke, {{name}}",
+    "subtitle": "Dore uko imikorere yawe imeze uyu munsi."
+  },
+  "overview": {
+    "dailyRevenue": "Amafaranga y'umunsi",
+    "revenueMtd": "Amafaranga (uku kwezi)",
+    "ticketsToday": "Amatike yagurishijwe uyu munsi",
+    "busesActive": "Bisi zikora ubu",
+    "passengerVolume": "Umubare w'abagenzi",
+    "peakHours": "Amasaha akomeye 07:00 – 09:30",
+    "thisWeek": "+14% iki cyumweru",
+    "activeRoutesMap": "Ikarita y'imihanda ikora",
+    "liveDispatch": "Ikibaho cy'ohereza",
+    "mapOnMapScreen": "Ikarita yuzuye iri ku rupapuro rw'ikarita",
+    "topRoutes": "Imihanda ikora neza",
+    "bookingSource": "Aho amatike aturuka",
+    "recentAlerts": "Imenyesha rya vuba",
+    "passengers": "abagenzi {{count}}"
   },
   "common": {
     "retry": "Ongera ugerageze",
