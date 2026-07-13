@@ -1,31 +1,43 @@
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, Calendar, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Calendar, ChevronDown, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/store/theme';
+import { useCurrentUser, getGreeting } from '@/lib/currentUser';
+import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { cn } from '@/lib/utils';
 import { opsNav } from './nav';
 
-// Derive the page title from the active route (the design's big navy heading).
 function usePageTitle(): string {
   const { pathname } = useLocation();
   const match = opsNav.find((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)));
   return match?.label ?? 'excelTravel';
 }
 
-// 88px top bar: page title · date range · theme · notifications · EN/KIN · profile (from the Figma design).
+// 88px top bar. On the home route it greets the manager and sets up their day; elsewhere it shows the page title.
 export function Header() {
+  const { pathname } = useLocation();
+  const isHome = pathname === '/';
   const title = usePageTitle();
   const { theme, toggle } = useTheme();
   const { i18n } = useTranslation();
   const lang = i18n.language === 'kin' ? 'kin' : 'en';
+  const user = useCurrentUser();
 
   return (
     <header className="sticky top-0 z-20 flex h-[88px] items-center justify-between gap-4 px-8">
-      <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">{title}</h1>
+      {isHome ? (
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
+            {getGreeting()}, {user.firstName}
+          </h1>
+          <p className="text-sm text-muted-foreground">Here's your operation at a glance for today.</p>
+        </div>
+      ) : (
+        <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">{title}</h1>
+      )}
 
       <div className="flex items-center gap-4">
-        {/* Date range — placeholder trigger; wired to a real range picker when Analytics lands.
-            Deep-teal (not the mint #1FD59F) so the white label is readable (contrast fix). */}
+        {/* Date range — placeholder trigger; deep-teal for readable white text (contrast fix over the mint mockup). */}
         <button
           type="button"
           className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform active:scale-[0.98]"
@@ -44,14 +56,7 @@ export function Header() {
           {theme === 'dark' ? <Sun className="size-5" /> : <Moon className="size-5" />}
         </button>
 
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Bell className="size-5" />
-          <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-destructive" aria-hidden />
-        </button>
+        <NotificationBell />
 
         <div className="h-6 w-px bg-border" aria-hidden />
 
@@ -74,11 +79,11 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <div className="grid size-10 place-items-center rounded-full border-2 border-card bg-primary/10 text-sm font-bold text-primary">
-            OM
+            {user.firstName.slice(0, 1)}
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-bold text-foreground">Ops Manager</div>
-            <div className="text-[11px] font-medium text-muted-foreground">Kigali HQ</div>
+            <div className="text-sm font-bold text-foreground">{user.role}</div>
+            <div className="text-[11px] font-medium text-muted-foreground">{user.location}</div>
           </div>
         </div>
       </div>
