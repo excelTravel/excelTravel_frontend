@@ -4,7 +4,6 @@ import { AlertTriangle, ArrowUpRight, Bus, MapPin, TrendingUp } from 'lucide-rea
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
-import { PageControls } from '@/components/page-controls';
 import { useDateRange } from '@/store/dateRange';
 import { formatRWF } from '@/lib/utils';
 
@@ -46,8 +45,6 @@ export function OverviewPage() {
   const compare = t(`range.compare.${preset}`);
   return (
     <div className="space-y-6">
-      <PageControls />
-
       {/* KPI row — /analytics (revenue), /bookings (tickets), /tracking (buses active).
           Deltas + comparison come from the selected range (this period vs previous). */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

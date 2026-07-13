@@ -4,6 +4,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/store/theme';
 import { useCurrentUser, getGreetingPeriod } from '@/lib/currentUser';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
+import { DateRangePicker } from '@/components/date-range-picker';
 import { cn } from '@/lib/utils';
 
 // 88px top bar. On the home route it greets the manager; elsewhere it shows the constant ops title
@@ -30,6 +31,13 @@ export function Header() {
           {t('app.opsTitle')}
         </h1>
       )}
+
+      {/* Date range — centered in the top bar; floats over the layout so it stays middle-aligned. */}
+      <div className="pointer-events-none absolute inset-x-0 hidden justify-center lg:flex">
+        <div className="pointer-events-auto">
+          <DateRangePicker />
+        </div>
+      </div>
 
       <div className="flex items-center gap-4">
         <button

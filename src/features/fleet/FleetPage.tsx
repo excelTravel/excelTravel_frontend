@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Filter, MoreVertical, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
-import { PageControls } from '@/components/page-controls';
 import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { GlassCard } from '@/components/ui/card';
@@ -113,8 +112,6 @@ export function FleetPage() {
           </>
         }
       />
-
-      <PageControls />
 
       {/* KPIs — /vehicles (count), /trips (active), /maintenance (alerts), computed efficiency */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
