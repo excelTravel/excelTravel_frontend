@@ -1,7 +1,26 @@
 {
   "app": {
     "name": "excelTravel",
-    "tagline": "Run your buses in real time"
+    "tagline": "Run your buses in real time",
+    "opsTitle": "Operations Management"
+  },
+  "fleet": {
+    "title": "Fleet Overview",
+    "subtitle": "Real-time status and telemetry across all active vehicles.",
+    "addVehicle": "Add Vehicle",
+    "filter": "Filter",
+    "cardView": "Card view",
+    "listView": "List view",
+    "totalFleet": "Total fleet",
+    "activeRoutes": "Active routes",
+    "maintenanceAlerts": "Maintenance alerts",
+    "fleetEfficiency": "Fleet efficiency",
+    "actionRequired": "Action required",
+    "optimal": "Optimal",
+    "complete": "{{pct}}% complete",
+    "onSchedule": "On schedule",
+    "delayed": "Delayed",
+    "approaching": "Approaching"
   },
   "home": {
     "morning": "Good morning, {{name}}",

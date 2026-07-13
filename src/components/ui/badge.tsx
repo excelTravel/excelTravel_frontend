@@ -43,11 +43,19 @@ const statusTone: Record<string, BadgeProps['tone']> = {
   pending: 'neutral',
 };
 
-export function StatusPill({ status, className }: { status: string; className?: string }) {
-  const label = status.replace(/_/g, ' ');
+export function StatusPill({
+  status,
+  className,
+  children,
+}: {
+  status: string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
   return (
     <Badge tone={statusTone[status] ?? 'neutral'} className={cn('capitalize', className)}>
-      {label}
+      <span className="size-1.5 rounded-full bg-current opacity-70" aria-hidden />
+      {children ?? status.replace(/_/g, ' ')}
     </Badge>
   );
 }

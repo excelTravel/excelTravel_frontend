@@ -5,19 +5,12 @@ import { useTheme } from '@/store/theme';
 import { useCurrentUser, getGreetingPeriod } from '@/lib/currentUser';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { cn } from '@/lib/utils';
-import { opsNav } from './nav';
 
-function usePageTitle(): string {
-  const { pathname } = useLocation();
-  const match = opsNav.find((n) => (n.to === '/' ? pathname === '/' : pathname.startsWith(n.to)));
-  return match?.label ?? 'excelTravel';
-}
-
-// 88px top bar. On the home route it greets the manager; elsewhere it shows the page title.
+// 88px top bar. On the home route it greets the manager; elsewhere it shows the constant ops title
+// (each page renders its own specific heading in the content via PageHeader).
 export function Header() {
   const { pathname } = useLocation();
   const isHome = pathname === '/';
-  const title = usePageTitle();
   const { theme, toggle } = useTheme();
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'kin' ? 'kin' : 'en';
@@ -33,7 +26,9 @@ export function Header() {
           <p className="text-sm text-muted-foreground">{t('home.subtitle')}</p>
         </div>
       ) : (
-        <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">{title}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
+          {t('app.opsTitle')}
+        </h1>
       )}
 
       <div className="flex items-center gap-4">

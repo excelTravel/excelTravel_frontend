@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge, type BadgeProps } from './badge';
 
 export interface KpiDelta {
   value: string; // e.g. "+12.5%"
@@ -13,14 +14,20 @@ export interface KpiCardProps {
   value: string;
   unit?: string;
   delta?: KpiDelta;
-  hero?: boolean; // the dark navy emphasized card (anchors the KPI row)
+  badge?: { text: string; tone: BadgeProps['tone'] };
+  hero?: boolean; // dark navy emphasized card
+  tone?: 'default' | 'danger'; // red-tinted card (e.g. maintenance alerts)
   loading?: boolean;
 }
 
-// KPI stat card. `hero` renders the emphasized navy gradient card; others are glass. The delta reads
-// "+X% increase / -X% decrease" and shows the range-aware comparison period.
-export function KpiCard({ label, value, unit, delta, hero, loading }: KpiCardProps) {
+export function KpiCard({ label, value, unit, delta, badge, hero, tone = 'default', loading }: KpiCardProps) {
   const { t } = useTranslation();
+
+  const surface = hero
+    ? 'bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(223_55%_26%)] text-white'
+    : tone === 'danger'
+      ? 'border border-destructive/30 bg-destructive/5'
+      : 'glass';
 
   if (loading) {
     return (
@@ -32,16 +39,19 @@ export function KpiCard({ label, value, unit, delta, hero, loading }: KpiCardPro
   }
 
   return (
-    <div
-      className={cn(
-        'rounded-2xl p-5 shadow-sm',
-        hero ? 'bg-gradient-to-br from-[hsl(var(--navy))] to-[hsl(223_55%_26%)] text-white' : 'glass',
-      )}
-    >
-      <p className={cn('text-sm font-medium', hero ? 'text-white/70' : 'text-muted-foreground')}>{label}</p>
-      <div className="mt-1 flex items-baseline gap-1.5">
+    <div className={cn('rounded-2xl p-5 shadow-sm', surface)}>
+      <p
+        className={cn(
+          'text-sm font-medium',
+          hero ? 'text-white/70' : tone === 'danger' ? 'text-destructive' : 'text-muted-foreground',
+        )}
+      >
+        {label}
+      </p>
+      <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span className="text-3xl font-bold tabular-nums tracking-tight">{value}</span>
         {unit && <span className={cn('text-sm', hero ? 'text-white/60' : 'text-muted-foreground')}>{unit}</span>}
+        {badge && <Badge tone={badge.tone}>{badge.text}</Badge>}
       </div>
       {delta && (
         <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">

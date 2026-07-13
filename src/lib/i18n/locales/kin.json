@@ -1,7 +1,26 @@
 {
   "app": {
     "name": "excelTravel",
-    "tagline": "Genzura amamodoka yawe ako kanya"
+    "tagline": "Genzura amamodoka yawe ako kanya",
+    "opsTitle": "Imicungire y'ibikorwa"
+  },
+  "fleet": {
+    "title": "Incamake y'amamodoka",
+    "subtitle": "Uko amamodoka yose akora ameze ako kanya.",
+    "addVehicle": "Ongeraho imodoka",
+    "filter": "Shungura",
+    "cardView": "Amakarita",
+    "listView": "Urutonde",
+    "totalFleet": "Amamodoka yose",
+    "activeRoutes": "Imihanda ikora",
+    "maintenanceAlerts": "Imenyesha ryo gusana",
+    "fleetEfficiency": "Imikorere y'amamodoka",
+    "actionRequired": "Hakenewe igikorwa",
+    "optimal": "Byiza",
+    "complete": "{{pct}}% byarangiye",
+    "onSchedule": "Kuri gahunda",
+    "delayed": "Byatinze",
+    "approaching": "Biregereje"
   },
   "home": {
     "morning": "Mwaramutse, {{name}}",
