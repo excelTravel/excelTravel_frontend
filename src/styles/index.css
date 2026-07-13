@@ -11,25 +11,25 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 174 84% 30%; /* teal — signature accent / primary action */
+    --primary: 175 77% 26%; /* deep teal #0F766E — teal buttons/actions, AA-safe with white text */
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary-foreground: 223 66% 17%;
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 40%; /* ≥4.5:1 on light surfaces */
-    --accent: 174 60% 92%;
-    --accent-foreground: 174 84% 20%;
-    --destructive: 0 72% 45%;
+    --accent: 173 66% 92%;
+    --accent-foreground: 175 77% 20%;
+    --destructive: 0 84% 60%; /* #EF4444 */
     --destructive-foreground: 0 0% 100%;
     --success: 142 71% 38%;
     --warning: 32 95% 44%;
     --border: 214 32% 88%;
     --input: 214 32% 88%;
-    --ring: 174 84% 30%;
+    --ring: 173 80% 40%;
     --radius: 0.75rem;
 
-    --navy: 222 47% 11%;
-    --teal: 174 84% 30%;
+    --navy: 223 66% 17%; /* #0F214A — sidebar / brand base */
+    --teal: 173 80% 40%; /* #14B8A6 — bright signature accent (highlights, indicators, charts) */
     --glass-bg: 0 0% 100%;
     --glass-opacity: 0.62;
     --glass-border: 214 32% 88%;
@@ -58,8 +58,8 @@
     --input: 217 33% 22%;
     --ring: 173 80% 42%;
 
-    --navy: 222 47% 5%;
-    --teal: 173 80% 42%;
+    --navy: 223 60% 10%; /* #0F214A family, deeper for dark */
+    --teal: 173 80% 44%;
     --glass-bg: 222 40% 12%;
     --glass-opacity: 0.5;
     --glass-border: 217 33% 22%;
@@ -71,7 +71,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background font-sans text-foreground antialiased;
     transition:
       background-color 0.2s ease,
       color 0.2s ease,

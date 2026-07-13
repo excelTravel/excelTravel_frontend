@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/clerk-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { config } from './lib/config';
+import '@fontsource-variable/inter';
 import './lib/i18n';
 import './styles/index.css';
 import { App } from './App';
