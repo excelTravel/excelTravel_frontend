@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "excelTravel",
+    "tagline": "Run your buses in real time"
+  },
+  "foundation": {
+    "title": "Foundation ready",
+    "body": "React + Vite + Tailwind + shadcn/ui + design tokens are wired. The teal accent, glass cards, and dark mode all work. Screens come next, once the designs land."
+  },
+  "common": {
+    "retry": "Retry",
+    "loading": "Loading…",
+    "signIn": "Sign in",
+    "toggleTheme": "Toggle theme"
+  }
+}

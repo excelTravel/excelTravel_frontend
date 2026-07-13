@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+*.local
+
+# env (never commit real secrets — only .env.example)
+.env
+.env.*
+!.env.example
+
+# test / coverage
+coverage/
+playwright-report/
+test-results/
+.vitest/
+
+# generated API types (regenerate with `npm run openapi:types`)
+# src/lib/api/types.ts   # (kept in git by default; uncomment to ignore)
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*

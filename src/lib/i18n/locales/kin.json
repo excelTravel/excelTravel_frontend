@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "excelTravel",
+    "tagline": "Genzura amamodoka yawe ako kanya"
+  },
+  "foundation": {
+    "title": "Urufatiro rwiteguye",
+    "body": "React + Vite + Tailwind + shadcn/ui n'ibara ry'imiterere byashyizweho. Ibara rya teal, amakarita ya glass, n'uburyo bw'umukara birakora. Amapaji akurikira, iyo igishushanyo cyaje."
+  },
+  "common": {
+    "retry": "Ongera ugerageze",
+    "loading": "Biratunganywa…",
+    "signIn": "Injira",
+    "toggleTheme": "Hindura ishusho"
+  }
+}
