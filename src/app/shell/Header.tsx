@@ -4,7 +4,6 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/store/theme';
 import { useCurrentUser, getGreetingPeriod } from '@/lib/currentUser';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
-import { DateRangePicker } from '@/components/date-range-picker';
 import { cn } from '@/lib/utils';
 import { opsNav } from './nav';
 
@@ -38,8 +37,6 @@ export function Header() {
       )}
 
       <div className="flex items-center gap-4">
-        <DateRangePicker />
-
         <button
           type="button"
           onClick={toggle}

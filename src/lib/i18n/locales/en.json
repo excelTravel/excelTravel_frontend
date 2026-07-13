@@ -29,6 +29,20 @@
     "retry": "Retry",
     "loading": "Loading…",
     "signIn": "Sign in",
-    "toggleTheme": "Toggle theme"
+    "toggleTheme": "Toggle theme",
+    "increase": "increase",
+    "decrease": "decrease",
+    "showingData": "Showing data for"
+  },
+  "range": {
+    "compare": {
+      "all": "overall",
+      "today": "vs yesterday",
+      "7d": "vs previous 7 days",
+      "month": "vs last month",
+      "30d": "vs previous 30 days",
+      "year": "vs last year",
+      "custom": "vs previous period"
+    }
   }
 }

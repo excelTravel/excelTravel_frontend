@@ -1,17 +1,27 @@
+import { useTranslation } from 'react-i18next';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+export interface KpiDelta {
+  value: string; // e.g. "+12.5%"
+  direction: 'up' | 'down';
+  comparison?: string; // range-aware, e.g. "vs previous 30 days"
+}
 
 export interface KpiCardProps {
   label: string;
   value: string;
   unit?: string;
-  delta?: { value: string; direction: 'up' | 'down' };
+  delta?: KpiDelta;
   hero?: boolean; // the dark navy emphasized card (anchors the KPI row)
   loading?: boolean;
 }
 
-// KPI stat card. `hero` renders the emphasized navy gradient card from the design; others are glass.
+// KPI stat card. `hero` renders the emphasized navy gradient card; others are glass. The delta reads
+// "+X% increase / -X% decrease" and shows the range-aware comparison period.
 export function KpiCard({ label, value, unit, delta, hero, loading }: KpiCardProps) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className={cn('rounded-2xl p-5 shadow-sm', hero ? 'bg-[hsl(var(--navy))]' : 'glass')}>
@@ -20,6 +30,7 @@ export function KpiCard({ label, value, unit, delta, hero, loading }: KpiCardPro
       </div>
     );
   }
+
   return (
     <div
       className={cn(
@@ -33,19 +44,24 @@ export function KpiCard({ label, value, unit, delta, hero, loading }: KpiCardPro
         {unit && <span className={cn('text-sm', hero ? 'text-white/60' : 'text-muted-foreground')}>{unit}</span>}
       </div>
       {delta && (
-        <span
-          className={cn(
-            'mt-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-            hero
-              ? 'bg-white/15 text-white'
-              : delta.direction === 'up'
-                ? 'bg-success/15 text-success'
-                : 'bg-destructive/15 text-destructive',
+        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+              hero
+                ? 'bg-white/15 text-white'
+                : delta.direction === 'up'
+                  ? 'bg-success/15 text-success'
+                  : 'bg-destructive/15 text-destructive',
+            )}
+          >
+            {delta.direction === 'up' ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
+            {delta.value} {t(delta.direction === 'up' ? 'common.increase' : 'common.decrease')}
+          </span>
+          {delta.comparison && (
+            <span className={cn('text-xs', hero ? 'text-white/60' : 'text-muted-foreground')}>{delta.comparison}</span>
           )}
-        >
-          {delta.direction === 'up' ? <ArrowUpRight className="size-3" /> : <ArrowDownRight className="size-3" />}
-          {delta.value}
-        </span>
+        </div>
       )}
     </div>
   );

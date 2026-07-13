@@ -29,6 +29,20 @@
     "retry": "Ongera ugerageze",
     "loading": "Biratunganywa…",
     "signIn": "Injira",
-    "toggleTheme": "Hindura ishusho"
+    "toggleTheme": "Hindura ishusho",
+    "increase": "kwiyongera",
+    "decrease": "kugabanuka",
+    "showingData": "Amakuru y'igihe cya"
+  },
+  "range": {
+    "compare": {
+      "all": "muri rusange",
+      "today": " ku ejo hashize",
+      "7d": "ku minsi 7 ishize",
+      "month": "ku kwezi gushize",
+      "30d": "ku minsi 30 ishize",
+      "year": "ku mwaka ushize",
+      "custom": "ku gihe gishize"
+    }
   }
 }
