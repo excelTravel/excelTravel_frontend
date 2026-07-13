@@ -9,3 +9,7 @@ export const config = {
   },
   mapStyleUrl: import.meta.env.VITE_MAP_STYLE_URL ?? '',
 } as const;
+
+// When a Clerk publishable key is set, login is enforced; otherwise the app runs open (backend dev-auth).
+export const authEnabled = Boolean(config.clerkPublishableKey);
+

@@ -1,16 +1,20 @@
 import { Routes, Route } from 'react-router-dom';
+import { authEnabled } from './lib/config';
 import { AppShell } from './app/shell/AppShell';
+import { RequireAuth } from './features/auth/RequireAuth';
+import { LoginPage } from './features/auth/LoginPage';
 import { PlaceholderPage } from './app/pages/PlaceholderPage';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { FleetPage } from './features/fleet/FleetPage';
 import { TripDetailPage } from './features/trips/TripDetailPage';
 import { BookingsPage } from './features/bookings/BookingsPage';
 
-// Ops-manager routes under the app shell. Screens are filled in one by one from the Figma designs.
+// Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
 export function App() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      {authEnabled && <Route path="/login/*" element={<LoginPage />} />}
+      <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
         <Route path="/map" element={<PlaceholderPage title="Live Map" />} />
         <Route path="/trips" element={<TripDetailPage />} />

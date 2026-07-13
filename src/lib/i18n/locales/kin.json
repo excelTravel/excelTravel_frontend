@@ -22,6 +22,10 @@
     "delayed": "Byatinze",
     "approaching": "Biregereje"
   },
+  "login": {
+    "headline": "Genzura bisi zawe ako kanya.",
+    "sub": "Gukurikirana, kugura amatike, amamodoka n'isesengura — urubuga rumwe rw'ibikorwa mu Rwanda."
+  },
   "home": {
     "morning": "Mwaramutse, {{name}}",
     "afternoon": "Mwiriwe, {{name}}",

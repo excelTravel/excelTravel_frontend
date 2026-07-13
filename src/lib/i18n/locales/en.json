@@ -22,6 +22,10 @@
     "delayed": "Delayed",
     "approaching": "Approaching"
   },
+  "login": {
+    "headline": "Run your intercity buses in real time.",
+    "sub": "Live tracking, bookings, fleet and analytics — one operations platform for Rwanda."
+  },
   "home": {
     "morning": "Good morning, {{name}}",
     "afternoon": "Good afternoon, {{name}}",

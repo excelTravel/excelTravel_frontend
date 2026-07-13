@@ -27,7 +27,7 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
     {config.clerkPublishableKey ? (
-      <ClerkProvider publishableKey={config.clerkPublishableKey}>
+      <ClerkProvider publishableKey={config.clerkPublishableKey} afterSignOutUrl="/login">
         <Providers>
           <App />
         </Providers>
