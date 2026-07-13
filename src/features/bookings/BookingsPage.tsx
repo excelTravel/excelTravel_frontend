@@ -15,6 +15,7 @@ import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge, StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /bookings, /analytics (velocity/channel), /tracking (occupancy).
@@ -54,17 +55,17 @@ export function BookingsPage() {
   const compare = t(`range.compare.${preset}`);
 
   return (
-    <div className="space-y-6">
+    <Reveal className="space-y-6">
       {/* KPI row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('bookings.totalDaily')} value="1,284" delta={{ value: '+12%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('bookings.monthly')} value="32,910" delta={{ value: '+5.4%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('bookings.revenueToday')} value="4.2M" unit="RWF" badge={{ text: t('bookings.stable'), tone: 'neutral' }} />
         <KpiCard label={t('bookings.dailyGoal')} value="85%" badge={{ text: t('bookings.stable'), tone: 'success' }} />
-      </div>
+      </RevealItem>
 
       {/* Velocity + channel split */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="p-6 xl:col-span-2">
           <div className="flex items-center justify-between">
             <div>
@@ -126,10 +127,10 @@ export function BookingsPage() {
             </div>
           </div>
         </GlassCard>
-      </div>
+      </RevealItem>
 
       {/* Live feed + occupancy */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="p-6">
           <div className="flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-base font-semibold">
@@ -193,10 +194,10 @@ export function BookingsPage() {
             </div>
           </div>
         </GlassCard>
-      </div>
+      </RevealItem>
 
       {/* Revenue protection + detailed table */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="p-6">
           <h3 className="flex items-center gap-2 text-base font-semibold">
             <ShieldCheck className="size-4 text-destructive" /> {t('bookings.revenueProtection')}
@@ -292,7 +293,7 @@ export function BookingsPage() {
             </div>
           </div>
         </GlassCard>
-      </div>
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

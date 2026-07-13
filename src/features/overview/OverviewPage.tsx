@@ -5,6 +5,7 @@ import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
 import { useDateRange } from '@/store/dateRange';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF } from '@/lib/utils';
 
 // NOTE: values are placeholders annotated with the backend endpoint each will read from. When wired, the
@@ -44,18 +45,18 @@ export function OverviewPage() {
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
   return (
-    <div className="space-y-6">
+    <Reveal className="space-y-6">
       {/* KPI row — /analytics (revenue), /bookings (tickets), /tracking (buses active).
           Deltas + comparison come from the selected range (this period vs previous). */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard hero label={t('overview.dailyRevenue')} value="4,250K" unit="RWF" delta={{ value: '+12.5%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('overview.revenueMtd')} value="85.4M" unit="RWF" delta={{ value: '+8.2%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('overview.ticketsToday')} value="750" delta={{ value: '-5.2%', direction: 'down', comparison: compare }} />
         <KpiCard label={t('overview.busesActive')} value="18" delta={{ value: '+3', direction: 'up', comparison: compare }} />
-      </div>
+      </RevealItem>
 
       {/* Passenger volume + live map */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="p-6 xl:col-span-2">
           <div className="flex items-center justify-between">
             <div>
@@ -101,10 +102,10 @@ export function OverviewPage() {
             </div>
           </div>
         </GlassCard>
-      </div>
+      </RevealItem>
 
       {/* Bottom row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <GlassCard className="p-6">
           <h3 className="text-base font-semibold">{t('overview.topRoutes')}</h3>
           <ul className="mt-4 space-y-4">
@@ -169,7 +170,7 @@ export function OverviewPage() {
             ))}
           </ul>
         </GlassCard>
-      </div>
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

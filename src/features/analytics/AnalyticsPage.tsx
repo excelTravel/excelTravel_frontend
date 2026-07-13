@@ -15,6 +15,7 @@ import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { useDateRange } from '@/store/dateRange';
 
 // Stub data (Rwanda). Wired later to /analytics/peak-travel, /analytics/peak-booking, /analytics/seat-map.
@@ -67,26 +68,29 @@ export function AnalyticsPage() {
   const compare = t(`range.compare.${preset}`);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t('analytics.title')}
-        subtitle={t('analytics.subtitle')}
-        actions={
-          <Button variant="outline" size="sm">
-            <Download className="size-4" /> {t('bookings.export')}
-          </Button>
-        }
-      />
+    <Reveal className="space-y-6">
+      <RevealItem>
+        <PageHeader
+          title={t('analytics.title')}
+          subtitle={t('analytics.subtitle')}
+          actions={
+            <Button variant="outline" size="sm">
+              <Download className="size-4" /> {t('bookings.export')}
+            </Button>
+          }
+        />
+      </RevealItem>
 
       {/* KPI row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('analytics.avgOccupancy')} value="78%" delta={{ value: '+4.1%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('analytics.onTimeRate')} value="91%" delta={{ value: '+2.3%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('analytics.revenuePerTrip')} value="52K" unit="RWF" delta={{ value: '-1.8%', direction: 'down', comparison: compare }} />
         <KpiCard label={t('analytics.busiestRoute')} value="KGL — MUS" badge={{ text: '92%', tone: 'teal' }} />
-      </div>
+      </RevealItem>
 
       {/* Peak travel heatmap */}
+      <RevealItem>
       <GlassCard className="p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -134,9 +138,10 @@ export function AnalyticsPage() {
           </div>
         </div>
       </GlassCard>
+      </RevealItem>
 
       {/* Booking hours + revenue trend */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <GlassCard className="p-6">
           <h3 className="text-base font-semibold">{t('analytics.peakBooking')}</h3>
           <p className="text-sm text-muted-foreground">{t('analytics.peakBookingSub')}</p>
@@ -186,9 +191,10 @@ export function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         </GlassCard>
-      </div>
+      </RevealItem>
 
       {/* Route performance */}
+      <RevealItem>
       <GlassCard className="overflow-hidden">
         <h3 className="p-5 text-base font-semibold">{t('analytics.routePerformance')}</h3>
         <div className="overflow-x-auto">
@@ -221,6 +227,7 @@ export function AnalyticsPage() {
           </table>
         </div>
       </GlassCard>
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

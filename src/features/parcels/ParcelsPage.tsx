@@ -15,6 +15,7 @@ import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /packages (custody chain) + ops pricing (setFee).
@@ -37,16 +38,17 @@ export function ParcelsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <Reveal className="space-y-6">
       {/* KPI row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('parcels.mostRoutes')} value="10" unit={t('parcels.parcels')} badge={{ text: 'KGL — MUS', tone: 'teal' }} />
         <KpiCard label={t('parcels.revenueDaily')} value="4,250K" unit="RWF" delta={{ value: '+12.5%', direction: 'up', comparison: compare }} />
         <KpiCard label={t('parcels.inTransit')} value="1,245" />
         <KpiCard label={t('parcels.delayed')} value="18" tone="danger" badge={{ text: t('parcels.criticalAlerts'), tone: 'danger' }} />
-      </div>
+      </RevealItem>
 
       {/* Live logistics flow */}
+      <RevealItem>
       <GlassCard className="p-6">
         <h3 className="text-base font-semibold">{t('parcels.logisticsFlow')}</h3>
         <div className="mt-8 flex items-start">
@@ -69,9 +71,10 @@ export function ParcelsPage() {
           ))}
         </div>
       </GlassCard>
+      </RevealItem>
 
       {/* Manifest + pricing */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="overflow-hidden xl:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3 p-5">
             <h3 className="flex items-center gap-2 text-base font-semibold">
@@ -175,7 +178,7 @@ export function ParcelsPage() {
           </div>
           <Button className="mt-4 w-full">{t('parcels.updatePricing')}</Button>
         </GlassCard>
-      </div>
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

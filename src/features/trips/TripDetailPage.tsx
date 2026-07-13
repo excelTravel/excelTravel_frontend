@@ -16,6 +16,7 @@ import {
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub trip (Rwanda). Wired later to /trips/{id}, /bookings (manifest), /tracking (map/ETA), /me (driver).
@@ -35,9 +36,9 @@ export function TripDetailPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-6">
+    <Reveal className="space-y-6">
       {/* Breadcrumb + title + trip pills */}
-      <div>
+      <RevealItem>
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           {t('trip.breadcrumb')} <ChevronRight className="size-3.5" aria-hidden />
           <span className="font-medium text-foreground">TRX-8921</span>
@@ -61,9 +62,9 @@ export function TripDetailPage() {
             </span>
           </div>
         </div>
-      </div>
+      </RevealItem>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+      <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Left: map + ETA strip, manifest, trip log */}
         <div className="space-y-6 xl:col-span-2">
           <GlassCard className="overflow-hidden">
@@ -249,7 +250,7 @@ export function TripDetailPage() {
             </div>
           </GlassCard>
         </div>
-      </div>
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

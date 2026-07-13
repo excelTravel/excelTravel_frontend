@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
+import { Reveal, RevealItem, MotionCard } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
 
 // Stub active-trip data (Rwanda). Wired later to /trips (active) + /tracking (ETA/progress) + /vehicles + /me.
@@ -37,7 +38,7 @@ const statusToPill: Record<TripStatus, string> = { on_schedule: 'completed', del
 function TripCard({ trip, statusLabel }: { trip: FleetTrip; statusLabel: string }) {
   const late = trip.status === 'delayed';
   return (
-    <GlassCard className="flex flex-col p-5">
+    <MotionCard className="flex flex-col p-5">
       <div className="flex items-start justify-between">
         <StatusPill status={statusToPill[trip.status]} className="capitalize">
           {statusLabel}
@@ -83,7 +84,7 @@ function TripCard({ trip, statusLabel }: { trip: FleetTrip; statusLabel: string 
           <MoreVertical className="size-4" />
         </button>
       </div>
-    </GlassCard>
+    </MotionCard>
   );
 }
 
@@ -97,32 +98,34 @@ export function FleetPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={t('fleet.title')}
-        subtitle={t('fleet.subtitle')}
-        actions={
-          <>
-            <Button variant="outline" size="sm">
-              <Filter className="size-4" /> {t('fleet.filter')}
-            </Button>
-            <Button size="sm">
-              <Plus className="size-4" /> {t('fleet.addVehicle')}
-            </Button>
-          </>
-        }
-      />
+    <Reveal className="space-y-6">
+      <RevealItem>
+        <PageHeader
+          title={t('fleet.title')}
+          subtitle={t('fleet.subtitle')}
+          actions={
+            <>
+              <Button variant="outline" size="sm">
+                <Filter className="size-4" /> {t('fleet.filter')}
+              </Button>
+              <Button size="sm">
+                <Plus className="size-4" /> {t('fleet.addVehicle')}
+              </Button>
+            </>
+          }
+        />
+      </RevealItem>
 
       {/* KPIs — /vehicles (count), /trips (active), /maintenance (alerts), computed efficiency */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('fleet.totalFleet')} value="142" delta={{ value: '+2%', direction: 'up' }} />
         <KpiCard label={t('fleet.activeRoutes')} value="87" delta={{ value: '+5%', direction: 'up' }} />
         <KpiCard label={t('fleet.maintenanceAlerts')} value="12" tone="danger" badge={{ text: t('fleet.actionRequired'), tone: 'danger' }} />
         <KpiCard label={t('fleet.fleetEfficiency')} value="94%" badge={{ text: t('fleet.optimal'), tone: 'success' }} />
-      </div>
+      </RevealItem>
 
       {/* View toggle */}
-      <div className="flex justify-end">
+      <RevealItem className="flex justify-end">
         <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-sm">
           {(['card', 'list'] as const).map((v) => (
             <button
@@ -139,8 +142,9 @@ export function FleetPage() {
             </button>
           ))}
         </div>
-      </div>
+      </RevealItem>
 
+      <RevealItem>
       {view === 'card' ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {trips.map((tr) => (
@@ -179,6 +183,7 @@ export function FleetPage() {
           </table>
         </GlassCard>
       )}
-    </div>
+      </RevealItem>
+    </Reveal>
   );
 }

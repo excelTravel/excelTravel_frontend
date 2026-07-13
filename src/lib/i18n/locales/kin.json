@@ -32,6 +32,14 @@
     "evening": "Muramuke, {{name}}",
     "subtitle": "Dore uko imikorere yawe imeze uyu munsi."
   },
+  "map": {
+    "title": "Ikarita y'ako kanya",
+    "preparing": "Gutegura ikarita y'urusobe…",
+    "connecting": "Guhuza n'amakuru ako kanya",
+    "streaming": "Kwakira aho bisi ziri…",
+    "activeTrips": "Ingendo zikora",
+    "activeTripsSub": "Bisi zoherereza aho ziri ako kanya"
+  },
   "analytics": {
     "title": "Isesengura",
     "subtitle": "Amasaha akomeye, uko byuzuye n'amafaranga.",

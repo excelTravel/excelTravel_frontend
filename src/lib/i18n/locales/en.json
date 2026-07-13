@@ -32,6 +32,14 @@
     "evening": "Good evening, {{name}}",
     "subtitle": "Here's your operation at a glance for today."
   },
+  "map": {
+    "title": "Live Map",
+    "preparing": "Preparing the live network view…",
+    "connecting": "Connecting to live feed",
+    "streaming": "Streaming bus positions…",
+    "activeTrips": "Active trips",
+    "activeTripsSub": "Buses currently broadcasting location"
+  },
   "analytics": {
     "title": "Analytics",
     "subtitle": "Peak hours, occupancy and revenue insights.",

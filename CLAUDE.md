@@ -20,6 +20,10 @@ Overview: navy base + **teal** signature accent, frosted cards, RWF currency, EN
 - **React Hook Form + Zod** for forms + input validation; **DOMPurify** for any rich text.
 - **MapLibre GL + free OSM tiles** (zero billing) for live tracking maps.
 - **Recharts** for charts. **socket.io-client** for realtime. **Cloudinary** for image uploads.
+- **framer-motion** for motion. Shared vocabulary in `src/lib/motion.ts` (durations/easings/variants) +
+  primitives in `src/components/motion/Motion.tsx` (`PageTransition`, `Reveal`/`RevealItem` staggered section
+  reveals, `MotionCard` hover-lift). Reuse these — do not hand-roll page/section animations. Route transitions
+  are wired once in `AppShell` (keyed `AnimatePresence`). All primitives honor `prefers-reduced-motion` in JS.
 - Tests: **Vitest + Testing Library + MSW** (integration from the OpenAPI spec) + **Playwright** (E2E).
 
 ## Backend contract (how we talk to it)
@@ -69,7 +73,7 @@ npm run test:e2e       # playwright
 
 ## Screen checklist (update as screens land)
 Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
-Screens (per role — see `docs/frontend-plan.md`): [x] Overview [ ] Live Map (LAST — MapLibre) [x] Trips
+Screens (per role — see `docs/frontend-plan.md`): [x] Overview [~] Live Map (skeleton-loading state shipped; MapLibre pending) [x] Trips
 [ ] Booking desk [x] Bookings [x] Fleet+Maintenance [ ] People (drivers/agents) [ ] Network (routes/stops/fares)
 [x] Analytics [x] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit)
 [ ] Settings [ ] Passenger portal [ ] Driver portal · Auth: [x] Login/Continue with Google (Clerk)

@@ -10,6 +10,7 @@ import { TripDetailPage } from './features/trips/TripDetailPage';
 import { BookingsPage } from './features/bookings/BookingsPage';
 import { ParcelsPage } from './features/parcels/ParcelsPage';
 import { AnalyticsPage } from './features/analytics/AnalyticsPage';
+import { LiveMapPage } from './features/map/LiveMapPage';
 
 // Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
 export function App() {
@@ -18,7 +19,7 @@ export function App() {
       {authEnabled && <Route path="/login/*" element={<LoginPage />} />}
       <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
-        <Route path="/map" element={<PlaceholderPage title="Live Map" />} />
+        <Route path="/map" element={<LiveMapPage />} />
         <Route path="/trips" element={<TripDetailPage />} />
         <Route path="/fleet" element={<FleetPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
