@@ -85,27 +85,38 @@ export function RwandaMap({
     if (interactive) {
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     }
-    map.on('load', () => {
-      map.addSource('routes', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: RWANDA_ROUTES.map((r) => ({
-            type: 'Feature',
-            properties: {},
-            geometry: { type: 'LineString', coordinates: r.coords },
-          })),
-        },
-      });
-      map.addLayer({
-        id: 'routes-line',
-        type: 'line',
-        source: 'routes',
-        layout: { 'line-cap': 'round', 'line-join': 'round' },
-        paint: { 'line-color': '#14B8A6', 'line-width': 3, 'line-opacity': 0.55, 'line-dasharray': [1, 1.6] },
-      });
+    // Add the route overlay once the style is up. Guarded + wrapped so a StrictMode double-mount or a
+    // failed layer add can NEVER leave the loading shimmer covering the map (ready always flips).
+    const onStyleReady = () => {
+      try {
+        if (!map.getSource('routes')) {
+          map.addSource('routes', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: RWANDA_ROUTES.map((r) => ({
+                type: 'Feature',
+                properties: {},
+                geometry: { type: 'LineString', coordinates: r.coords },
+              })),
+            },
+          });
+          map.addLayer({
+            id: 'routes-line',
+            type: 'line',
+            source: 'routes',
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': '#14B8A6', 'line-width': 3, 'line-opacity': 0.55, 'line-dasharray': [1, 1.6] },
+          });
+        }
+      } catch {
+        // Route lines are decorative — never block the map on them.
+      }
       setReady(true);
-    });
+      map.resize(); // guard against a zero-size container race on first paint
+    };
+    if (map.isStyleLoaded()) onStyleReady();
+    else map.once('load', onStyleReady);
     return () => {
       map.remove();
       mapRef.current = null;

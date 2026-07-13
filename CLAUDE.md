@@ -78,8 +78,9 @@ npm run test:e2e       # playwright
 
 ## Screen checklist (update as screens land)
 Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
-Screens (per role — see `docs/frontend-plan.md`): [x] Overview [x] Live Map (MapLibre + OSM tiles, routes, bus markers) [x] Trips
-[ ] Booking desk [x] Bookings [x] Fleet+Maintenance [ ] People (drivers/agents) [ ] Network (routes/stops/fares)
+Screens (per role — see `docs/frontend-plan.md`): [x] Overview [x] Live Map (MapLibre + OSM tiles, routes, bus markers)
+[x] Trips (management list `/trips` + detail `/trips/:id`) [ ] Booking desk [x] Bookings
+[x] Fleet console (Vehicles / Drivers-shifts-assignment / Maintenance tabs) [~] People (drivers live under Fleet; agents pending) [ ] Network (routes/stops/fares)
 [x] Analytics [x] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit)
 [ ] Settings [ ] Passenger portal [ ] Driver portal · Auth: [x] Login/Continue with Google (Clerk)
 

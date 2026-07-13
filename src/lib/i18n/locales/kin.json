@@ -20,7 +20,119 @@
     "complete": "{{pct}}% byarangiye",
     "onSchedule": "Kuri gahunda",
     "delayed": "Byatinze",
-    "approaching": "Biregereje"
+    "approaching": "Biregereje",
+    "consoleTitle": "Imicungire y'amamodoka",
+    "consoleSub": "Amamodoka, abashoferi no gusana mu modoka zawe.",
+    "activeDrivers": "Abashoferi bakora",
+    "openMaintenance": "Gusana bisabwa",
+    "utilization": "Ikoreshwa ry'amamodoka",
+    "tabs": {
+      "vehicles": "Amamodoka",
+      "drivers": "Abashoferi",
+      "maintenance": "Gusana"
+    }
+  },
+  "tripsList": {
+    "title": "Imicungire y'ingendo",
+    "subtitle": "Ingendo zose ziteganyijwe, zikora n'izarangiye.",
+    "newTrip": "Urugendo rushya",
+    "filter": "Shungura",
+    "search": "Shakisha ingendo",
+    "live": "Ako kanya",
+    "kpiScheduled": "Ziteganyijwe",
+    "kpiActive": "Zikora ubu",
+    "kpiCompleted": "Zarangiye uyu munsi",
+    "kpiCancelled": "Zahagaritswe",
+    "tabs": {
+      "all": "Zose",
+      "scheduled": "Ziteganyijwe",
+      "active": "Zikora",
+      "completed": "Zarangiye",
+      "cancelled": "Zahagaritswe"
+    },
+    "colRoute": "Umuhanda",
+    "colDeparts": "Iva",
+    "colBus": "Bisi",
+    "colDriver": "Umushoferi",
+    "colOccupancy": "Uko byuzuye",
+    "colStatus": "Uko bimeze",
+    "colRevenue": "Amafaranga",
+    "status": {
+      "scheduled": "Biteganyijwe",
+      "boarding": "Kwinjira",
+      "in_transit": "Mu nzira",
+      "delayed": "Byatinze",
+      "completed": "Byarangiye",
+      "cancelled": "Byahagaritswe"
+    },
+    "emptyTitle": "Nta ngendo hano",
+    "emptySub": "Gerageza ishungura ritandukanye cyangwa ukore urugendo rushya.",
+    "showing": "Byerekana {{shown}} muri {{total}}",
+    "prev": "Urupapuro rubanza",
+    "next": "Urupapuro rukurikira"
+  },
+  "vehicles": {
+    "colVehicle": "Imodoka",
+    "colType": "Ubwoko",
+    "colStatus": "Uko bimeze",
+    "colDriver": "Umushoferi washyizweho",
+    "colOdometer": "Kilometero",
+    "colNextService": "Isanwa rikurikira",
+    "unassigned": "Ntawashyizweho",
+    "actions": "Ibikorwa by'imodoka",
+    "status": {
+      "active": "Irakora",
+      "idle": "Iraruhutse",
+      "maintenance": "Iri gusanwa"
+    }
+  },
+  "drivers": {
+    "add": "Ongeraho umushoferi",
+    "roster": "Gahunda y'uyu munsi",
+    "rosterHint": "Amasaha n'imodoka bahawe",
+    "noVehicle": "Nta modoka",
+    "noShift": "Ntabwo akora uyu munsi",
+    "colDriver": "Umushoferi",
+    "colRating": "Amanota",
+    "colStatus": "Uko bimeze",
+    "colVehicle": "Imodoka",
+    "colShift": "Igihe akora",
+    "colTrip": "Urugendo agezeho",
+    "colAction": "Igikorwa",
+    "assign": "Mushyireho",
+    "call": "Hamagara umushoferi",
+    "state": {
+      "on_shift": "Ari ku kazi",
+      "off_shift": "Ntari ku kazi"
+    }
+  },
+  "maintenance": {
+    "log": "Andika isanwa",
+    "open": "Imirimo ifunguye",
+    "inProgress": "Iragenda",
+    "overdue": "Byararengeje",
+    "monthCost": "Ikiguzi cy'uku kwezi",
+    "alertTitle": "Imodoka {{count}} irengeje igihe cyo gusanwa",
+    "alertSub": "Imirimo yarengeje igihe ishyira imodoka mu kaga — ibanze uyiteganyirize.",
+    "colJob": "Umurimo",
+    "colVehicle": "Imodoka",
+    "colPriority": "Uburemere",
+    "colStatus": "Uko bimeze",
+    "colDue": "Itariki",
+    "colCost": "Ikiguzi",
+    "actions": "Ibikorwa",
+    "priority": {
+      "high": "Bikomeye",
+      "medium": "Biringaniye",
+      "low": "Bike"
+    },
+    "state": {
+      "overdue": "Byararengeje",
+      "open": "Bifunguye",
+      "in_progress": "Biragenda",
+      "scheduled": "Biteganyijwe",
+      "done": "Byarangiye"
+    }
   },
   "login": {
     "headline": "Genzura bisi zawe ako kanya.",

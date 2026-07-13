@@ -43,6 +43,16 @@ const statusTone: Record<string, BadgeProps['tone']> = {
   pending: 'warning',
   hold: 'info',
   at_hub: 'info',
+  // Fleet / driver / maintenance states
+  active: 'success',
+  idle: 'info',
+  maintenance: 'warning',
+  on_shift: 'success',
+  off_shift: 'neutral',
+  open: 'danger',
+  in_progress: 'warning',
+  done: 'success',
+  overdue: 'danger',
 };
 
 export function StatusPill({

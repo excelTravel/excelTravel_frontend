@@ -20,7 +20,119 @@
     "complete": "{{pct}}% complete",
     "onSchedule": "On schedule",
     "delayed": "Delayed",
-    "approaching": "Approaching"
+    "approaching": "Approaching",
+    "consoleTitle": "Fleet Management",
+    "consoleSub": "Vehicles, drivers and maintenance across your fleet.",
+    "activeDrivers": "Active drivers",
+    "openMaintenance": "Open maintenance",
+    "utilization": "Fleet utilization",
+    "tabs": {
+      "vehicles": "Vehicles",
+      "drivers": "Drivers",
+      "maintenance": "Maintenance"
+    }
+  },
+  "tripsList": {
+    "title": "Trip Management",
+    "subtitle": "Every scheduled, active and completed trip across the network.",
+    "newTrip": "New trip",
+    "filter": "Filter",
+    "search": "Search trips",
+    "live": "Live",
+    "kpiScheduled": "Scheduled",
+    "kpiActive": "Active now",
+    "kpiCompleted": "Completed today",
+    "kpiCancelled": "Cancelled",
+    "tabs": {
+      "all": "All",
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "colRoute": "Route",
+    "colDeparts": "Departs",
+    "colBus": "Bus",
+    "colDriver": "Driver",
+    "colOccupancy": "Occupancy",
+    "colStatus": "Status",
+    "colRevenue": "Revenue",
+    "status": {
+      "scheduled": "Scheduled",
+      "boarding": "Boarding",
+      "in_transit": "In transit",
+      "delayed": "Delayed",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "emptyTitle": "No trips here",
+    "emptySub": "Try a different filter or create a new trip.",
+    "showing": "Showing {{shown}} of {{total}} trips",
+    "prev": "Previous page",
+    "next": "Next page"
+  },
+  "vehicles": {
+    "colVehicle": "Vehicle",
+    "colType": "Type",
+    "colStatus": "Status",
+    "colDriver": "Assigned driver",
+    "colOdometer": "Odometer",
+    "colNextService": "Next service",
+    "unassigned": "Unassigned",
+    "actions": "Vehicle actions",
+    "status": {
+      "active": "Active",
+      "idle": "Idle",
+      "maintenance": "In maintenance"
+    }
+  },
+  "drivers": {
+    "add": "Add driver",
+    "roster": "Today's roster",
+    "rosterHint": "Shifts and vehicle assignment",
+    "noVehicle": "No vehicle",
+    "noShift": "Off today",
+    "colDriver": "Driver",
+    "colRating": "Rating",
+    "colStatus": "Status",
+    "colVehicle": "Vehicle",
+    "colShift": "Shift",
+    "colTrip": "Current trip",
+    "colAction": "Action",
+    "assign": "Assign",
+    "call": "Call driver",
+    "state": {
+      "on_shift": "On shift",
+      "off_shift": "Off shift"
+    }
+  },
+  "maintenance": {
+    "log": "Log maintenance",
+    "open": "Open jobs",
+    "inProgress": "In progress",
+    "overdue": "Overdue",
+    "monthCost": "Cost this month",
+    "alertTitle": "{{count}} vehicle overdue for service",
+    "alertSub": "Overdue jobs put vehicles at risk — schedule them first.",
+    "colJob": "Job",
+    "colVehicle": "Vehicle",
+    "colPriority": "Priority",
+    "colStatus": "Status",
+    "colDue": "Due",
+    "colCost": "Cost",
+    "actions": "Job actions",
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "state": {
+      "overdue": "Overdue",
+      "open": "Open",
+      "in_progress": "In progress",
+      "scheduled": "Scheduled",
+      "done": "Done"
+    }
   },
   "login": {
     "headline": "Run your intercity buses in real time.",

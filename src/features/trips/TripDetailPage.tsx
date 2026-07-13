@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
   Bus,
@@ -34,14 +35,18 @@ const log = [
 
 export function TripDetailPage() {
   const { t } = useTranslation();
+  const { id } = useParams();
 
   return (
     <Reveal className="space-y-6">
       {/* Breadcrumb + title + trip pills */}
       <RevealItem>
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          {t('trip.breadcrumb')} <ChevronRight className="size-3.5" aria-hidden />
-          <span className="font-medium text-foreground">TRX-8921</span>
+          <Link to="/trips" className="rounded font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            {t('trip.breadcrumb')}
+          </Link>
+          <ChevronRight className="size-3.5" aria-hidden />
+          <span className="font-medium text-foreground">{id ?? 'TRX-8921'}</span>
         </nav>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
           <h2 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">

@@ -6,6 +6,7 @@ import { LoginPage } from './features/auth/LoginPage';
 import { PlaceholderPage } from './app/pages/PlaceholderPage';
 import { OverviewPage } from './features/overview/OverviewPage';
 import { FleetPage } from './features/fleet/FleetPage';
+import { TripsPage } from './features/trips/TripsPage';
 import { TripDetailPage } from './features/trips/TripDetailPage';
 import { BookingsPage } from './features/bookings/BookingsPage';
 import { ParcelsPage } from './features/parcels/ParcelsPage';
@@ -20,7 +21,8 @@ export function App() {
       <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
         <Route path="/map" element={<LiveMapPage />} />
-        <Route path="/trips" element={<TripDetailPage />} />
+        <Route path="/trips" element={<TripsPage />} />
+        <Route path="/trips/:id" element={<TripDetailPage />} />
         <Route path="/fleet" element={<FleetPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/parcels" element={<ParcelsPage />} />
