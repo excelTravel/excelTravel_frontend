@@ -32,6 +32,36 @@
     "evening": "Good evening, {{name}}",
     "subtitle": "Here's your operation at a glance for today."
   },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Peak hours, occupancy and revenue insights.",
+    "avgOccupancy": "Average occupancy",
+    "onTimeRate": "On-time rate",
+    "revenuePerTrip": "Revenue per trip",
+    "busiestRoute": "Busiest route",
+    "peakTravel": "Peak travel hours",
+    "peakTravelSub": "When buses actually run full (day × hour)",
+    "peakBooking": "Peak booking hours",
+    "peakBookingSub": "When tickets are purchased",
+    "revenueTrend": "Revenue trend",
+    "revenueTrendSub": "Daily revenue for the selected range",
+    "routePerformance": "Route performance",
+    "colRoute": "Route",
+    "colTrips": "Trips",
+    "colOccupancy": "Occupancy",
+    "colRevenue": "Revenue",
+    "less": "Less",
+    "more": "More",
+    "day": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
+  },
   "parcels": {
     "mostRoutes": "Most parcel routes",
     "parcels": "parcels",

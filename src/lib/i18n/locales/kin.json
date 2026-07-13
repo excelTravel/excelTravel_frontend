@@ -32,6 +32,36 @@
     "evening": "Muramuke, {{name}}",
     "subtitle": "Dore uko imikorere yawe imeze uyu munsi."
   },
+  "analytics": {
+    "title": "Isesengura",
+    "subtitle": "Amasaha akomeye, uko byuzuye n'amafaranga.",
+    "avgOccupancy": "Impuzandengo y'uko byuzuye",
+    "onTimeRate": "Igipimo cyo kutinda",
+    "revenuePerTrip": "Amafaranga kuri buri rugendo",
+    "busiestRoute": "Umuhanda ukoreshwa cyane",
+    "peakTravel": "Amasaha y'ingendo nyinshi",
+    "peakTravelSub": "Igihe bisi zuzura (umunsi × isaha)",
+    "peakBooking": "Amasaha yo kwiyandikisha",
+    "peakBookingSub": "Igihe amatike aguzwe",
+    "revenueTrend": "Uko amafaranga agenda",
+    "revenueTrendSub": "Amafaranga ya buri munsi mu gihe cyatoranyijwe",
+    "routePerformance": "Imikorere y'imihanda",
+    "colRoute": "Umuhanda",
+    "colTrips": "Ingendo",
+    "colOccupancy": "Uko byuzuye",
+    "colRevenue": "Amafaranga",
+    "less": "Bike",
+    "more": "Byinshi",
+    "day": {
+      "mon": "Mbe",
+      "tue": "Kbi",
+      "wed": "Gtu",
+      "thu": "Kne",
+      "fri": "Gnu",
+      "sat": "Gnd",
+      "sun": "Cyu"
+    }
+  },
   "parcels": {
     "mostRoutes": "Imihanda y'imizigo myinshi",
     "parcels": "imizigo",
