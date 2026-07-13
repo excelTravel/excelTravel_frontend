@@ -34,11 +34,18 @@
   },
   "map": {
     "title": "Ikarita y'ako kanya",
-    "preparing": "Gutegura ikarita y'urusobe…",
-    "connecting": "Guhuza n'amakuru ako kanya",
-    "streaming": "Kwakira aho bisi ziri…",
+    "subtitle": "Aho bisi ziri ako kanya mu rusobe rwose.",
+    "live": "Ako kanya",
+    "loading": "Ikarita irapakira…",
     "activeTrips": "Ingendo zikora",
-    "activeTripsSub": "Bisi zoherereza aho ziri ako kanya"
+    "activeTripsSub": "Bisi zoherereza aho ziri ako kanya",
+    "focusHint": "Hitamo bisi kugira ngo uyigaragaze ku ikarita",
+    "viewLive": "Reba ikarita yuzuye",
+    "status": {
+      "in_transit": "Mu nzira",
+      "delayed": "Byatinze",
+      "arriving": "Iregereje"
+    }
   },
   "analytics": {
     "title": "Isesengura",

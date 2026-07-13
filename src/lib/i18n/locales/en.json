@@ -34,11 +34,18 @@
   },
   "map": {
     "title": "Live Map",
-    "preparing": "Preparing the live network view…",
-    "connecting": "Connecting to live feed",
-    "streaming": "Streaming bus positions…",
+    "subtitle": "Real-time bus positions across the network.",
+    "live": "Live",
+    "loading": "Loading map…",
     "activeTrips": "Active trips",
-    "activeTripsSub": "Buses currently broadcasting location"
+    "activeTripsSub": "Buses currently broadcasting location",
+    "focusHint": "Select a bus to focus the map",
+    "viewLive": "View live map",
+    "status": {
+      "in_transit": "In transit",
+      "delayed": "Delayed",
+      "arriving": "Arriving"
+    }
   },
   "analytics": {
     "title": "Analytics",

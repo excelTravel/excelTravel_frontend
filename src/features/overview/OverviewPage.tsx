@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
-import { AlertTriangle, ArrowUpRight, Bus, MapPin, TrendingUp } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, Bus, TrendingUp } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge } from '@/components/ui/badge';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { MapPreview } from '@/features/map/MapPreview';
 import { formatRWF } from '@/lib/utils';
 
 // NOTE: values are placeholders annotated with the backend endpoint each will read from. When wired, the
@@ -95,12 +96,7 @@ export function OverviewPage() {
         <GlassCard className="p-6">
           <h3 className="text-base font-semibold">{t('overview.activeRoutesMap')}</h3>
           <p className="text-sm text-muted-foreground">{t('overview.liveDispatch')}</p>
-          <div className="mt-4 flex h-64 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/40 text-muted-foreground">
-            <div className="text-center">
-              <MapPin className="mx-auto size-6" aria-hidden />
-              <p className="mt-2 text-sm">{t('overview.mapOnMapScreen')}</p>
-            </div>
-          </div>
+          <MapPreview className="mt-4 h-64 rounded-xl border border-border" />
         </GlassCard>
       </RevealItem>
 

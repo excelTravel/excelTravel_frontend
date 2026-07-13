@@ -9,13 +9,14 @@ import {
   Tooltip,
   XAxis,
 } from 'recharts';
-import { ChevronLeft, ChevronRight, Download, Filter, Globe, Radio, ShieldCheck, Smartphone, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Filter, Radio, ShieldCheck, Smartphone, XCircle } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge, StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { MapPreview } from '@/features/map/MapPreview';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /bookings, /analytics (velocity/channel), /tracking (occupancy).
@@ -187,12 +188,7 @@ export function BookingsPage() {
               </span>
             </div>
           </div>
-          <div className="flex h-72 items-center justify-center border-t border-border bg-secondary/40 text-muted-foreground">
-            <div className="text-center">
-              <Globe className="mx-auto size-7" aria-hidden />
-              <p className="mt-2 text-sm">Route load map on the Map screen</p>
-            </div>
-          </div>
+          <MapPreview className="h-72 border-t border-border" />
         </GlassCard>
       </RevealItem>
 

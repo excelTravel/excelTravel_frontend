@@ -132,6 +132,58 @@
   }
 }
 
+/* Live-map bus markers (built as plain DOM in RwandaMap; status drives the accent). */
+.et-bus-marker {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.et-bus-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  background: hsl(var(--teal));
+  box-shadow: 0 4px 12px hsl(var(--teal) / 0.5);
+  transition: transform 0.18s ease;
+}
+.et-bus-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 9999px;
+  background: hsl(var(--teal));
+  opacity: 0.55;
+  animation: ping-soft 2.2s ease-out infinite;
+}
+.et-bus-marker[data-status='delayed'] .et-bus-dot {
+  background: hsl(var(--warning));
+  box-shadow: 0 4px 12px hsl(var(--warning) / 0.5);
+}
+.et-bus-marker[data-status='delayed'] .et-bus-ring {
+  background: hsl(var(--warning));
+}
+.et-bus-marker[data-selected='true'] .et-bus-dot {
+  transform: scale(1.2);
+  outline: 3px solid #fff;
+}
+
+/* Keep MapLibre's controls in the app's rounded, glassy language. */
+.maplibregl-ctrl-group {
+  border-radius: 0.6rem !important;
+  overflow: hidden;
+  box-shadow: 0 4px 14px hsl(var(--navy) / 0.14) !important;
+}
+
 /* Honor reduced-motion globally. */
 @media (prefers-reduced-motion: reduce) {
   *,

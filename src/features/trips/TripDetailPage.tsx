@@ -4,7 +4,6 @@ import {
   Bus,
   ChevronRight,
   Download,
-  MapPin,
   Megaphone,
   MessageSquare,
   Phone,
@@ -17,6 +16,7 @@ import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { MapPreview } from '@/features/map/MapPreview';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub trip (Rwanda). Wired later to /trips/{id}, /bookings (manifest), /tracking (map/ETA), /me (driver).
@@ -68,12 +68,7 @@ export function TripDetailPage() {
         {/* Left: map + ETA strip, manifest, trip log */}
         <div className="space-y-6 xl:col-span-2">
           <GlassCard className="overflow-hidden">
-            <div className="flex h-[360px] items-center justify-center border-b border-border bg-secondary/40 text-muted-foreground">
-              <div className="text-center">
-                <MapPin className="mx-auto size-7" aria-hidden />
-                <p className="mt-2 text-sm">{t('trip.mapComing')}</p>
-              </div>
-            </div>
+            <MapPreview className="h-[360px] border-b border-border" />
             <div className="flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

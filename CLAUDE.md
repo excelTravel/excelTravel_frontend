@@ -18,7 +18,12 @@ Overview: navy base + **teal** signature accent, frosted cards, RWF currency, EN
 - **@clerk/clerk-react** for auth (token attached to API calls; matches backend).
 - **react-i18next** (EN + KIN); **date-fns** (Africa/Kigali timezone), RWF/number locale formatting.
 - **React Hook Form + Zod** for forms + input validation; **DOMPurify** for any rich text.
-- **MapLibre GL + free OSM tiles** (zero billing) for live tracking maps.
+- **MapLibre GL + free OSM tiles** (zero billing) for live tracking maps. Map feature lives in
+  `src/features/map/`: `RwandaMap` (lazy-loaded/code-split; OSM raster fallback or `VITE_MAP_STYLE_URL`
+  vector style; route lines + pulsing bus markers), `MapPreview` (compact non-interactive card that
+  deep-links to `/map`), and `useLiveBuses` (STUB positions today; matches the `bus:location` socket payload
+  so it swaps to a live subscription with no call-site changes). Map stays light in both themes — for dark
+  tiles set a dark `VITE_MAP_STYLE_URL` (inverting the raster canvas would also invert markers/routes).
 - **Recharts** for charts. **socket.io-client** for realtime. **Cloudinary** for image uploads.
 - **framer-motion** for motion. Shared vocabulary in `src/lib/motion.ts` (durations/easings/variants) +
   primitives in `src/components/motion/Motion.tsx` (`PageTransition`, `Reveal`/`RevealItem` staggered section
@@ -73,7 +78,7 @@ npm run test:e2e       # playwright
 
 ## Screen checklist (update as screens land)
 Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
-Screens (per role — see `docs/frontend-plan.md`): [x] Overview [~] Live Map (skeleton-loading state shipped; MapLibre pending) [x] Trips
+Screens (per role — see `docs/frontend-plan.md`): [x] Overview [x] Live Map (MapLibre + OSM tiles, routes, bus markers) [x] Trips
 [ ] Booking desk [x] Bookings [x] Fleet+Maintenance [ ] People (drivers/agents) [ ] Network (routes/stops/fares)
 [x] Analytics [x] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit)
 [ ] Settings [ ] Passenger portal [ ] Driver portal · Auth: [x] Login/Continue with Google (Clerk)
