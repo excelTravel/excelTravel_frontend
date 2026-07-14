@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Star, Bus, Phone, CalendarClock } from 'lucide-react';
+import { Star, Bus, Phone, PhoneCall, CalendarClock, Clock, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -89,54 +89,88 @@ export function DriversPanel() {
         {DRIVERS.map((d) => (
           <RevealItem key={d.id}>
             <MotionCard className="flex flex-col gap-4 p-5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="grid size-11 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+              {/* Identity + rating */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
                     {d.name.charAt(0)}
                   </span>
-                  <div>
-                    <p className="font-semibold leading-tight">{d.name}</p>
-                    <p className="text-xs text-muted-foreground">{d.license}</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold leading-tight">{d.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{d.license}</p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
                   <Star className="size-3 fill-warning text-warning" /> {d.rating.toFixed(2)}
                 </span>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusPill status={d.status}>{t(`drivers.state.${d.status}`)}</StatusPill>
-                {d.vehicle && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                    <Bus className="size-3.5 text-muted-foreground" /> {d.vehicle}
-                  </span>
-                )}
+              {/* Three labels: license active · assigned car · hours worked */}
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-medium text-success">
+                  <ShieldCheck className="size-3.5" /> {t('drivers.licenseActive')}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+                  <Bus className="size-3.5 text-muted-foreground" /> {d.vehicle ?? t('drivers.noVehicle')}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+                  <Clock className="size-3.5 text-muted-foreground" /> {t('drivers.hoursLabel', { n: d.hoursWorked })}
+                </span>
               </div>
 
-              <div className="min-h-[1.75rem]">
-                {d.trips.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
-                    {d.trips.map((trip) => (
-                      <span key={trip.code} className="rounded-md bg-[hsl(var(--teal))]/12 px-2 py-0.5 text-[11px] font-medium text-[hsl(var(--teal))]">
-                        {trip.from}→{trip.to} · {trip.start}:00
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">{t('drivers.noTrips')}</p>
-                )}
+              {/* Details */}
+              <div className="space-y-2 rounded-xl bg-secondary/40 p-3">
+                <DriverRow icon={<CalendarClock className="size-3.5" />} label={t('drivers.licenseExpires')} value={d.licenseExpiry} />
+                <DriverRow icon={<Phone className="size-3.5" />} label={t('drivers.contact')} value={d.phone} />
+                <DriverRow icon={<PhoneCall className="size-3.5" />} label={t('drivers.emergency')} value={d.emergencyPhone} />
               </div>
 
+              {/* Documents */}
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('drivers.documents')}</p>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  <DocThumb label={t('drivers.docProfile')} />
+                  <DocThumb label={t('drivers.docLicense')} />
+                  <DocThumb label={t('drivers.docId')} />
+                </div>
+              </div>
+
+              {/* Status + actions */}
               <div className="flex items-center gap-2 border-t border-border pt-3">
-                <Button variant="outline" size="sm" className="flex-1" onClick={() => setAssignTo(d)}>{t('drivers.assign')}</Button>
-                <Button variant="outline" size="icon" aria-label={t('drivers.call')}>
-                  <Phone className="size-4" />
-                </Button>
+                <StatusPill status={d.status}>{t(`drivers.state.${d.status}`)}</StatusPill>
+                <div className="ml-auto flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setAssignTo(d)}>{t('drivers.assign')}</Button>
+                  <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                    <Phone className="size-4" />
+                  </a>
+                </div>
               </div>
             </MotionCard>
           </RevealItem>
         ))}
       </Reveal>
+    </div>
+  );
+}
+
+function DriverRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 text-sm">
+      <span className="flex items-center gap-1.5 text-muted-foreground">{icon} {label}</span>
+      <span className="truncate font-medium tabular-nums">{value}</span>
+    </div>
+  );
+}
+
+// Placeholder document slot — profile photo / driving licence / ID card. These images aren't in the backend
+// schema yet (drivers store licence number + expiry only); wire to uploaded URLs when the fields are added.
+function DocThumb({ label }: { label: string }) {
+  return (
+    <div className="space-y-1">
+      <div className="grid aspect-[3/2] place-items-center rounded-lg border border-dashed border-border bg-secondary/40 text-muted-foreground">
+        <ImageIcon className="size-4" />
+      </div>
+      <p className="text-center text-[10px] text-muted-foreground">{label}</p>
     </div>
   );
 }
