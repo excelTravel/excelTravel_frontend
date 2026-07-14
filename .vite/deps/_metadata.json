@@ -1,0 +1,94 @@
+{
+  "hash": "eba545a6",
+  "configHash": "fb71f24c",
+  "lockfileHash": "6cabc33d",
+  "browserHash": "b6adc5cd",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "4abeef20",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "413f34ff",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "f25f321a",
+      "needsInterop": true
+    },
+    "@clerk/clerk-react": {
+      "src": "../../node_modules/@clerk/clerk-react/dist/index.mjs",
+      "file": "@clerk_clerk-react.js",
+      "fileHash": "5ec8ee01",
+      "needsInterop": false
+    },
+    "@tanstack/react-query": {
+      "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
+      "file": "@tanstack_react-query.js",
+      "fileHash": "9db86850",
+      "needsInterop": false
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "6b316126",
+      "needsInterop": false
+    },
+    "i18next": {
+      "src": "../../node_modules/i18next/dist/esm/i18next.js",
+      "file": "i18next.js",
+      "fileHash": "efea948d",
+      "needsInterop": false
+    },
+    "react-i18next": {
+      "src": "../../node_modules/react-i18next/dist/es/index.js",
+      "file": "react-i18next.js",
+      "fileHash": "61df614d",
+      "needsInterop": false
+    },
+    "i18next-browser-languagedetector": {
+      "src": "../../node_modules/i18next-browser-languagedetector/dist/esm/i18nextBrowserLanguageDetector.js",
+      "file": "i18next-browser-languagedetector.js",
+      "fileHash": "d8759d47",
+      "needsInterop": false
+    },
+    "framer-motion": {
+      "src": "../../node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "8ef4f829",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "99b7088c",
+      "needsInterop": false
+    },
+    "recharts": {
+      "src": "../../node_modules/recharts/es6/index.js",
+      "file": "recharts.js",
+      "fileHash": "6ef1ee68",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-XIXOOFQI": {
+      "file": "chunk-XIXOOFQI.js"
+    },
+    "chunk-4XEC7FFE": {
+      "file": "chunk-4XEC7FFE.js"
+    },
+    "chunk-OC5S6P4L": {
+      "file": "chunk-OC5S6P4L.js"
+    },
+    "chunk-SNAQBZPT": {
+      "file": "chunk-SNAQBZPT.js"
+    }
+  }
+}

@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { PageTransition } from '@/components/motion/Motion';
+import { PageSkeleton } from '@/app/pages/PageSkeleton';
 
 // App layout: slim sidebar + top bar over the glass gradient ground; routed pages render in the outlet.
 export function AppShell() {
@@ -16,7 +18,9 @@ export function AppShell() {
           {/* Keyed on the path so each navigation animates the old page out and the new one in. */}
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
-              <Outlet />
+              <Suspense fallback={<PageSkeleton />}>
+                <Outlet />
+              </Suspense>
             </PageTransition>
           </AnimatePresence>
         </main>

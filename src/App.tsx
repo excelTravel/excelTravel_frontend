@@ -1,17 +1,22 @@
+import { lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { authEnabled } from './lib/config';
 import { AppShell } from './app/shell/AppShell';
 import { RequireAuth } from './features/auth/RequireAuth';
-import { LoginPage } from './features/auth/LoginPage';
 import { PlaceholderPage } from './app/pages/PlaceholderPage';
-import { OverviewPage } from './features/overview/OverviewPage';
-import { FleetPage } from './features/fleet/FleetPage';
-import { TripsPage } from './features/trips/TripsPage';
-import { TripDetailPage } from './features/trips/TripDetailPage';
-import { BookingsPage } from './features/bookings/BookingsPage';
-import { ParcelsPage } from './features/parcels/ParcelsPage';
-import { AnalyticsPage } from './features/analytics/AnalyticsPage';
-import { LiveMapPage } from './features/map/LiveMapPage';
+
+// Routes are code-split so the initial bundle stays small and each screen (and its heavy deps like
+// Recharts / MapLibre) loads on demand behind a Suspense skeleton (see AppShell). Named exports are
+// re-mapped to default for React.lazy.
+const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const OverviewPage = lazy(() => import('./features/overview/OverviewPage').then((m) => ({ default: m.OverviewPage })));
+const FleetPage = lazy(() => import('./features/fleet/FleetPage').then((m) => ({ default: m.FleetPage })));
+const TripsPage = lazy(() => import('./features/trips/TripsPage').then((m) => ({ default: m.TripsPage })));
+const TripDetailPage = lazy(() => import('./features/trips/TripDetailPage').then((m) => ({ default: m.TripDetailPage })));
+const BookingsPage = lazy(() => import('./features/bookings/BookingsPage').then((m) => ({ default: m.BookingsPage })));
+const ParcelsPage = lazy(() => import('./features/parcels/ParcelsPage').then((m) => ({ default: m.ParcelsPage })));
+const AnalyticsPage = lazy(() => import('./features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
+const LiveMapPage = lazy(() => import('./features/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })));
 
 // Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
 export function App() {

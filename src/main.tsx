@@ -16,7 +16,10 @@ const queryClient = new QueryClient({
 function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>{children}</BrowserRouter>
+      <BrowserRouter>
+        {/* Top-level boundary for lazy routes outside the app shell (e.g. Login) and initial load. */}
+        <React.Suspense fallback={<div className="app-gradient min-h-dvh" />}>{children}</React.Suspense>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
