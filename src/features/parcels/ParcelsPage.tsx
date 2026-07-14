@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowRightLeft,
@@ -5,7 +6,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Filter,
-  MoreVertical,
+  Route as RouteIcon,
   Package,
   Tag,
   Truck,
@@ -16,6 +17,7 @@ import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { ParcelJourneyModal, type ParcelLite } from './ParcelJourneyModal';
 import { cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /packages (custody chain) + ops pricing (setFee).
@@ -27,6 +29,7 @@ const manifest = [
 
 export function ParcelsPage() {
   const { t } = useTranslation();
+  const [journey, setJourney] = useState<ParcelLite | null>(null);
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
 
@@ -39,6 +42,7 @@ export function ParcelsPage() {
 
   return (
     <Reveal className="space-y-6">
+      <ParcelJourneyModal parcel={journey} open={journey !== null} onClose={() => setJourney(null)} />
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('parcels.mostRoutes')} value="10" unit={t('parcels.parcels')} badge={{ text: 'KGL — MUS', tone: 'teal' }} />
@@ -131,8 +135,12 @@ export function ParcelsPage() {
                       <StatusPill status={p.status} />
                     </td>
                     <td className="px-4 py-3">
-                      <button type="button" aria-label="More" className="text-muted-foreground hover:text-foreground">
-                        <MoreVertical className="size-4" />
+                      <button
+                        type="button"
+                        onClick={() => setJourney({ wb: p.wb, sender: p.sender, receiver: p.receiver, from: p.from, to: p.to, status: p.status })}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <RouteIcon className="size-3.5" /> {t('parcels.viewJourney')}
                       </button>
                     </td>
                   </tr>

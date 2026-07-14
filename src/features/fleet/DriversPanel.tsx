@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Star, Bus, Phone, CalendarClock } from 'lucide-react';
@@ -5,7 +6,8 @@ import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
-import { DRIVERS } from './data';
+import { AssignDriverModal } from './AssignDriverModal';
+import { DRIVERS, type Driver } from './data';
 
 const DAY_START = 5;
 const DAY_END = 23;
@@ -15,6 +17,7 @@ const clampPct = (hour: number) => Math.max(0, Math.min(100, ((hour - DAY_START)
 
 export function DriversPanel() {
   const { t } = useTranslation();
+  const [assignTo, setAssignTo] = useState<Driver | null>(null);
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowPct = clampPct(nowHour);
@@ -22,6 +25,7 @@ export function DriversPanel() {
 
   return (
     <div className="space-y-6">
+      <AssignDriverModal driver={assignTo} open={assignTo !== null} onClose={() => setAssignTo(null)} />
       {/* Trip schedule board (derived from assigned trips) */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between">
@@ -124,7 +128,7 @@ export function DriversPanel() {
               </div>
 
               <div className="flex items-center gap-2 border-t border-border pt-3">
-                <Button variant="outline" size="sm" className="flex-1">{t('drivers.assign')}</Button>
+                <Button variant="outline" size="sm" className="flex-1" onClick={() => setAssignTo(d)}>{t('drivers.assign')}</Button>
                 <Button variant="outline" size="icon" aria-label={t('drivers.call')}>
                   <Phone className="size-4" />
                 </Button>

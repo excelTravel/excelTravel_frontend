@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { VehiclesPanel } from './VehiclesPanel';
 import { DriversPanel } from './DriversPanel';
 import { MaintenancePanel } from './MaintenancePanel';
+import { AddVehicleModal } from './AddVehicleModal';
 
 const TABS = [
   { key: 'vehicles', icon: Bus },
@@ -21,6 +22,7 @@ type FleetTab = (typeof TABS)[number]['key'];
 export function FleetPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FleetTab>('vehicles');
+  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
 
   // One primary CTA, contextual to the active tab.
   const primaryLabel: Record<FleetTab, string> = {
@@ -31,6 +33,7 @@ export function FleetPage() {
 
   return (
     <Reveal className="space-y-6">
+      <AddVehicleModal open={addVehicleOpen} onClose={() => setAddVehicleOpen(false)} />
       <RevealItem>
         <PageHeader
           title={t('fleet.consoleTitle')}
@@ -40,7 +43,7 @@ export function FleetPage() {
               <Button variant="outline" size="sm">
                 <Filter className="size-4" /> {t('fleet.filter')}
               </Button>
-              <Button size="sm">
+              <Button size="sm" onClick={() => tab === 'vehicles' && setAddVehicleOpen(true)}>
                 <Plus className="size-4" /> {primaryLabel[tab]}
               </Button>
             </>

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -18,7 +19,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { MapPreview } from '@/features/map/MapPreview';
+import { MessageDriverModal } from './MessageDriverModal';
+import { downloadCsv } from '@/lib/csv';
 import { formatRWF, cn } from '@/lib/utils';
+
+const DRIVER_NAME = 'Sarah Uwase';
 
 // Stub trip (Rwanda). Wired later to /trips/{id}, /bookings (manifest), /tracking (map/ETA), /me (driver).
 const manifest = [
@@ -36,9 +41,20 @@ const log = [
 export function TripDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams();
+  const [msgOpen, setMsgOpen] = useState(false);
+
+  // Manifest export — client CSV from the trip's bookings (GET /bookings?tripId once wired).
+  function downloadManifest() {
+    downloadCsv(
+      `manifest-${id ?? 'trip'}.csv`,
+      ['Passenger', 'Ticket', 'Source'],
+      manifest.map((p) => [p.name, p.ticket, p.source]),
+    );
+  }
 
   return (
     <Reveal className="space-y-6">
+      <MessageDriverModal open={msgOpen} onClose={() => setMsgOpen(false)} driverName={DRIVER_NAME} />
       {/* Breadcrumb + title + trip pills */}
       <RevealItem>
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -119,7 +135,7 @@ export function TripDetailPage() {
                   </li>
                 ))}
               </ul>
-              <Button className="mt-4 w-full">
+              <Button className="mt-4 w-full" onClick={downloadManifest}>
                 <Download className="size-4" /> {t('trip.downloadManifest')}
               </Button>
             </GlassCard>
@@ -222,6 +238,7 @@ export function TripDetailPage() {
             <div className="mt-4 space-y-3">
               <button
                 type="button"
+                onClick={() => setMsgOpen(true)}
                 className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary/70"
               >
                 <span className="flex items-center gap-2">

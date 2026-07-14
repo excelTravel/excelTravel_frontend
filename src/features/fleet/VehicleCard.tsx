@@ -12,7 +12,7 @@ const ACCENT: Record<Vehicle['status'], string> = {
   retired: 'hsl(var(--muted-foreground))',
 };
 
-export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOpenDetails?: () => void }) {
   const { t } = useTranslation();
   const pct = serviceProgress(vehicle);
   const soon = serviceDueSoon(vehicle);
@@ -79,7 +79,12 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
               </span>
             )}
           </div>
-          <button type="button" aria-label={t('vehicles.actions')} className="text-muted-foreground hover:text-foreground">
+          <button
+            type="button"
+            onClick={onOpenDetails}
+            aria-label={t('vehicles.actions')}
+            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
             <MoreVertical className="size-4" />
           </button>
         </div>

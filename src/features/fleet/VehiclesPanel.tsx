@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Bus, Wrench } from 'lucide-react';
@@ -7,7 +8,8 @@ import { RadialGauge } from '@/components/ui/radial-gauge';
 import { CountUp } from '@/components/ui/count-up';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { VehicleCard } from './VehicleCard';
-import { VEHICLES, DRIVERS, JOBS, FLEET_SUMMARY } from './data';
+import { VehicleDetailModal } from './VehicleDetailModal';
+import { VEHICLES, DRIVERS, JOBS, FLEET_SUMMARY, type Vehicle } from './data';
 
 const COMPOSITION = [
   { key: 'active', count: FLEET_SUMMARY.active, color: 'hsl(var(--teal))' },
@@ -20,14 +22,16 @@ export function VehiclesPanel() {
   const reduce = useReducedMotion();
   const onDuty = DRIVERS.filter((d) => d.status === 'on_trip');
   const attention = JOBS.filter((j) => j.urgency !== 'logged');
+  const [selected, setSelected] = useState<Vehicle | null>(null);
 
   return (
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+      <VehicleDetailModal vehicle={selected} open={selected !== null} onClose={() => setSelected(null)} />
       {/* Gallery */}
       <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
         {VEHICLES.map((v) => (
           <RevealItem key={v.plate}>
-            <VehicleCard vehicle={v} />
+            <VehicleCard vehicle={v} onOpenDetails={() => setSelected(v)} />
           </RevealItem>
         ))}
       </Reveal>
