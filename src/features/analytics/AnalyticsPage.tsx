@@ -71,7 +71,6 @@ export function AnalyticsPage() {
     <Reveal className="space-y-6">
       <RevealItem>
         <PageHeader
-          title={t('analytics.title')}
           subtitle={t('analytics.subtitle')}
           actions={
             <Button variant="outline" size="sm">

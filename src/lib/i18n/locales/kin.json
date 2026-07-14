@@ -1,8 +1,22 @@
 {
   "app": {
     "name": "excelTravel",
-    "tagline": "Genzura amamodoka yawe ako kanya",
-    "opsTitle": "Imicungire y'ibikorwa"
+    "tagline": "Genzura amamodoka yawe ako kanya"
+  },
+  "nav": {
+    "overview": "Incamake",
+    "map": "Ikarita",
+    "trips": "Ingendo",
+    "tripDetail": "Urugendo",
+    "fleet": "Amamodoka",
+    "bookings": "Amatike",
+    "parcels": "Imizigo",
+    "analytics": "Isesengura",
+    "settings": "Igenamiterere",
+    "primary": "Urutonde rw'ibanze",
+    "logout": "Sohoka",
+    "openMenu": "Fungura menu",
+    "closeMenu": "Funga menu"
   },
   "fleet": {
     "title": "Incamake y'amamodoka",
@@ -314,6 +328,20 @@
     "bookingSource": "Aho amatike aturuka",
     "recentAlerts": "Imenyesha rya vuba",
     "passengers": "abagenzi {{count}}"
+  },
+  "settings": {
+    "profile": "Umwirondoro",
+    "profileSub": "Izina n'ifoto yawe bigaragara muri sisitemu.",
+    "displayName": "Izina rigaragara",
+    "role": "Uruhare",
+    "avatarHint": "PNG, JPG cyangwa WebP. Ikigereranyo cy'uruziga cyiza.",
+    "branding": "Ikirango cy'ikigo",
+    "brandingSub": "Izina n'ikirango by'ikigo ku matike na raporo.",
+    "companyName": "Izina ry'ikigo",
+    "logoHint": "PNG isobanutse cyangwa SVG birasabwa.",
+    "uploadImage": "Shyiraho ifoto",
+    "changeImage": "Hindura ifoto",
+    "removeImage": "Kuraho"
   },
   "forms": {
     "cancel": "Hagarika",

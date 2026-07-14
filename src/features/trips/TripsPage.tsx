@@ -52,7 +52,6 @@ export function TripsPage() {
     <Reveal className="space-y-6">
       <RevealItem>
         <PageHeader
-          title={t('tripsList.title')}
           subtitle={t('tripsList.subtitle')}
           actions={
             <>

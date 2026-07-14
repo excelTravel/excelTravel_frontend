@@ -17,6 +17,7 @@ const BookingsPage = lazy(() => import('./features/bookings/BookingsPage').then(
 const ParcelsPage = lazy(() => import('./features/parcels/ParcelsPage').then((m) => ({ default: m.ParcelsPage })));
 const AnalyticsPage = lazy(() => import('./features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
 const LiveMapPage = lazy(() => import('./features/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })));
+const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 
 // Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
 export function App() {
@@ -32,6 +33,7 @@ export function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<PlaceholderPage title="Not found" />} />
       </Route>
     </Routes>

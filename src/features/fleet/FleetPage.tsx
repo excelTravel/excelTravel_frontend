@@ -36,7 +36,6 @@ export function FleetPage() {
       <AddVehicleModal open={addVehicleOpen} onClose={() => setAddVehicleOpen(false)} />
       <RevealItem>
         <PageHeader
-          title={t('fleet.consoleTitle')}
           subtitle={t('fleet.consoleSub')}
           actions={
             <>

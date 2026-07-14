@@ -1,8 +1,22 @@
 {
   "app": {
     "name": "excelTravel",
-    "tagline": "Run your buses in real time",
-    "opsTitle": "Operations Management"
+    "tagline": "Run your buses in real time"
+  },
+  "nav": {
+    "overview": "Overview",
+    "map": "Live Map",
+    "trips": "Trips",
+    "tripDetail": "Trip",
+    "fleet": "Fleet",
+    "bookings": "Bookings",
+    "parcels": "Parcels",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "primary": "Primary navigation",
+    "logout": "Logout",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "fleet": {
     "title": "Fleet Overview",
@@ -314,6 +328,20 @@
     "bookingSource": "Booking source",
     "recentAlerts": "Recent alerts",
     "passengers": "{{count}} passengers"
+  },
+  "settings": {
+    "profile": "Profile",
+    "profileSub": "Your name and photo, seen across the console.",
+    "displayName": "Display name",
+    "role": "Role",
+    "avatarHint": "PNG, JPG or WebP. Square works best.",
+    "branding": "Company branding",
+    "brandingSub": "Your company name and logo on tickets and reports.",
+    "companyName": "Company name",
+    "logoHint": "Transparent PNG or SVG recommended.",
+    "uploadImage": "Upload image",
+    "changeImage": "Change image",
+    "removeImage": "Remove"
   },
   "forms": {
     "cancel": "Cancel",
