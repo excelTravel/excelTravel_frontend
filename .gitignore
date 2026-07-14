@@ -6,6 +6,9 @@ dist/
 dist-ssr/
 *.local
 
+# vite dep pre-bundle / cache (generated)
+.vite/
+
 # env (never commit real secrets — only .env.example)
 .env
 .env.*
