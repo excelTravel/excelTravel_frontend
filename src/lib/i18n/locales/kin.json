@@ -383,7 +383,20 @@
     "send": "Ohereza",
     "handToDriver": "Ha umushoferi",
     "markDelivered": "Yagejejwe",
-    "collect": "Yakiriwe"
+    "collect": "Yakiriwe",
+    "rerouteSub": "Hindura bisi yashyizwe kuri uru rugendo.",
+    "confirmSwap": "Emeza guhindura",
+    "newVehicle": "Imodoka nshya",
+    "reason": "Impamvu",
+    "reasonHint": "Bidategetswe — biba byanditswe.",
+    "reasonPlaceholder": "urugero: ikibazo cya mekanike kuri RAB-402",
+    "emergencySub": "Menyesha bose bari kuri uru rugendo ako kanya.",
+    "broadcast": "Ohereza bose",
+    "broadcastNote": "Ibi byohereza SMS/push yihutirwa ku bagenzi bose n'umushoferi w'uru rugendo.",
+    "emergencyPlaceholder": "Sobanura ikibazo n'amabwiriza…",
+    "pricingSub": "Shyiraho igiciro cy'ibanze n'inyongera kuri buri kilo.",
+    "rwf": "RWF",
+    "perKg": "RWF kuri kilo"
   },
   "common": {
     "retry": "Ongera ugerageze",

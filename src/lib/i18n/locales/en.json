@@ -383,7 +383,20 @@
     "send": "Send",
     "handToDriver": "Hand to driver",
     "markDelivered": "Mark delivered",
-    "collect": "Collect"
+    "collect": "Collect",
+    "rerouteSub": "Swap the assigned bus for this trip.",
+    "confirmSwap": "Confirm swap",
+    "newVehicle": "New vehicle",
+    "reason": "Reason",
+    "reasonHint": "Optional — logged with the change.",
+    "reasonPlaceholder": "e.g. mechanical fault on RAB-402",
+    "emergencySub": "Alert everyone on this trip immediately.",
+    "broadcast": "Broadcast",
+    "broadcastNote": "This sends an urgent SMS/push to all passengers and the driver on this trip.",
+    "emergencyPlaceholder": "Describe the emergency and any instructions…",
+    "pricingSub": "Set the base delivery fee and per-kg surcharge.",
+    "rwf": "RWF",
+    "perKg": "RWF per kg"
   },
   "common": {
     "retry": "Retry",

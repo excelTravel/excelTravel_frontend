@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { ParcelJourneyModal, type ParcelLite } from './ParcelJourneyModal';
+import { UpdatePricingModal } from './UpdatePricingModal';
 import { cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /packages (custody chain) + ops pricing (setFee).
@@ -30,6 +31,7 @@ const manifest = [
 export function ParcelsPage() {
   const { t } = useTranslation();
   const [journey, setJourney] = useState<ParcelLite | null>(null);
+  const [pricingOpen, setPricingOpen] = useState(false);
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
 
@@ -43,6 +45,7 @@ export function ParcelsPage() {
   return (
     <Reveal className="space-y-6">
       <ParcelJourneyModal parcel={journey} open={journey !== null} onClose={() => setJourney(null)} />
+      <UpdatePricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('parcels.mostRoutes')} value="10" unit={t('parcels.parcels')} badge={{ text: 'KGL — MUS', tone: 'teal' }} />
@@ -184,7 +187,7 @@ export function ParcelsPage() {
               </p>
             </div>
           </div>
-          <Button className="mt-4 w-full">{t('parcels.updatePricing')}</Button>
+          <Button className="mt-4 w-full" onClick={() => setPricingOpen(true)}>{t('parcels.updatePricing')}</Button>
         </GlassCard>
       </RevealItem>
     </Reveal>

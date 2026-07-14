@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { MapPreview } from '@/features/map/MapPreview';
 import { MessageDriverModal } from './MessageDriverModal';
+import { RerouteModal, EmergencyBroadcastModal } from './DispatchModals';
 import { downloadCsv } from '@/lib/csv';
 import { formatRWF, cn } from '@/lib/utils';
 
@@ -42,6 +43,8 @@ export function TripDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams();
   const [msgOpen, setMsgOpen] = useState(false);
+  const [rerouteOpen, setRerouteOpen] = useState(false);
+  const [emergencyOpen, setEmergencyOpen] = useState(false);
 
   // Manifest export — client CSV from the trip's bookings (GET /bookings?tripId once wired).
   function downloadManifest() {
@@ -55,6 +58,8 @@ export function TripDetailPage() {
   return (
     <Reveal className="space-y-6">
       <MessageDriverModal open={msgOpen} onClose={() => setMsgOpen(false)} driverName={DRIVER_NAME} />
+      <RerouteModal open={rerouteOpen} onClose={() => setRerouteOpen(false)} />
+      <EmergencyBroadcastModal open={emergencyOpen} onClose={() => setEmergencyOpen(false)} />
       {/* Breadcrumb + title + trip pills */}
       <RevealItem>
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -248,6 +253,7 @@ export function TripDetailPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setRerouteOpen(true)}
                 className="flex w-full items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
               >
                 <span className="flex items-center gap-2">
@@ -257,6 +263,7 @@ export function TripDetailPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setEmergencyOpen(true)}
                 className="flex w-full items-center justify-between rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15"
               >
                 <span className="flex items-center gap-2">
