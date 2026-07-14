@@ -1,30 +1,13 @@
 import type { ReactNode } from 'react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { pageVariants, staggerContainer, riseItem, DUR, EASE_OUT } from '@/lib/motion';
+import { staggerContainer, riseItem, DUR, EASE_OUT } from '@/lib/motion';
 
 // Reduced-motion fallback: a flat opacity fade with no positional movement, reused by every primitive.
 const fadeOnly: Variants = {
   initial: { opacity: 0 },
   enter: { opacity: 1, transition: { duration: DUR.fast, ease: EASE_OUT } },
-  exit: { opacity: 0, transition: { duration: DUR.fast } },
 };
-
-// Wraps a routed page; drives the enter/exit transition inside the shell's AnimatePresence.
-export function PageTransition({ children, className }: { children: ReactNode; className?: string }) {
-  const rm = useReducedMotion();
-  return (
-    <motion.div
-      className={className}
-      variants={rm ? fadeOnly : pageVariants}
-      initial="initial"
-      animate="enter"
-      exit="exit"
-    >
-      {children}
-    </motion.div>
-  );
-}
 
 // Reveals its RevealItem children in a staggered sequence as the section enters.
 export function Reveal({ children, className }: { children: ReactNode; className?: string }) {

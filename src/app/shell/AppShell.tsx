@@ -1,28 +1,22 @@
 import { Suspense } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
+import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { PageTransition } from '@/components/motion/Motion';
 import { PageSkeleton } from '@/app/pages/PageSkeleton';
 
 // App layout: slim sidebar + top bar over the glass gradient ground; routed pages render in the outlet.
+// Each page provides its own entrance motion (via <Reveal>), so there's no page-level AnimatePresence
+// wrapper here — a mode="wait" wrapper was stranding pages at opacity:0 after repeated navigation.
 export function AppShell() {
-  const location = useLocation();
   return (
     <div className="app-gradient min-h-dvh">
       <Sidebar />
       <div className="pl-24">
         <Header />
         <main className="px-8 pb-10">
-          {/* Keyed on the path so each navigation animates the old page out and the new one in. */}
-          <AnimatePresence mode="wait">
-            <PageTransition key={location.pathname}>
-              <Suspense fallback={<PageSkeleton />}>
-                <Outlet />
-              </Suspense>
-            </PageTransition>
-          </AnimatePresence>
+          <Suspense fallback={<PageSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>
