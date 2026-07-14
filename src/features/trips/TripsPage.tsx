@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronLeft, ChevronRight, Filter, Plus, Search } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { SortableTh } from '@/components/ui/sortable-th';
+import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 
@@ -47,6 +49,14 @@ export function TripsPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<TripGroup | 'all'>('all');
   const rows = tab === 'all' ? TRIPS : TRIPS.filter((r) => r.group === tab);
+  const { sorted, sortKey, sortDir, toggle } = useSort<TripRow>(rows, (row, key) => {
+    switch (key) {
+      case 'route': return `${row.from} ${row.to}`;
+      case 'occupancy': return row.booked / row.capacity;
+      case 'revenue': return row.revenue;
+      default: return (row as unknown as Record<string, string | number>)[key] ?? '';
+    }
+  });
 
   return (
     <Reveal className="space-y-6">
@@ -54,14 +64,9 @@ export function TripsPage() {
         <PageHeader
           subtitle={t('tripsList.subtitle')}
           actions={
-            <>
-              <Button variant="outline" size="sm">
-                <Filter className="size-4" /> {t('tripsList.filter')}
-              </Button>
-              <Button size="sm">
-                <Plus className="size-4" /> {t('tripsList.newTrip')}
-              </Button>
-            </>
+            <Button size="sm">
+              <Plus className="size-4" /> {t('tripsList.newTrip')}
+            </Button>
           }
         />
       </RevealItem>
@@ -111,18 +116,18 @@ export function TripsPage() {
             <table className="w-full text-sm">
               <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colRoute')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colDeparts')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colBus')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colDriver')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colOccupancy')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colStatus')}</th>
-                  <th className="px-4 py-3 text-right font-medium">{t('tripsList.colRevenue')}</th>
+                  <SortableTh label={t('tripsList.colRoute')} sortKey="route" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colDeparts')} sortKey="departs" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colBus')} sortKey="bus" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colDriver')} sortKey="driver" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colOccupancy')} sortKey="occupancy" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colStatus')} sortKey="status" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                  <SortableTh label={t('tripsList.colRevenue')} sortKey="revenue" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" />
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {rows.map((r) => {
+                {sorted.map((r) => {
                   const pct = Math.round((r.booked / r.capacity) * 100);
                   return (
                     <tr

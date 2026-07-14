@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bus, Users, Wrench, Filter, Plus } from 'lucide-react';
+import { Bus, Users, Wrench, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
@@ -38,14 +38,9 @@ export function FleetPage() {
         <PageHeader
           subtitle={t('fleet.consoleSub')}
           actions={
-            <>
-              <Button variant="outline" size="sm">
-                <Filter className="size-4" /> {t('fleet.filter')}
-              </Button>
-              <Button size="sm" onClick={() => tab === 'vehicles' && setAddVehicleOpen(true)}>
-                <Plus className="size-4" /> {primaryLabel[tab]}
-              </Button>
-            </>
+            <Button size="sm" onClick={() => tab === 'vehicles' && setAddVehicleOpen(true)}>
+              <Plus className="size-4" /> {primaryLabel[tab]}
+            </Button>
           }
         />
       </RevealItem>

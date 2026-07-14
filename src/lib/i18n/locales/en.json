@@ -293,6 +293,19 @@
     "colRoute": "Route",
     "colStatus": "Status",
     "colBusStation": "Bus / Station",
+    "colTime": "Time",
+    "colAmount": "Amount",
+    "search": "Search bookings",
+    "emptyTitle": "No bookings match",
+    "emptySub": "Try a different search or status filter.",
+    "st": {
+      "all": "All statuses",
+      "confirmed": "Confirmed",
+      "paid": "Paid",
+      "boarding": "Boarding",
+      "hold": "On hold",
+      "cancelled": "Cancelled"
+    },
     "showing": "Showing {{shown}} of {{total}} entries"
   },
   "trip": {

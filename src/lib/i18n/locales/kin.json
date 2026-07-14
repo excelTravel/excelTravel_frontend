@@ -293,6 +293,19 @@
     "colRoute": "Umuhanda",
     "colStatus": "Uko bimeze",
     "colBusStation": "Bisi / Sitasiyo",
+    "colTime": "Isaha",
+    "colAmount": "Amafaranga",
+    "search": "Shakisha amatike",
+    "emptyTitle": "Nta matike ahuye",
+    "emptySub": "Gerageza ishakisha cyangwa uko bimeze bitandukanye.",
+    "st": {
+      "all": "Uko bimeze byose",
+      "confirmed": "Byemejwe",
+      "paid": "Byishyuwe",
+      "boarding": "Kwinjira",
+      "hold": "Bitegereje",
+      "cancelled": "Byahagaritswe"
+    },
     "showing": "Byerekana {{shown}} muri {{total}}"
   },
   "trip": {
