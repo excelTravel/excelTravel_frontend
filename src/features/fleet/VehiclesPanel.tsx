@@ -1,80 +1,109 @@
 import { useTranslation } from 'react-i18next';
-import { MoreVertical, Bus } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { Bus, Wrench } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
+import { RadialGauge } from '@/components/ui/radial-gauge';
+import { CountUp } from '@/components/ui/count-up';
+import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { VehicleCard } from './VehicleCard';
+import { VEHICLES, DRIVERS, JOBS, FLEET_SUMMARY } from './data';
 
-// Stub vehicles (Rwanda). Wired later to /vehicles (+ /maintenance for next-service).
-interface Vehicle {
-  plate: string;
-  model: string;
-  type: string;
-  status: string;
-  driver: string | null;
-  odometer: number;
-  nextService: string;
-  serviceDue: boolean;
-}
-
-const VEHICLES: Vehicle[] = [
-  { plate: 'RAB-402', model: '2023 Executive Coach', type: 'Coach', status: 'active', driver: 'S. Uwase', odometer: 184320, nextService: '12,000 km', serviceDue: false },
-  { plate: 'RAC-112', model: '2021 Toyota Hiace', type: 'Van', status: 'active', driver: 'P. Habimana', odometer: 246980, nextService: '1,200 km', serviceDue: true },
-  { plate: 'RAD-88', model: '2022 Yutong Bus', type: 'Bus', status: 'active', driver: 'L. Ingabire', odometer: 132540, nextService: '9,400 km', serviceDue: false },
-  { plate: 'RAE-27', model: '2020 Coaster', type: 'Bus', status: 'idle', driver: null, odometer: 301120, nextService: '400 km', serviceDue: true },
-  { plate: 'RAF-51', model: '2023 Executive Coach', type: 'Coach', status: 'maintenance', driver: null, odometer: 98760, nextService: 'In service', serviceDue: false },
-];
+const COMPOSITION = [
+  { key: 'active', count: FLEET_SUMMARY.active, color: 'hsl(var(--teal))' },
+  { key: 'maintenance', count: FLEET_SUMMARY.maintenance, color: 'hsl(var(--warning))' },
+  { key: 'retired', count: FLEET_SUMMARY.retired, color: 'hsl(var(--muted-foreground))' },
+] as const;
 
 export function VehiclesPanel() {
   const { t } = useTranslation();
+  const reduce = useReducedMotion();
+  const onDuty = DRIVERS.filter((d) => d.status === 'on_trip');
+  const attention = JOBS.filter((j) => j.urgency !== 'logged');
+
   return (
-    <GlassCard className="overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colVehicle')}</th>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colType')}</th>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colStatus')}</th>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colDriver')}</th>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colOdometer')}</th>
-              <th className="px-5 py-3 font-medium">{t('vehicles.colNextService')}</th>
-              <th className="px-5 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {VEHICLES.map((v) => (
-              <tr key={v.plate} className="transition-colors hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary">
-                      <Bus className="size-4" />
-                    </span>
-                    <div>
-                      <p className="font-semibold">{v.plate}</p>
-                      <p className="text-xs text-muted-foreground">{v.model}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{v.type}</td>
-                <td className="px-5 py-3">
-                  <StatusPill status={v.status}>{t(`vehicles.status.${v.status}`)}</StatusPill>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3">
-                  {v.driver ?? <span className="text-muted-foreground">{t('vehicles.unassigned')}</span>}
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums">{v.odometer.toLocaleString()} km</td>
-                <td className="whitespace-nowrap px-5 py-3">
-                  <span className={v.serviceDue ? 'font-medium text-warning' : 'text-muted-foreground'}>{v.nextService}</span>
-                </td>
-                <td className="px-5 py-3 text-right">
-                  <button type="button" aria-label={t('vehicles.actions')} className="text-muted-foreground hover:text-foreground">
-                    <MoreVertical className="size-4" />
-                  </button>
-                </td>
-              </tr>
+    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+      {/* Gallery */}
+      <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
+        {VEHICLES.map((v) => (
+          <RevealItem key={v.plate}>
+            <VehicleCard vehicle={v} />
+          </RevealItem>
+        ))}
+      </Reveal>
+
+      {/* Side rails: fleet snapshot + drivers on the road + maintenance attention */}
+      <aside className="space-y-6">
+        <GlassCard className="p-5">
+          <div className="flex items-center gap-4">
+            <RadialGauge value={FLEET_SUMMARY.utilization} label={t('fleet.utilShort')} size={112} />
+            <div>
+              <p className="text-3xl font-bold tabular-nums leading-none">
+                <CountUp value={FLEET_SUMMARY.total} />
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{t('fleet.vehiclesTracked')}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-secondary">
+            {COMPOSITION.map((s, i) => (
+              <motion.div
+                key={s.key}
+                initial={{ width: reduce ? `${(s.count / FLEET_SUMMARY.total) * 100}%` : 0 }}
+                animate={{ width: `${(s.count / FLEET_SUMMARY.total) * 100}%` }}
+                transition={{ duration: 0.9, delay: 0.1 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                style={{ background: s.color }}
+              />
             ))}
-          </tbody>
-        </table>
-      </div>
-    </GlassCard>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+            {COMPOSITION.map((s) => (
+              <span key={s.key} className="inline-flex items-center gap-1.5 text-xs">
+                <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                <span className="font-semibold tabular-nums">{s.count}</span>
+                <span className="text-muted-foreground">{t(`vehicles.status.${s.key}`)}</span>
+              </span>
+            ))}
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-5">
+          <h3 className="text-sm font-semibold">{t('fleet.onDuty')}</h3>
+          <ul className="mt-3 space-y-3">
+            {onDuty.map((d) => (
+              <li key={d.id} className="flex items-center gap-3">
+                <span className="grid size-8 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                  {d.name.charAt(0)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium leading-tight">{d.name}</p>
+                  <p className="text-xs text-muted-foreground">{d.vehicle}</p>
+                </div>
+                <StatusPill status="on_trip">{t('drivers.state.on_trip')}</StatusPill>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+
+        <GlassCard className="p-5">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
+            <Wrench className="size-4" /> {t('fleet.needsAttention')}
+          </h3>
+          <ul className="mt-3 space-y-3">
+            {attention.map((j) => (
+              <li key={j.id} className="flex items-center gap-3">
+                <span className="grid size-8 place-items-center rounded-lg bg-secondary text-muted-foreground">
+                  <Bus className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium leading-tight">{j.vehicle} · {j.serviceType}</p>
+                  <p className="text-xs text-muted-foreground">{j.when}</p>
+                </div>
+                <StatusPill status={j.urgency}>{t(`maintenance.urgency.${j.urgency}`)}</StatusPill>
+              </li>
+            ))}
+          </ul>
+        </GlassCard>
+      </aside>
+    </div>
   );
 }

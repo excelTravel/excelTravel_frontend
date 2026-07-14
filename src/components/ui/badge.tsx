@@ -43,16 +43,19 @@ const statusTone: Record<string, BadgeProps['tone']> = {
   pending: 'warning',
   hold: 'info',
   at_hub: 'info',
-  // Fleet / driver / maintenance states
+  // Vehicle status (backend enum: active | maintenance | retired)
   active: 'success',
-  idle: 'info',
   maintenance: 'warning',
-  on_shift: 'success',
-  off_shift: 'neutral',
-  open: 'danger',
-  in_progress: 'warning',
-  done: 'success',
+  retired: 'neutral',
+  // Driver status (backend enum: available | on_trip | off_duty | suspended)
+  available: 'success',
+  on_trip: 'teal',
+  off_duty: 'neutral',
+  suspended: 'danger',
+  // Maintenance urgency (derived from next_service_date)
   overdue: 'danger',
+  due_soon: 'warning',
+  logged: 'neutral',
 };
 
 export function StatusPill({

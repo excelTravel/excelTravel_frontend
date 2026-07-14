@@ -26,6 +26,14 @@
     "activeDrivers": "Active drivers",
     "openMaintenance": "Open maintenance",
     "utilization": "Fleet utilization",
+    "utilShort": "Utilization",
+    "vehiclesTracked": "Vehicles tracked",
+    "composition": "Fleet composition",
+    "byStatus": "By status",
+    "driversOnDuty": "Drivers on duty",
+    "servicesDue": "Services due",
+    "onDuty": "On the road",
+    "needsAttention": "Needs attention",
     "tabs": {
       "vehicles": "Vehicles",
       "drivers": "Drivers",
@@ -73,65 +81,62 @@
   },
   "vehicles": {
     "colVehicle": "Vehicle",
-    "colType": "Type",
+    "colCapacity": "Capacity",
     "colStatus": "Status",
-    "colDriver": "Assigned driver",
-    "colOdometer": "Odometer",
-    "colNextService": "Next service",
+    "colDriver": "Driver",
+    "colService": "Next service",
+    "odometer": "Odometer",
+    "seats": "seats",
     "unassigned": "Unassigned",
     "actions": "Vehicle actions",
     "status": {
       "active": "Active",
-      "idle": "Idle",
-      "maintenance": "In maintenance"
+      "maintenance": "In maintenance",
+      "retired": "Retired"
     }
   },
   "drivers": {
     "add": "Add driver",
-    "roster": "Today's roster",
-    "rosterHint": "Shifts and vehicle assignment",
+    "schedule": "Today's trip schedule",
+    "scheduleHint": "Derived from assigned trips",
     "noVehicle": "No vehicle",
-    "noShift": "Off today",
+    "noTrips": "No trips today",
+    "now": "NOW",
     "colDriver": "Driver",
     "colRating": "Rating",
     "colStatus": "Status",
     "colVehicle": "Vehicle",
-    "colShift": "Shift",
-    "colTrip": "Current trip",
+    "colTrips": "Today",
     "colAction": "Action",
     "assign": "Assign",
     "call": "Call driver",
+    "tripsToday": "{{count}} trips",
     "state": {
-      "on_shift": "On shift",
-      "off_shift": "Off shift"
+      "available": "Available",
+      "on_trip": "On trip",
+      "off_duty": "Off duty",
+      "suspended": "Suspended"
     }
   },
   "maintenance": {
     "log": "Log maintenance",
-    "open": "Open jobs",
-    "inProgress": "In progress",
     "overdue": "Overdue",
-    "monthCost": "Cost this month",
+    "dueSoon": "Due soon",
+    "logged": "Logged",
+    "monthCost": "Cost (30d)",
     "alertTitle": "{{count}} vehicle overdue for service",
-    "alertSub": "Overdue jobs put vehicles at risk — schedule them first.",
-    "colJob": "Job",
+    "alertSub": "Overdue services put vehicles at risk — schedule them first.",
+    "colJob": "Service",
     "colVehicle": "Vehicle",
-    "colPriority": "Priority",
-    "colStatus": "Status",
-    "colDue": "Due",
+    "colWhen": "When",
+    "colOdometer": "Odometer",
+    "colUrgency": "Urgency",
     "colCost": "Cost",
     "actions": "Job actions",
-    "priority": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
-    },
-    "state": {
+    "urgency": {
       "overdue": "Overdue",
-      "open": "Open",
-      "in_progress": "In progress",
-      "scheduled": "Scheduled",
-      "done": "Done"
+      "due_soon": "Due soon",
+      "logged": "Logged"
     }
   },
   "login": {
