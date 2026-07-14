@@ -165,7 +165,9 @@ export function RwandaMap({
 
   return (
     <div className={cn('relative overflow-hidden', className)}>
-      <div ref={containerRef} className="absolute inset-0" />
+      {/* h-full (not absolute inset-0): MapLibre's own CSS forces `.maplibregl-map{position:relative}`,
+          which would cancel `absolute` and collapse the container to 0 height. */}
+      <div ref={containerRef} className="h-full w-full" />
       {!ready && (
         <div className="absolute inset-0 z-10 grid place-items-center">
           <div className="shimmer absolute inset-0" />

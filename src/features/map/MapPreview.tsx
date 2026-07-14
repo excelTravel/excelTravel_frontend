@@ -14,7 +14,7 @@ export function MapPreview({ className }: { className?: string }) {
   return (
     <div className={cn('relative overflow-hidden', className)}>
       <Suspense fallback={<div className="shimmer absolute inset-0" />}>
-        <RwandaMap buses={buses} interactive={false} loadingLabel={t('map.loading')} className="absolute inset-0" />
+        <RwandaMap buses={buses} interactive={false} loadingLabel={t('map.loading')} className="h-full w-full" />
       </Suspense>
       <Link
         to="/map"
