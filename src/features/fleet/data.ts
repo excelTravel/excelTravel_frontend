@@ -54,6 +54,28 @@ export const DRIVERS: Driver[] = [
   { id: 'd6', name: 'Eric Nkusi', license: 'RW-DL-3321', licenseExpiry: '09 Feb 2026', rating: 4.2, status: 'suspended', vehicle: null, phone: '+250 788 332 100', emergencyPhone: '+250 788 221 337', hoursWorked: 0, trips: [] },
 ];
 
+// Weekly shift roster (stub). Mon→Sun; null = day off. Hours = end − start. Drives the roster grid + the
+// fairness/workload board so ops can balance load and avoid overworking anyone. (No backend shift table yet.)
+export interface Shift {
+  start: number;
+  end: number;
+}
+export const WEEK_DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+export const WEEKLY_CAP = 45; // fair-work ceiling (hours/week)
+
+export const ROSTER: Record<string, (Shift | null)[]> = {
+  d1: [{ start: 6, end: 14 }, { start: 6, end: 14 }, { start: 6, end: 14 }, { start: 6, end: 14 }, { start: 6, end: 14 }, null, null],
+  d2: [{ start: 8, end: 16 }, { start: 8, end: 16 }, { start: 8, end: 16 }, { start: 8, end: 16 }, { start: 8, end: 16 }, { start: 8, end: 16 }, null],
+  d3: [{ start: 7, end: 15 }, { start: 7, end: 15 }, { start: 7, end: 15 }, { start: 7, end: 15 }, { start: 7, end: 15 }, null, null],
+  d4: [null, { start: 14, end: 22 }, { start: 14, end: 22 }, { start: 14, end: 22 }, { start: 14, end: 22 }, { start: 14, end: 22 }, null],
+  d5: [null, null, { start: 6, end: 13 }, { start: 6, end: 13 }, { start: 6, end: 13 }, { start: 6, end: 13 }, { start: 6, end: 13 }],
+  d6: [null, null, null, null, null, null, null],
+};
+
+export function weeklyHours(id: string): number {
+  return (ROSTER[id] ?? []).reduce((sum, s) => sum + (s ? s.end - s.start : 0), 0);
+}
+
 // Fleet-wide summary (represents the whole fleet, not just the sampled cards above).
 export const FLEET_SUMMARY = {
   total: 142,

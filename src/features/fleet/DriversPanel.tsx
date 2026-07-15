@@ -7,6 +7,7 @@ import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
 import { AssignDriverModal } from './AssignDriverModal';
+import { DriverScheduling } from './DriverScheduling';
 import { DRIVERS, type Driver } from './data';
 
 const DAY_START = 5;
@@ -83,6 +84,9 @@ export function DriversPanel() {
           ))}
         </div>
       </GlassCard>
+
+      {/* Weekly roster + workload/fairness */}
+      <DriverScheduling />
 
       {/* Driver cards */}
       <Reveal className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
