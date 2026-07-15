@@ -123,5 +123,14 @@ Incidents (approve/reject), Private bookings, Audit-log viewer, Notifications li
 ## Backend gaps to flag (frontend wants, backend can't fully serve)
 1. **Ops→driver / broadcast messaging** — `notifications.triggerType` enum is passenger-only. Add e.g. `ops_message` / `broadcast`.
 2. **Dashboard aggregation analytics** — revenue totals, daily ticket volume, occupancy, period-over-period deltas. Only peak-hours + seat-map exist today.
-3. **Driver work-shifts** — no shift/roster table (we derive schedule from trips instead).
-4. **Regenerate `openapi.json`** — it's stale (missing drivers/maintenance/analytics/tracking/notifications/incidents/agents/audit/private-bookings). Needed before generating the typed client.
+3. **Driver work-shifts / weekly roster** — no shift/roster table. The Fleet → Drivers **weekly roster + workload/fairness board** is a full mock; needs a `driver_shifts` table (driver, day, start, end) to persist + a weekly-hours aggregate for the fairness cap.
+4. **Recurring trip routines** — Trips → Scheduling **recurring routines** are mocked; needs a `trip_templates`/recurring-trips concept (route, frequency, times, vehicle) that materializes trips.
+5. **Agent trip requests (demand pooling)** — mocked; needs a `trip_requests` table (agent, corridor/stops, pax count) so ops can pool demand and dispatch.
+6. **Passenger waitlist + early dispatch** — mocked; needs a `waitlist` concept (passenger, from/to stop, desired window) + a threshold trigger to dispatch a bus early.
+7. **Live demand board** — mocked; derivable once bookings + requests + waitlist aggregate by corridor.
+8. **Driver document images** (profile/licence/ID) — drivers store licence number + expiry only; needs image-URL fields (Cloudinary).
+9. **Global parcel pricing config** — only per-package `PATCH /packages/{id}/fee` exists; a base-fee + weight-surcharge config endpoint is needed.
+10. **Regenerate `openapi.json`** — it's stale (missing drivers/maintenance/analytics/tracking/notifications/incidents/agents/audit/private-bookings). Needed before generating the typed client.
+
+> Maintenance management UI was intentionally removed (replaced by a "Coming soon" placeholder) — the
+> `maintenance` backend module still exists and can be surfaced later if prioritized.
