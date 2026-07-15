@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Bus, Users, Wrench, Plus } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
-import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { Bus, Users, Wrench } from 'lucide-react';
+import { KpiCard } from '@/components/ui/kpi-card';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
 import { VehiclesPanel } from './VehiclesPanel';
 import { DriversPanel } from './DriversPanel';
 import { MaintenancePanel } from './MaintenancePanel';
-import { AddVehicleModal } from './AddVehicleModal';
+import { FLEET_SUMMARY } from './data';
 
 const TABS = [
   { key: 'vehicles', icon: Bus },
@@ -18,32 +17,39 @@ const TABS = [
 ] as const;
 type FleetTab = (typeof TABS)[number]['key'];
 
-// Fleet management console — vehicles, drivers and maintenance, aligned to the backend data model.
+// Fleet management console — contextual KPI cards + tabbed panels (vehicles / drivers / maintenance).
 export function FleetPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FleetTab>('vehicles');
-  const [addVehicleOpen, setAddVehicleOpen] = useState(false);
+  const s = FLEET_SUMMARY;
 
-  // One primary CTA, contextual to the active tab.
-  const primaryLabel: Record<FleetTab, string> = {
-    vehicles: t('fleet.addVehicle'),
-    drivers: t('drivers.add'),
-    maintenance: t('maintenance.log'),
+  // KPI cards above the tabs, matching the selected sub-section.
+  const kpis: Record<FleetTab, { label: string; value: number }[]> = {
+    vehicles: [
+      { label: t('fleet.totalFleet'), value: s.total },
+      { label: t('fleet.activeNow'), value: s.active },
+      { label: t('fleet.scheduledToday'), value: s.scheduledToday },
+      { label: t('fleet.retiredCount'), value: s.retired },
+    ],
+    drivers: [
+      { label: t('fleet.totalDrivers'), value: s.totalDrivers },
+      { label: t('fleet.onShift'), value: s.onShift },
+      { label: t('fleet.inTrip'), value: s.inTrip },
+      { label: t('fleet.available'), value: s.available },
+    ],
+    maintenance: [],
   };
+  const cards = kpis[tab];
 
   return (
     <Reveal className="space-y-6">
-      <AddVehicleModal open={addVehicleOpen} onClose={() => setAddVehicleOpen(false)} />
-      <RevealItem>
-        <PageHeader
-          subtitle={t('fleet.consoleSub')}
-          actions={
-            <Button size="sm" onClick={() => tab === 'vehicles' && setAddVehicleOpen(true)}>
-              <Plus className="size-4" /> {primaryLabel[tab]}
-            </Button>
-          }
-        />
-      </RevealItem>
+      {cards.length > 0 && (
+        <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+          {cards.map((c) => (
+            <KpiCard key={c.label} label={c.label} value={c.value.toLocaleString()} />
+          ))}
+        </RevealItem>
+      )}
 
       <RevealItem>
         <div role="tablist" aria-label={t('fleet.consoleTitle')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
@@ -77,19 +83,16 @@ export function FleetPage() {
       </RevealItem>
 
       <RevealItem>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={tab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {tab === 'vehicles' && <VehiclesPanel />}
-            {tab === 'drivers' && <DriversPanel />}
-            {tab === 'maintenance' && <MaintenancePanel />}
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {tab === 'vehicles' && <VehiclesPanel />}
+          {tab === 'drivers' && <DriversPanel />}
+          {tab === 'maintenance' && <MaintenancePanel />}
+        </motion.div>
       </RevealItem>
     </Reveal>
   );

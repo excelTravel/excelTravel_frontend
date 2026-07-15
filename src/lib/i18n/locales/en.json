@@ -42,6 +42,13 @@
     "utilization": "Fleet utilization",
     "utilShort": "Utilization",
     "vehiclesTracked": "Vehicles tracked",
+    "activeNow": "Active",
+    "scheduledToday": "Scheduled today",
+    "retiredCount": "Retired",
+    "totalDrivers": "Total drivers",
+    "onShift": "On shift",
+    "inTrip": "In trip",
+    "available": "Available",
     "composition": "Fleet composition",
     "byStatus": "By status",
     "driversOnDuty": "Drivers on duty",
@@ -143,25 +150,9 @@
     }
   },
   "maintenance": {
-    "log": "Log maintenance",
-    "overdue": "Overdue",
-    "dueSoon": "Due soon",
-    "logged": "Logged",
-    "monthCost": "Cost (30d)",
-    "alertTitle": "{{count}} vehicle overdue for service",
-    "alertSub": "Overdue services put vehicles at risk — schedule them first.",
-    "colJob": "Service",
-    "colVehicle": "Vehicle",
-    "colWhen": "When",
-    "colOdometer": "Odometer",
-    "colUrgency": "Urgency",
-    "colCost": "Cost",
-    "actions": "Job actions",
-    "urgency": {
-      "overdue": "Overdue",
-      "due_soon": "Due soon",
-      "logged": "Logged"
-    }
+    "badge": "In development",
+    "comingSoon": "Maintenance is coming soon",
+    "comingSoonSub": "Service logging, schedules and cost tracking will live here. We've set it aside for now — tell us if you'd like it prioritized."
   },
   "login": {
     "headline": "Run your intercity buses in real time.",

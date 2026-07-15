@@ -42,6 +42,13 @@
     "utilization": "Ikoreshwa ry'amamodoka",
     "utilShort": "Ikoreshwa",
     "vehiclesTracked": "Amamodoka akurikiranwa",
+    "activeNow": "Arakora",
+    "scheduledToday": "Ateganyijwe uyu munsi",
+    "retiredCount": "Yavuye mu kazi",
+    "totalDrivers": "Abashoferi bose",
+    "onShift": "Ku kazi",
+    "inTrip": "Mu rugendo",
+    "available": "Barahari",
     "composition": "Imiterere y'amamodoka",
     "byStatus": "Ukurikije uko ameze",
     "driversOnDuty": "Abashoferi ku kazi",
@@ -143,25 +150,9 @@
     }
   },
   "maintenance": {
-    "log": "Andika isanwa",
-    "overdue": "Byararengeje",
-    "dueSoon": "Bigiye gukenerwa",
-    "logged": "Byanditswe",
-    "monthCost": "Ikiguzi (iminsi 30)",
-    "alertTitle": "Imodoka {{count}} irengeje igihe cyo gusanwa",
-    "alertSub": "Gusana byarengeje igihe bishyira imodoka mu kaga — bibanze.",
-    "colJob": "Isanwa",
-    "colVehicle": "Imodoka",
-    "colWhen": "Igihe",
-    "colOdometer": "Kilometero",
-    "colUrgency": "Ubwihutirwe",
-    "colCost": "Ikiguzi",
-    "actions": "Ibikorwa",
-    "urgency": {
-      "overdue": "Byararengeje",
-      "due_soon": "Bigiye gukenerwa",
-      "logged": "Byanditswe"
-    }
+    "badge": "Biracyubakwa",
+    "comingSoon": "Gusana biraza vuba",
+    "comingSoonSub": "Kwandika gusana, gahunda n'ibiciro bizaba hano. Twabishyize ku ruhande kuri ubu — tubwire niba ushaka ko bikorwa mbere."
   },
   "login": {
     "headline": "Genzura bisi zawe ako kanya.",

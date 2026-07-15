@@ -1,9 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Bus, CalendarDays, MoreVertical, Phone, UserRound } from 'lucide-react';
+import { Bus, CalendarDays, MoreVertical, Phone, Route as RouteIcon, UserRound } from 'lucide-react';
 import { MotionCard } from '@/components/motion/Motion';
 import { StatusPill } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { serviceProgress, serviceDueSoon, type Vehicle } from './data';
+import type { Vehicle } from './data';
 
 // The status accent that runs along the top of each card.
 const ACCENT: Record<Vehicle['status'], string> = {
@@ -14,9 +13,6 @@ const ACCENT: Record<Vehicle['status'], string> = {
 
 export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOpenDetails?: () => void }) {
   const { t } = useTranslation();
-  const pct = serviceProgress(vehicle);
-  const soon = serviceDueSoon(vehicle);
-  const kmLeft = vehicle.nextServiceKm - vehicle.currentKm;
 
   return (
     <MotionCard className="flex flex-col overflow-hidden p-0">
@@ -50,17 +46,10 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
           </div>
         </div>
 
-        {/* Service progress */}
-        <div>
-          <div className="mb-1.5 flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">{t('vehicles.colService')}</span>
-            <span className={cn('font-medium tabular-nums', soon ? 'text-warning' : 'text-muted-foreground')}>
-              {vehicle.status === 'retired' ? '—' : `${kmLeft.toLocaleString()} km`}
-            </span>
-          </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
-            <div className={cn('h-full rounded-full', soon ? 'bg-warning' : 'bg-teal')} style={{ width: `${pct}%` }} />
-          </div>
+        {/* Route */}
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          <RouteIcon className="size-3.5 shrink-0" />
+          <span className="truncate">{vehicle.route}</span>
         </div>
 
         {/* Driver + actions */}

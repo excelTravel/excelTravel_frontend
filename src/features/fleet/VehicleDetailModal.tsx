@@ -7,8 +7,8 @@ import { Field, Input, Select } from '@/components/ui/form';
 import { StatusPill } from '@/components/ui/badge';
 import type { Vehicle } from './data';
 
-// View = GET /vehicles/{id}. Edit = PATCH /vehicles/{id} (UpdateVehicle): model, capacity, status, currentKm, routeId.
-// plate_number and year are immutable on the backend, so they're shown read-only.
+// View = GET /vehicles/{id}. Edit = PATCH /vehicles/{id} (UpdateVehicle): model, capacity, status, routeId.
+// plate_number and year are immutable on the backend, so they're read-only.
 export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicle | null; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -18,7 +18,7 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
 
   function save() {
     setSaving(true);
-    // PATCH /vehicles/{id} { model, capacity, status, currentKm, routeId } — stubbed until the API client is wired.
+    // PATCH /vehicles/{id} { model, capacity, status, routeId } — stubbed until the API client is wired.
     setTimeout(() => {
       setSaving(false);
       setEditing(false);
@@ -57,7 +57,7 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
         </div>
 
         {editing ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('forms.model')} htmlFor="e-model">
               <Input id="e-model" defaultValue={vehicle.model} />
             </Field>
@@ -71,16 +71,17 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
                 <option value="retired">{t('vehicles.status.retired')}</option>
               </Select>
             </Field>
-            <Field label={t('vehicles.odometer')} htmlFor="e-km">
-              <Input id="e-km" type="number" defaultValue={vehicle.currentKm} />
+            <Field label={t('forms.route')} htmlFor="e-route">
+              <Input id="e-route" defaultValue={vehicle.route} />
             </Field>
           </div>
         ) : (
-          <dl className="grid grid-cols-2 gap-4">
+          <dl className="grid grid-cols-2 gap-3">
             <Detail label={t('vehicles.colCapacity')} value={`${vehicle.capacity} ${t('vehicles.seats')}`} />
-            <Detail label={t('vehicles.odometer')} value={`${vehicle.currentKm.toLocaleString()} km`} />
+            <Detail label={t('vehicles.nextMaintenance')} value={vehicle.nextServiceDate} />
             <Detail label={t('forms.year')} value={String(vehicle.year)} />
-            <Detail label={t('vehicles.colDriver')} value={vehicle.driver ?? t('vehicles.unassigned')} />
+            <Detail label={t('forms.route')} value={vehicle.route} />
+            <Detail label={t('vehicles.colDriver')} value={vehicle.driver ?? t('vehicles.unassigned')} className="col-span-2" />
           </dl>
         )}
       </div>
@@ -88,11 +89,11 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-xl bg-secondary/50 p-3">
+    <div className={`rounded-xl border border-border bg-secondary/40 p-3 ${className ?? ''}`}>
       <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-sm font-semibold">{value}</dd>
+      <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
     </div>
   );
 }
