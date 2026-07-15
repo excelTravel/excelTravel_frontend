@@ -58,8 +58,36 @@
     "tabs": {
       "vehicles": "Vehicles",
       "drivers": "Drivers",
-      "maintenance": "Maintenance"
+      "maintenance": "Maintenance",
+      "accidents": "Accidents"
     }
+  },
+  "accidents": {
+    "title": "Accidents & incidents",
+    "pending": "Pending review",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "total": "Total",
+    "filter": {
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "status": {
+      "pending": "Pending review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveTitle": "Approve incident & reassign bus",
+    "approveSub": "Confirm the accident and assign a replacement vehicle to the trip.",
+    "approveReassign": "Approve & reassign",
+    "currentBus": "Current bus",
+    "replacementBus": "Replacement bus",
+    "emptyTitle": "Nothing here",
+    "emptySub": "No incidents match this filter."
   },
   "tripsList": {
     "title": "Trip Management",
@@ -69,6 +97,29 @@
       "scheduling": "Scheduling & demand"
     },
     "newTrip": "New trip",
+    "manage": "Manage",
+    "mng": {
+      "newTripSub": "Schedule a new trip on a route.",
+      "createTrip": "Create trip",
+      "departDate": "Depart date",
+      "departTime": "Depart time",
+      "selectDriver": "Select a driver",
+      "direction": "Direction",
+      "outbound": "Outbound",
+      "return": "Return",
+      "manageTitle": "Manage trip",
+      "published": "Published — bookable",
+      "draft": "Draft — not yet bookable",
+      "publishHint": "Publishing makes this trip visible to passengers and agents for booking.",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "changeVehicle": "Change vehicle",
+      "reroute": "Reroute",
+      "currentRoute": "Current",
+      "assignVehicle": "Assign vehicle",
+      "waitlist": "Waitlist",
+      "dispatchWaitlist": "Dispatch a bus for waitlist"
+    },
     "filter": "Filter",
     "search": "Search trips",
     "live": "Live",
@@ -112,6 +163,11 @@
     "colService": "Next service",
     "odometer": "Odometer",
     "nextMaintenance": "Next maintenance",
+    "inMaintenanceFor": "In maintenance · {{d}}d {{h}}h",
+    "since": "since {{date}}",
+    "onTrip": "On {{code}}",
+    "scheduledTrip": "Scheduled · {{code}} · {{time}}",
+    "idle": "Idle · available",
     "seats": "seats",
     "unassigned": "Unassigned",
     "actions": "Vehicle actions",
@@ -399,6 +455,23 @@
     "passengers": "{{count}} passengers"
   },
   "settings": {
+    "nav": {
+      "profile": "Profile",
+      "company": "Company",
+      "preferences": "Preferences"
+    },
+    "email": "Email",
+    "station": "Station",
+    "preferences": "Preferences",
+    "preferencesSub": "Language, appearance and regional defaults.",
+    "language": "Language",
+    "appearance": "Appearance",
+    "light": "Switch to light",
+    "dark": "Switch to dark",
+    "timezone": "Timezone",
+    "currency": "Currency",
+    "ticketPreview": "Ticket preview",
+    "ticketPreviewSub": "How your logo appears on passenger tickets.",
     "profile": "Profile",
     "profileSub": "Your name and photo, seen across the console.",
     "displayName": "Display name",

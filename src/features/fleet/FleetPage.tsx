@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Bus, Users, Wrench } from 'lucide-react';
+import { Bus, Users, Wrench, TriangleAlert } from 'lucide-react';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
 import { VehiclesPanel } from './VehiclesPanel';
 import { DriversPanel } from './DriversPanel';
 import { MaintenancePanel } from './MaintenancePanel';
+import { AccidentsPanel } from './AccidentsPanel';
 import { FLEET_SUMMARY } from './data';
 
 const TABS = [
   { key: 'vehicles', icon: Bus },
   { key: 'drivers', icon: Users },
   { key: 'maintenance', icon: Wrench },
+  { key: 'accidents', icon: TriangleAlert },
 ] as const;
 type FleetTab = (typeof TABS)[number]['key'];
 
@@ -38,6 +40,7 @@ export function FleetPage() {
       { label: t('fleet.available'), value: s.available },
     ],
     maintenance: [],
+    accidents: [],
   };
   const cards = kpis[tab];
 
@@ -92,6 +95,7 @@ export function FleetPage() {
           {tab === 'vehicles' && <VehiclesPanel />}
           {tab === 'drivers' && <DriversPanel />}
           {tab === 'maintenance' && <MaintenancePanel />}
+          {tab === 'accidents' && <AccidentsPanel />}
         </motion.div>
       </RevealItem>
     </Reveal>

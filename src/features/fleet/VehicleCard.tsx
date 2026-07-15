@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Bus, CalendarDays, MoreVertical, Phone, Route as RouteIcon, UserRound } from 'lucide-react';
+import { Bus, CalendarDays, Clock, MoreVertical, Navigation, Phone, UserRound, Wrench } from 'lucide-react';
 import { MotionCard } from '@/components/motion/Motion';
 import { StatusPill } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import type { Vehicle } from './data';
 
 // The status accent that runs along the top of each card.
@@ -10,6 +11,11 @@ const ACCENT: Record<Vehicle['status'], string> = {
   maintenance: 'hsl(var(--warning))',
   retired: 'hsl(var(--muted-foreground))',
 };
+
+function maintenanceFor(sinceISO: string) {
+  const totalH = Math.max(0, Math.floor((Date.now() - new Date(sinceISO).getTime()) / 3_600_000));
+  return { d: Math.floor(totalH / 24), h: totalH % 24, since: new Date(sinceISO).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) };
+}
 
 export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOpenDetails?: () => void }) {
   const { t } = useTranslation();
@@ -46,11 +52,32 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
           </div>
         </div>
 
-        {/* Route */}
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <RouteIcon className="size-3.5 shrink-0" />
-          <span className="truncate">{vehicle.route}</span>
-        </div>
+        {/* Contextual status: on a trip / scheduled next / how long in maintenance */}
+        {vehicle.status === 'maintenance' && vehicle.maintenanceSince ? (
+          (() => {
+            const m = maintenanceFor(vehicle.maintenanceSince);
+            return (
+              <div className="flex items-center gap-1.5 text-sm text-warning">
+                <Wrench className="size-3.5 shrink-0" />
+                <span className="truncate">{t('vehicles.inMaintenanceFor', { d: m.d, h: m.h })} · {t('vehicles.since', { date: m.since })}</span>
+              </div>
+            );
+          })()
+        ) : vehicle.currentTrip ? (
+          <div className="flex items-center gap-1.5 text-sm text-[hsl(var(--teal))]">
+            <Navigation className="size-3.5 shrink-0" />
+            <span className="truncate">{t('vehicles.onTrip', { code: vehicle.currentTrip.code })} · {vehicle.currentTrip.route}</span>
+          </div>
+        ) : vehicle.nextTrip ? (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Clock className="size-3.5 shrink-0" />
+            <span className="truncate">{t('vehicles.scheduledTrip', { code: vehicle.nextTrip.code, time: vehicle.nextTrip.time })}</span>
+          </div>
+        ) : (
+          <div className={cn('flex items-center gap-1.5 text-sm text-muted-foreground')}>
+            <span className="truncate">{t('vehicles.idle')}</span>
+          </div>
+        )}
 
         {/* Driver + actions */}
         <div className="flex items-center justify-between gap-2 border-t border-border pt-3">

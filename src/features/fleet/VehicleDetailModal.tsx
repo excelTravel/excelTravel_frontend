@@ -71,16 +71,22 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
                 <option value="retired">{t('vehicles.status.retired')}</option>
               </Select>
             </Field>
-            <Field label={t('forms.route')} htmlFor="e-route">
-              <Input id="e-route" defaultValue={vehicle.route} />
-            </Field>
           </div>
         ) : (
           <dl className="grid grid-cols-2 gap-3">
             <Detail label={t('vehicles.colCapacity')} value={`${vehicle.capacity} ${t('vehicles.seats')}`} />
             <Detail label={t('vehicles.nextMaintenance')} value={vehicle.nextServiceDate} />
             <Detail label={t('forms.year')} value={String(vehicle.year)} />
-            <Detail label={t('forms.route')} value={vehicle.route} />
+            <Detail
+              label={t('vehicles.colStatus')}
+              value={
+                vehicle.currentTrip
+                  ? `${vehicle.currentTrip.code} · ${vehicle.currentTrip.route}`
+                  : vehicle.nextTrip
+                    ? `${vehicle.nextTrip.code} · ${vehicle.nextTrip.time}`
+                    : t(`vehicles.status.${vehicle.status}`)
+              }
+            />
             <Detail label={t('vehicles.colDriver')} value={vehicle.driver ?? t('vehicles.unassigned')} className="col-span-2" />
           </dl>
         )}

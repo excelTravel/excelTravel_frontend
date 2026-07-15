@@ -58,8 +58,36 @@
     "tabs": {
       "vehicles": "Amamodoka",
       "drivers": "Abashoferi",
-      "maintenance": "Gusana"
+      "maintenance": "Gusana",
+      "accidents": "Impanuka"
     }
+  },
+  "accidents": {
+    "title": "Impanuka n'ibyabaye",
+    "pending": "Bitegereje isuzuma",
+    "approved": "Byemejwe",
+    "rejected": "Byanzwe",
+    "total": "Byose",
+    "filter": {
+      "all": "Byose",
+      "pending": "Bitegereje",
+      "approved": "Byemejwe",
+      "rejected": "Byanzwe"
+    },
+    "status": {
+      "pending": "Bitegereje isuzuma",
+      "approved": "Byemejwe",
+      "rejected": "Byanzwe"
+    },
+    "approve": "Emeza",
+    "reject": "Anga",
+    "approveTitle": "Emeza impanuka & uhindure bisi",
+    "approveSub": "Emeza impanuka maze uhe urugendo bisi isimbura.",
+    "approveReassign": "Emeza & uhindure",
+    "currentBus": "Bisi iriho",
+    "replacementBus": "Bisi isimbura",
+    "emptyTitle": "Nta kirimo",
+    "emptySub": "Nta byabaye bihuye n'iri shungura."
   },
   "tripsList": {
     "title": "Imicungire y'ingendo",
@@ -69,6 +97,29 @@
       "scheduling": "Gahunda n'ibisabwa"
     },
     "newTrip": "Urugendo rushya",
+    "manage": "Cunga",
+    "mng": {
+      "newTripSub": "Teganya urugendo rushya ku muhanda.",
+      "createTrip": "Kora urugendo",
+      "departDate": "Itariki yo kugenda",
+      "departTime": "Isaha yo kugenda",
+      "selectDriver": "Hitamo umushoferi",
+      "direction": "Icyerekezo",
+      "outbound": "Kujya",
+      "return": "Kugaruka",
+      "manageTitle": "Cunga urugendo",
+      "published": "Rwatangajwe — rushobora gufatirwa",
+      "draft": "Umushinga — ntirwatangajwe",
+      "publishHint": "Gutangaza bituma uru rugendo rugaragarira abagenzi n'aba agent kugira barufatire.",
+      "publish": "Tangaza",
+      "unpublish": "Kuraho itangazwa",
+      "changeVehicle": "Hindura imodoka",
+      "reroute": "Hindura umuhanda",
+      "currentRoute": "Ubu",
+      "assignVehicle": "Shyiraho imodoka",
+      "waitlist": "Abategereje",
+      "dispatchWaitlist": "Ohereza bisi ku bategereje"
+    },
     "filter": "Shungura",
     "search": "Shakisha ingendo",
     "live": "Ako kanya",
@@ -112,6 +163,11 @@
     "colService": "Isanwa rikurikira",
     "odometer": "Kilometero",
     "nextMaintenance": "Isanwa rikurikira",
+    "inMaintenanceFor": "Iri gusanwa · iminsi {{d}} amasaha {{h}}",
+    "since": "kuva {{date}}",
+    "onTrip": "Kuri {{code}}",
+    "scheduledTrip": "Iteganyijwe · {{code}} · {{time}}",
+    "idle": "Iraruhutse · irahari",
     "seats": "imyanya",
     "unassigned": "Ntawashyizweho",
     "actions": "Ibikorwa by'imodoka",
@@ -399,6 +455,23 @@
     "passengers": "abagenzi {{count}}"
   },
   "settings": {
+    "nav": {
+      "profile": "Umwirondoro",
+      "company": "Ikigo",
+      "preferences": "Ibyifuzo"
+    },
+    "email": "Imeyili",
+    "station": "Sitasiyo",
+    "preferences": "Ibyifuzo",
+    "preferencesSub": "Ururimi, imiterere n'ibisanzwe by'akarere.",
+    "language": "Ururimi",
+    "appearance": "Imiterere",
+    "light": "Hindura ku rumuri",
+    "dark": "Hindura ku mwijima",
+    "timezone": "Isaha y'akarere",
+    "currency": "Ifaranga",
+    "ticketPreview": "Igaragaza ry'itike",
+    "ticketPreviewSub": "Uko ikirango cyawe kigaragara ku matike y'abagenzi.",
     "profile": "Umwirondoro",
     "profileSub": "Izina n'ifoto yawe bigaragara muri sisitemu.",
     "displayName": "Izina rigaragara",

@@ -10,6 +10,7 @@ import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { TripScheduling } from './TripScheduling';
+import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub trips (Rwanda). Wired later to /trips (list, filter by status) + /bookings (occupancy).
@@ -51,6 +52,8 @@ export function TripsPage() {
   const navigate = useNavigate();
   const [view, setView] = useState<(typeof VIEWS)[number]>('trips');
   const [tab, setTab] = useState<TripGroup | 'all'>('all');
+  const [newTripOpen, setNewTripOpen] = useState(false);
+  const [manageTrip, setManageTrip] = useState<ManageTrip | null>(null);
   const rows = tab === 'all' ? TRIPS : TRIPS.filter((r) => r.group === tab);
   const { sorted, sortKey, sortDir, toggle } = useSort<TripRow>(rows, (row, key) => {
     switch (key) {
@@ -82,12 +85,15 @@ export function TripsPage() {
             ))}
           </div>
           {view === 'trips' && (
-            <Button size="sm">
+            <Button size="sm" onClick={() => setNewTripOpen(true)}>
               <Plus className="size-4" /> {t('tripsList.newTrip')}
             </Button>
           )}
         </div>
       </RevealItem>
+
+      <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
+      <TripManageModal trip={manageTrip} open={manageTrip !== null} onClose={() => setManageTrip(null)} />
 
       {view === 'scheduling' && (
         <RevealItem>
@@ -188,7 +194,16 @@ export function TripsPage() {
                         {r.revenue ? formatRWF(r.revenue) : '—'}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <ChevronRight className="size-4 text-muted-foreground" />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setManageTrip({ id: r.id, from: r.from, to: r.to, departs: r.departs, bus: r.bus, driver: r.driver, published: false });
+                          }}
+                        >
+                          {t('tripsList.manage')}
+                        </Button>
                       </td>
                     </tr>
                   );
