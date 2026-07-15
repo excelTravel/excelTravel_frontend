@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
@@ -10,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { TripScheduling } from './TripScheduling';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub trips (Rwanda). Wired later to /trips (list, filter by status) + /bookings (occupancy).
@@ -44,9 +44,12 @@ const TABS = ['all', 'scheduled', 'active', 'completed', 'cancelled'] as const;
 const countBy = (g: TripGroup) => TRIPS.filter((r) => r.group === g).length;
 const countTab = (k: (typeof TABS)[number]) => (k === 'all' ? TRIPS.length : countBy(k));
 
+const VIEWS = ['trips', 'scheduling'] as const;
+
 export function TripsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [view, setView] = useState<(typeof VIEWS)[number]>('trips');
   const [tab, setTab] = useState<TripGroup | 'all'>('all');
   const rows = tab === 'all' ? TRIPS : TRIPS.filter((r) => r.group === tab);
   const { sorted, sortKey, sortDir, toggle } = useSort<TripRow>(rows, (row, key) => {
@@ -61,16 +64,39 @@ export function TripsPage() {
   return (
     <Reveal className="space-y-6">
       <RevealItem>
-        <PageHeader
-          subtitle={t('tripsList.subtitle')}
-          actions={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div role="tablist" aria-label={t('nav.trips')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
+            {VIEWS.map((v) => (
+              <button
+                key={v}
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => setView(v)}
+                className={cn(
+                  'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                  view === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {t(`tripsList.view.${v}`)}
+              </button>
+            ))}
+          </div>
+          {view === 'trips' && (
             <Button size="sm">
               <Plus className="size-4" /> {t('tripsList.newTrip')}
             </Button>
-          }
-        />
+          )}
+        </div>
       </RevealItem>
 
+      {view === 'scheduling' && (
+        <RevealItem>
+          <TripScheduling />
+        </RevealItem>
+      )}
+
+      {view === 'trips' && (
+      <>
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('tripsList.kpiScheduled')} value={String(countBy('scheduled'))} />
         <KpiCard label={t('tripsList.kpiActive')} value={String(countBy('active'))} badge={{ text: t('tripsList.live'), tone: 'teal' }} />
@@ -191,6 +217,8 @@ export function TripsPage() {
           </div>
         </GlassCard>
       </RevealItem>
+      </>
+      )}
     </Reveal>
   );
 }

@@ -64,6 +64,10 @@
   "tripsList": {
     "title": "Trip Management",
     "subtitle": "Every scheduled, active and completed trip across the network.",
+    "view": {
+      "trips": "All trips",
+      "scheduling": "Scheduling & demand"
+    },
     "newTrip": "New trip",
     "filter": "Filter",
     "search": "Search trips",
@@ -187,6 +191,48 @@
       "delayed": "Delayed",
       "arriving": "Arriving"
     }
+  },
+  "sched": {
+    "routines": "Recurring routines",
+    "routinesSub": "Daily and weekly trip templates that run automatically.",
+    "newRoutine": "New routine",
+    "newRoutineSub": "Set a route to run on a schedule.",
+    "createRoutine": "Create routine",
+    "colRoute": "Route",
+    "colFrequency": "Frequency",
+    "colTimes": "Times",
+    "colBus": "Bus",
+    "colStatus": "Status",
+    "active": "Active",
+    "paused": "Paused",
+    "freq": {
+      "daily": "Daily",
+      "weekdays": "Weekdays",
+      "weekends": "Weekends",
+      "weekly": "Weekly"
+    },
+    "demand": "Agent demand",
+    "demandSub": "Pooled passenger requests along a corridor — dispatch a bus to cover them.",
+    "dispatchBus": "Dispatch a bus",
+    "paxCount": "{{n}} pax",
+    "waitlist": "Waitlist & early dispatch",
+    "waitlistSub": "When enough passengers are waiting, send the bus earlier than planned.",
+    "scheduledAt": "scheduled {{time}}",
+    "sendEarly": "Send bus early",
+    "waitingMore": "{{n}} more to fill",
+    "earlyNote": "Full now — can leave by {{earliest}} instead of {{scheduled}}.",
+    "board": "Live demand board",
+    "boardSub": "Demand vs scheduled capacity right now (marker = capacity).",
+    "spike": "Under-served",
+    "capacity": "Capacity",
+    "dispatchTitle": "Dispatch a bus",
+    "dispatchSub": "Send an unplanned bus to cover this demand.",
+    "departAt": "Depart at",
+    "origin": "Origin",
+    "destination": "Destination",
+    "frequency": "Frequency",
+    "times": "Departure times",
+    "timesHint": "Comma-separated, 24h (e.g. 06:00, 12:00)."
   },
   "analytics": {
     "title": "Analytics",

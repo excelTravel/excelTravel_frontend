@@ -64,6 +64,10 @@
   "tripsList": {
     "title": "Imicungire y'ingendo",
     "subtitle": "Ingendo zose ziteganyijwe, zikora n'izarangiye.",
+    "view": {
+      "trips": "Ingendo zose",
+      "scheduling": "Gahunda n'ibisabwa"
+    },
     "newTrip": "Urugendo rushya",
     "filter": "Shungura",
     "search": "Shakisha ingendo",
@@ -187,6 +191,48 @@
       "delayed": "Byatinze",
       "arriving": "Iregereje"
     }
+  },
+  "sched": {
+    "routines": "Ingendo zisubirwamo",
+    "routinesSub": "Imodeli z'ingendo za buri munsi n'icyumweru zikora zishyizweho.",
+    "newRoutine": "Gahunda nshya",
+    "newRoutineSub": "Shyiraho umuhanda ukora ku gahunda.",
+    "createRoutine": "Kora gahunda",
+    "colRoute": "Umuhanda",
+    "colFrequency": "Inshuro",
+    "colTimes": "Amasaha",
+    "colBus": "Bisi",
+    "colStatus": "Uko bimeze",
+    "active": "Irakora",
+    "paused": "Yahagaritswe",
+    "freq": {
+      "daily": "Buri munsi",
+      "weekdays": "Iminsi y'akazi",
+      "weekends": "Impera z'icyumweru",
+      "weekly": "Buri cyumweru"
+    },
+    "demand": "Ibisabwa n'aba agent",
+    "demandSub": "Abagenzi basabwe hamwe ku muhanda — ohereza bisi ibatware.",
+    "dispatchBus": "Ohereza bisi",
+    "paxCount": "abagenzi {{n}}",
+    "waitlist": "Abategereje n'ohereza kare",
+    "waitlistSub": "Iyo abagenzi bahagije bategereje, ohereza bisi hakiri kare.",
+    "scheduledAt": "iteganyijwe {{time}}",
+    "sendEarly": "Ohereza bisi kare",
+    "waitingMore": "hakenewe {{n}} yuzure",
+    "earlyNote": "Yuzuye ubu — ishobora kugenda {{earliest}} aho gutegereza {{scheduled}}.",
+    "board": "Ikibaho cy'ibisabwa",
+    "boardSub": "Ibisabwa ugereranyije n'ubushobozi ubu (akamenyetso = ubushobozi).",
+    "spike": "Bidahagije",
+    "capacity": "Ubushobozi",
+    "dispatchTitle": "Ohereza bisi",
+    "dispatchSub": "Ohereza bisi itateganyijwe kugira ikemure ibisabwa.",
+    "departAt": "Igihe cyo kugenda",
+    "origin": "Aho ituruka",
+    "destination": "Aho igana",
+    "frequency": "Inshuro",
+    "times": "Amasaha yo kugenda",
+    "timesHint": "Bitandukanyijwe na koma, isaha 24 (urugero: 06:00, 12:00)."
   },
   "analytics": {
     "title": "Isesengura",
