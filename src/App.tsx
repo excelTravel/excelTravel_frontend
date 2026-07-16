@@ -21,7 +21,6 @@ const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then(
 const NetworkPage = lazy(() => import('./features/network/NetworkPage').then((m) => ({ default: m.NetworkPage })));
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 const TeamPage = lazy(() => import('./features/team/TeamPage').then((m) => ({ default: m.TeamPage })));
-const AdminPage = lazy(() => import('./features/admin/AdminPage').then((m) => ({ default: m.AdminPage })));
 
 // Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
 export function App() {
@@ -39,7 +38,6 @@ export function App() {
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/team" element={<TeamPage />} />
-        <Route path="/admin" element={<AdminPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<PlaceholderPage title="Not found" />} />

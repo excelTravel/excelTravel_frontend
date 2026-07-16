@@ -12,9 +12,9 @@ const ROUTES = [
   { id: 'r4', name: 'Nyagatare → Remera' },
 ];
 const VEHICLES = [
-  { id: 'RAE 027 B', label: 'RAE 027 B · Coaster (33)' },
-  { id: 'RAD 088 A', label: 'RAD 088 A · Yutong (44)' },
-  { id: 'RAF 051 C', label: 'RAF 051 C · Coach (40)' },
+  { id: 'RAE-027-B', label: 'RAE-027-B · Coaster (33)' },
+  { id: 'RAD-088-A', label: 'RAD-088-A · Yutong (44)' },
+  { id: 'RAF-051-C', label: 'RAF-051-C · Coach (40)' },
 ];
 const DRIVERS = [
   { id: 'd4', name: 'Jean Mugabo' },

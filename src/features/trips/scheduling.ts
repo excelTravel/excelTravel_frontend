@@ -13,9 +13,9 @@ export interface Routine {
 }
 
 export const ROUTINES: Routine[] = [
-  { id: 'RT-01', from: 'Nyagatare', to: 'Remera', frequency: 'daily', times: ['06:00', '12:00', '17:30'], bus: 'RAE-27', active: true },
-  { id: 'RT-02', from: 'Kigali', to: 'Musanze', frequency: 'weekdays', times: ['07:00', '15:00'], bus: 'RAB-402', active: true },
-  { id: 'RT-03', from: 'Kigali', to: 'Rubavu', frequency: 'weekends', times: ['08:00'], bus: 'RAC-112', active: false },
+  { id: 'RT-01', from: 'Nyagatare', to: 'Remera', frequency: 'daily', times: ['06:00', '12:00', '17:30'], bus: 'RAE-027-B', active: true },
+  { id: 'RT-02', from: 'Kigali', to: 'Musanze', frequency: 'weekdays', times: ['07:00', '15:00'], bus: 'RAB-402-C', active: true },
+  { id: 'RT-03', from: 'Kigali', to: 'Rubavu', frequency: 'weekends', times: ['08:00'], bus: 'RAC-112-D', active: false },
 ];
 
 export interface AgentDemand {

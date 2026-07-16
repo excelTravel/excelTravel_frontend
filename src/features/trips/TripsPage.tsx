@@ -31,14 +31,14 @@ interface TripRow {
 }
 
 const TRIPS: TripRow[] = [
-  { id: 'TRP-8492', from: 'Kigali', to: 'Musanze', kind: 'Express', departs: '08:30', bus: 'RAB-402', driver: 'S. Uwase', booked: 38, capacity: 40, status: 'in_transit', group: 'active', revenue: 1482000 },
-  { id: 'TRP-8495', from: 'Kigali', to: 'Rubavu', kind: 'Standard', departs: '09:00', bus: 'RAC-112', driver: 'P. Habimana', booked: 22, capacity: 30, status: 'delayed', group: 'active', revenue: 770000 },
-  { id: 'TRP-8502', from: 'Kigali', to: 'Huye', kind: 'Express', departs: '09:15', bus: 'RAD-88', driver: 'L. Ingabire', booked: 40, capacity: 40, status: 'in_transit', group: 'active', revenue: 1520000 },
-  { id: 'TRP-8510', from: 'Kigali', to: 'Nyagatare', kind: 'Standard', departs: '11:30', bus: 'RAE-27', driver: 'J. Mugabo', booked: 12, capacity: 33, status: 'scheduled', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8514', from: 'Musanze', to: 'Kigali', kind: 'Express', departs: '12:00', bus: 'RAF-51', driver: 'C. Umutoni', booked: 27, capacity: 40, status: 'boarding', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8478', from: 'Kigali', to: 'Rusizi', kind: 'Standard', departs: '06:00', bus: 'RAG-14', driver: 'E. Nkusi', booked: 33, capacity: 33, status: 'completed', group: 'completed', revenue: 1650000 },
-  { id: 'TRP-8480', from: 'Huye', to: 'Kigali', kind: 'Express', departs: '06:30', bus: 'RAH-09', driver: 'M. Uwase', booked: 39, capacity: 40, status: 'completed', group: 'completed', revenue: 1560000 },
-  { id: 'TRP-8471', from: 'Kigali', to: 'Nyamata', kind: 'Standard', departs: '05:45', bus: 'RAB-402', driver: 'S. Uwase', booked: 4, capacity: 30, status: 'cancelled', group: 'cancelled', revenue: 0 },
+  { id: 'TRP-8492', from: 'Kigali', to: 'Musanze', kind: 'Express', departs: '08:30', bus: 'RAB-402-C', driver: 'S. Uwase', booked: 38, capacity: 40, status: 'in_transit', group: 'active', revenue: 1482000 },
+  { id: 'TRP-8495', from: 'Kigali', to: 'Rubavu', kind: 'Standard', departs: '09:00', bus: 'RAC-112-D', driver: 'P. Habimana', booked: 22, capacity: 30, status: 'delayed', group: 'active', revenue: 770000 },
+  { id: 'TRP-8502', from: 'Kigali', to: 'Huye', kind: 'Express', departs: '09:15', bus: 'RAD-088-A', driver: 'L. Ingabire', booked: 40, capacity: 40, status: 'in_transit', group: 'active', revenue: 1520000 },
+  { id: 'TRP-8510', from: 'Kigali', to: 'Nyagatare', kind: 'Standard', departs: '11:30', bus: 'RAE-027-B', driver: 'J. Mugabo', booked: 12, capacity: 33, status: 'scheduled', group: 'scheduled', revenue: 0 },
+  { id: 'TRP-8514', from: 'Musanze', to: 'Kigali', kind: 'Express', departs: '12:00', bus: 'RAF-051-C', driver: 'C. Umutoni', booked: 27, capacity: 40, status: 'boarding', group: 'scheduled', revenue: 0 },
+  { id: 'TRP-8478', from: 'Kigali', to: 'Rusizi', kind: 'Standard', departs: '06:00', bus: 'RAG-014-B', driver: 'E. Nkusi', booked: 33, capacity: 33, status: 'completed', group: 'completed', revenue: 1650000 },
+  { id: 'TRP-8480', from: 'Huye', to: 'Kigali', kind: 'Express', departs: '06:30', bus: 'RAH-009-A', driver: 'M. Uwase', booked: 39, capacity: 40, status: 'completed', group: 'completed', revenue: 1560000 },
+  { id: 'TRP-8471', from: 'Kigali', to: 'Nyamata', kind: 'Standard', departs: '05:45', bus: 'RAB-402-C', driver: 'S. Uwase', booked: 4, capacity: 30, status: 'cancelled', group: 'cancelled', revenue: 0 },
 ];
 
 const TABS = ['all', 'scheduled', 'active', 'completed', 'cancelled'] as const;

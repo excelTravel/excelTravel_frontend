@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Field, Select, Textarea } from '@/components/ui/form';
 
 const VEHICLES = [
-  { id: 'RAE-27', label: 'RAE-27 · Coaster (idle)' },
-  { id: 'RAD-88', label: 'RAD-88 · Yutong Bus' },
-  { id: 'RAF-51', label: 'RAF-51 · Executive Coach' },
+  { id: 'RAE-027-B', label: 'RAE-027-B · Coaster (idle)' },
+  { id: 'RAD-088-A', label: 'RAD-088-A · Yutong Bus' },
+  { id: 'RAF-051-C', label: 'RAF-051-C · Executive Coach' },
 ];
 
 // Reroute / vehicle swap → PATCH /trips/{id} { vehicleId } (UpdateTrip). Stubbed until the client is wired.

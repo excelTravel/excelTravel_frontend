@@ -26,16 +26,16 @@ interface Incident {
 }
 
 const INITIAL: Incident[] = [
-  { id: 'INC-3021', tripCode: 'TRP-8492', route: 'Kigali → Musanze', driver: 'Sarah Uwase', description: 'Rear-left tyre burst near Shyorongi; bus stopped safely, no injuries.', status: 'pending', oldVehicle: 'RAB 402 C', newVehicle: null, when: '22m ago', hasPhoto: true },
-  { id: 'INC-3020', tripCode: 'TRP-8495', route: 'Kigali → Rubavu', driver: 'Patrick Habimana', description: 'Engine overheating warning; pulled over at Muhanga.', status: 'pending', oldVehicle: 'RAC 112 D', newVehicle: null, when: '48m ago', hasPhoto: false },
-  { id: 'INC-3018', tripCode: 'TRP-8471', route: 'Kigali → Nyamata', driver: 'Eric Nkusi', description: 'Minor fender collision at Nyabugogo junction; no injuries.', status: 'approved', oldVehicle: 'RAG 014 B', newVehicle: 'RAE 027 B', when: '2h ago', hasPhoto: true },
-  { id: 'INC-3009', tripCode: 'TRP-8455', route: 'Huye → Kigali', driver: 'M. Uwase', description: 'Windscreen crack reported; deemed non-critical, trip continued.', status: 'rejected', oldVehicle: 'RAH 009 A', newVehicle: null, when: '1d ago', hasPhoto: false },
+  { id: 'INC-3021', tripCode: 'TRP-8492', route: 'Kigali → Musanze', driver: 'Sarah Uwase', description: 'Rear-left tyre burst near Shyorongi; bus stopped safely, no injuries.', status: 'pending', oldVehicle: 'RAB-402-C', newVehicle: null, when: '22m ago', hasPhoto: true },
+  { id: 'INC-3020', tripCode: 'TRP-8495', route: 'Kigali → Rubavu', driver: 'Patrick Habimana', description: 'Engine overheating warning; pulled over at Muhanga.', status: 'pending', oldVehicle: 'RAC-112-D', newVehicle: null, when: '48m ago', hasPhoto: false },
+  { id: 'INC-3018', tripCode: 'TRP-8471', route: 'Kigali → Nyamata', driver: 'Eric Nkusi', description: 'Minor fender collision at Nyabugogo junction; no injuries.', status: 'approved', oldVehicle: 'RAG-014-B', newVehicle: 'RAE-027-B', when: '2h ago', hasPhoto: true },
+  { id: 'INC-3009', tripCode: 'TRP-8455', route: 'Huye → Kigali', driver: 'M. Uwase', description: 'Windscreen crack reported; deemed non-critical, trip continued.', status: 'rejected', oldVehicle: 'RAH-009-A', newVehicle: null, when: '1d ago', hasPhoto: false },
 ];
 
 const REPLACEMENTS = [
-  { id: 'RAE 027 B', label: 'RAE 027 B · Coaster (idle)' },
-  { id: 'RAF 051 C', label: 'RAF 051 C · Coach' },
-  { id: 'RAD 088 A', label: 'RAD 088 A · Yutong' },
+  { id: 'RAE-027-B', label: 'RAE-027-B · Coaster (idle)' },
+  { id: 'RAF-051-C', label: 'RAF-051-C · Coach' },
+  { id: 'RAD-088-A', label: 'RAD-088-A · Yutong' },
 ];
 
 const FILTERS = ['all', 'pending', 'approved', 'rejected'] as const;

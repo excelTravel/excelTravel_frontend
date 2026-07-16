@@ -41,16 +41,16 @@ interface BookingRow {
   amount: number;
 }
 const BOOKINGS: BookingRow[] = [
-  { id: 'TK-8921', name: 'Jean Paul N.', phone: '078****923', route: 'Kigali → Musanze', time: '14:00', status: 'confirmed', bus: 'RAB-123C', amount: 5000 },
-  { id: 'TK-8919', name: 'Sandrine M.', phone: '073****112', route: 'Kigali → Rubavu', time: '15:30', status: 'hold', bus: 'RAC-112', amount: 3500 },
-  { id: 'TK-8915', name: 'Erick Gatete', phone: '072****445', route: 'Kigali → Huye', time: '14:45', status: 'cancelled', bus: 'RAD-88', amount: 0 },
-  { id: 'TK-8910', name: 'Divine I.', phone: '079****001', route: 'Kigali → Gisenyi', time: '16:00', status: 'paid', bus: 'RAE-27', amount: 4200 },
-  { id: 'TK-8907', name: 'Patrick H.', phone: '078****338', route: 'Kigali → Nyagatare', time: '11:30', status: 'confirmed', bus: 'RAF-51', amount: 4800 },
-  { id: 'TK-8904', name: 'Aline U.', phone: '073****900', route: 'Musanze → Kigali', time: '12:00', status: 'boarding', bus: 'RAB-402', amount: 5000 },
-  { id: 'TK-8901', name: 'Claude N.', phone: '072****771', route: 'Huye → Kigali', time: '13:15', status: 'paid', bus: 'RAG-14', amount: 3900 },
-  { id: 'TK-8898', name: 'Grace M.', phone: '079****205', route: 'Kigali → Rusizi', time: '06:00', status: 'confirmed', bus: 'RAH-09', amount: 6200 },
-  { id: 'TK-8895', name: 'Eric K.', phone: '078****664', route: 'Kigali → Musanze', time: '09:30', status: 'cancelled', bus: 'RAB-123C', amount: 0 },
-  { id: 'TK-8890', name: 'Josiane R.', phone: '073****018', route: 'Rubavu → Kigali', time: '10:45', status: 'paid', bus: 'RAC-112', amount: 3500 },
+  { id: 'TK-8921', name: 'Jean Paul N.', phone: '078****923', route: 'Kigali → Musanze', time: '14:00', status: 'confirmed', bus: 'RAB-123-C', amount: 5000 },
+  { id: 'TK-8919', name: 'Sandrine M.', phone: '073****112', route: 'Kigali → Rubavu', time: '15:30', status: 'hold', bus: 'RAC-112-D', amount: 3500 },
+  { id: 'TK-8915', name: 'Erick Gatete', phone: '072****445', route: 'Kigali → Huye', time: '14:45', status: 'cancelled', bus: 'RAD-088-A', amount: 0 },
+  { id: 'TK-8910', name: 'Divine I.', phone: '079****001', route: 'Kigali → Gisenyi', time: '16:00', status: 'paid', bus: 'RAE-027-B', amount: 4200 },
+  { id: 'TK-8907', name: 'Patrick H.', phone: '078****338', route: 'Kigali → Nyagatare', time: '11:30', status: 'confirmed', bus: 'RAF-051-C', amount: 4800 },
+  { id: 'TK-8904', name: 'Aline U.', phone: '073****900', route: 'Musanze → Kigali', time: '12:00', status: 'boarding', bus: 'RAB-402-C', amount: 5000 },
+  { id: 'TK-8901', name: 'Claude N.', phone: '072****771', route: 'Huye → Kigali', time: '13:15', status: 'paid', bus: 'RAG-014-B', amount: 3900 },
+  { id: 'TK-8898', name: 'Grace M.', phone: '079****205', route: 'Kigali → Rusizi', time: '06:00', status: 'confirmed', bus: 'RAH-009-A', amount: 6200 },
+  { id: 'TK-8895', name: 'Eric K.', phone: '078****664', route: 'Kigali → Musanze', time: '09:30', status: 'cancelled', bus: 'RAB-123-C', amount: 0 },
+  { id: 'TK-8890', name: 'Josiane R.', phone: '073****018', route: 'Rubavu → Kigali', time: '10:45', status: 'paid', bus: 'RAC-112-D', amount: 3500 },
 ];
 
 const STATUS_FILTERS = ['all', 'confirmed', 'paid', 'boarding', 'hold', 'cancelled'] as const;

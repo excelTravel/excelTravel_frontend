@@ -21,11 +21,11 @@ interface Notif {
 }
 
 const NOTIFS: Notif[] = [
-  { id: 'n1', trigger: '5km', channel: 'push', message: 'Bus RAB 402 C is 5 km from Nyabugogo', status: 'sent', time: '2m' },
+  { id: 'n1', trigger: '5km', channel: 'push', message: 'Bus RAB-402-C is 5 km from Nyabugogo', status: 'sent', time: '2m' },
   { id: 'n2', trigger: 'delay', channel: 'sms', message: 'Trip Kigali → Musanze delayed 15 min', status: 'sent', time: '18m' },
   { id: 'n3', trigger: 'cancellation', channel: 'sms', message: 'Booking #TK-8915 cancelled — payment timeout', status: 'failed', time: '42m' },
-  { id: 'n4', trigger: 'arrived', channel: 'push', message: 'Bus RAD 088 A has arrived at Huye', status: 'sent', time: '1h' },
-  { id: 'n5', trigger: '2km', channel: 'push', message: 'Bus RAC 112 D is 2 km from Rubavu', status: 'pending', time: '1h' },
+  { id: 'n4', trigger: 'arrived', channel: 'push', message: 'Bus RAD-088-A has arrived at Huye', status: 'sent', time: '1h' },
+  { id: 'n5', trigger: '2km', channel: 'push', message: 'Bus RAC-112-D is 2 km from Rubavu', status: 'pending', time: '1h' },
   { id: 'n6', trigger: 'arrived', channel: 'email', message: 'Trip TRP-8471 completed — manifest emailed', status: 'sent', time: '3h' },
 ];
 

@@ -14,9 +14,9 @@ const SCHEDULED_TRIPS = [
   { id: 'TRP-8520', label: 'Kigali → Huye · 13:15' },
 ];
 const VEHICLES = [
-  { id: 'RAB-402', label: 'RAB-402 · Executive Coach' },
-  { id: 'RAE-27', label: 'RAE-27 · Coaster' },
-  { id: 'RAD-88', label: 'RAD-88 · Yutong Bus' },
+  { id: 'RAB-402-C', label: 'RAB-402-C · Executive Coach' },
+  { id: 'RAE-027-B', label: 'RAE-027-B · Coaster' },
+  { id: 'RAD-088-A', label: 'RAD-088-A · Yutong Bus' },
 ];
 
 export function AssignDriverModal({ driver, open, onClose }: { driver: Driver | null; open: boolean; onClose: () => void }) {
