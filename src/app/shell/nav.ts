@@ -1,4 +1,4 @@
-import { LayoutDashboard, Map, Route, Bus, Ticket, Package, BarChart3, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Map, Route, Bus, Ticket, Package, BarChart3, Waypoints, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   to: string;
@@ -12,6 +12,7 @@ export const opsNav: NavItem[] = [
   { to: '/map', labelKey: 'nav.map', icon: Map },
   { to: '/trips', labelKey: 'nav.trips', icon: Route },
   { to: '/fleet', labelKey: 'nav.fleet', icon: Bus },
+  { to: '/network', labelKey: 'nav.network', icon: Waypoints },
   { to: '/bookings', labelKey: 'nav.bookings', icon: Ticket },
   { to: '/parcels', labelKey: 'nav.parcels', icon: Package },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
