@@ -1,27 +1,34 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Users, UserCog, Mail, Phone, MapPin, X } from 'lucide-react';
+import { Plus, Users, UserCog, UsersRound, Mail, Phone, MapPin, X, Search } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusPill, Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/form';
+import { SortableTh } from '@/components/ui/sortable-th';
+import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
 import { InviteUserModal, InviteAgentModal, AssignStationModal } from './TeamModals';
-import { STAFF, AGENTS, type Agent } from './team';
+import { STAFF, AGENTS, PASSENGERS, type Agent, type Passenger } from './team';
 
 const TABS = [
-  { key: 'users', icon: Users },
+  { key: 'staff', icon: Users },
   { key: 'agents', icon: UserCog },
+  { key: 'passengers', icon: UsersRound },
 ] as const;
 type TeamTab = (typeof TABS)[number]['key'];
 
+// "16 Jul 2026" — compact, locale-aware.
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
 export function TeamPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<TeamTab>('users');
+  const [tab, setTab] = useState<TeamTab>('staff');
   return (
     <Reveal className="space-y-6">
       <RevealItem>
-        <div role="tablist" aria-label={t('nav.team')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
+        <div role="tablist" aria-label={t('nav.users')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
           {TABS.map((tb) => (
             <button
               key={tb.key}
@@ -35,8 +42,99 @@ export function TeamPage() {
           ))}
         </div>
       </RevealItem>
-      <RevealItem>{tab === 'users' ? <UsersPanel /> : <AgentsPanel />}</RevealItem>
+      <RevealItem>
+        {tab === 'staff' && <UsersPanel />}
+        {tab === 'agents' && <AgentsPanel />}
+        {tab === 'passengers' && <PassengersPanel />}
+      </RevealItem>
     </Reveal>
+  );
+}
+
+const PAX_FILTERS = ['all', 'frequent', 'occasional', 'oneTime'] as const;
+
+function PassengersPanel() {
+  const { t } = useTranslation();
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<(typeof PAX_FILTERS)[number]>('all');
+
+  const filtered = PASSENGERS.filter((p) => {
+    const q = query.trim().toLowerCase();
+    const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.phone.toLowerCase().includes(q) || (p.email?.toLowerCase().includes(q) ?? false);
+    const matchesFilter =
+      filter === 'all' || (filter === 'frequent' && p.bookings >= 10) || (filter === 'occasional' && p.bookings > 1 && p.bookings < 10) || (filter === 'oneTime' && p.bookings <= 1);
+    return matchesQuery && matchesFilter;
+  });
+  const { sorted, sortKey, sortDir, toggle } = useSort<Passenger>(
+    filtered,
+    (row, key) => (row as unknown as Record<string, string | number | null>)[key] ?? '',
+    { key: 'bookings', dir: 'desc' },
+  );
+
+  return (
+    <GlassCard className="overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-5">
+        <h3 className="text-base font-semibold">{t('team.tabs.passengers')}</h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t('team.searchPax')}
+              aria-label={t('team.searchPax')}
+              className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-56"
+            />
+          </div>
+          <Select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)} className="h-9 w-auto" aria-label={t('team.paxFilterLabel')}>
+            {PAX_FILTERS.map((f) => <option key={f} value={f}>{t(`team.paxFilter.${f}`)}</option>)}
+          </Select>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <SortableTh label={t('team.colUser')} sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+              <SortableTh label={t('team.colPhone')} sortKey="phone" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+              <SortableTh label={t('team.colBookings')} sortKey="bookings" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+              <SortableTh label={t('team.colLastLogin')} sortKey="lastLogin" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+              <SortableTh label={t('team.colLogins')} sortKey="logins" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+              <SortableTh label={t('team.colUpdated')} sortKey="updated" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" />
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {sorted.map((p) => (
+              <tr key={p.id} className="transition-colors hover:bg-secondary/40">
+                <td className="whitespace-nowrap px-5 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{p.name.charAt(0)}</span>
+                    <div>
+                      <p className="font-medium">{p.name}</p>
+                      <p className="text-xs text-muted-foreground">{p.email ?? t('team.noEmail')}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{p.phone}</td>
+                <td className="px-5 py-3">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="font-semibold tabular-nums">{p.bookings}</span>
+                    {p.bookings >= 10 && <Badge tone="teal">{t('team.paxFilter.frequent')}</Badge>}
+                  </span>
+                </td>
+                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{fmtDate(p.lastLogin)}</td>
+                <td className="px-5 py-3 tabular-nums text-muted-foreground">{p.logins}</td>
+                <td className="whitespace-nowrap px-5 py-3 text-right tabular-nums text-muted-foreground">{fmtDate(p.updated)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {sorted.length === 0 && (
+          <div className="p-10 text-center text-sm text-muted-foreground">{t('team.noPax')}</div>
+        )}
+      </div>
+    </GlassCard>
   );
 }
 
@@ -47,7 +145,7 @@ function UsersPanel() {
     <GlassCard className="overflow-hidden">
       <InviteUserModal open={invite} onClose={() => setInvite(false)} />
       <div className="flex items-center justify-between p-5">
-        <h3 className="text-base font-semibold">{t('team.tabs.users')}</h3>
+        <h3 className="text-base font-semibold">{t('team.tabs.staff')}</h3>
         <Button size="sm" onClick={() => setInvite(true)}><Plus className="size-4" /> {t('team.inviteUser')}</Button>
       </div>
       <div className="overflow-x-auto">

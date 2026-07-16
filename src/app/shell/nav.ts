@@ -15,7 +15,7 @@ export const opsNav: NavItem[] = [
   { to: '/bookings', labelKey: 'nav.bookings', icon: Ticket },
   { to: '/parcels', labelKey: 'nav.parcels', icon: Package },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
-  { to: '/team', labelKey: 'nav.team', icon: UsersRound },
+  { to: '/users', labelKey: 'nav.users', icon: UsersRound },
 ];
 
 // The i18n key for the section title shown in the top bar for a given path.

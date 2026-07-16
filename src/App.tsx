@@ -35,7 +35,7 @@ export function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/team" element={<TeamPage />} />
+        <Route path="/users" element={<TeamPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<PlaceholderPage title="Not found" />} />

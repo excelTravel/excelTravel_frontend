@@ -131,6 +131,15 @@ Incidents (approve/reject), Private bookings, Audit-log viewer, Notifications li
 8. **Driver document images** (profile/licence/ID) — drivers store licence number + expiry only; needs image-URL fields (Cloudinary).
 9. **Global parcel pricing config** — only per-package `PATCH /packages/{id}/fee` exists; a base-fee + weight-surcharge config endpoint is needed.
 10. **Regenerate `openapi.json`** — it's stale (missing drivers/maintenance/analytics/tracking/notifications/incidents/agents/audit/private-bookings). Needed before generating the typed client.
+11. **Passenger login metrics** — Users → **Passengers** tab shows *last login*, *login count* and *bookings-with-this-company*, all mocked. The `users` table doesn't track logins (Clerk owns auth sessions); needs either a `last_login`/`login_count` sync from Clerk webhooks or a login-events table. Bookings-per-passenger is derivable from `bookings` grouped by `passenger_id`.
+12. **Map-pinned stop coordinates** — Network → Map lets you drop a stop by clicking the map; it fills `latitude`/`longitude` for `POST /stops` (which already accepts them), so this is UI-only — no backend change needed.
+
+> **Admin section removed** — Companies / Audit-log / Private-bookings were pulled from this ops build; they
+> belong to the future **system-admin** (super-admin) surface for the multi-company platform, not the
+> per-company ops console. Their backend modules still exist.
+> **Live Map moved into Network** (Map tab) alongside Routes / Stops / Fares; the standalone `/map` route is gone.
+> **Fares are shown per-route** but still read from the single national RURA station-to-station matrix — the
+> locked "national fares, no route_id" invariant is unchanged.
 
 > Maintenance management UI was intentionally removed (replaced by a "Coming soon" placeholder) — the
 > `maintenance` backend module still exists and can be surfaced later if prioritized.

@@ -78,11 +78,15 @@ npm run test:e2e       # playwright
 
 ## Screen checklist (update as screens land)
 Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
-Screens: [x] Overview [x] Live Map (MapLibre) [x] Trips (list + detail + Scheduling/demand + per-trip Manage)
-[x] Booking desk (Bookings → Desk toggle) [x] Bookings [x] Fleet console (Vehicles / Drivers roster+fairness /
-Maintenance=coming-soon / Accidents) [x] Network (routes / stops / fares matrix) [x] Team (Users + Agents)
-[x] Admin (Companies / Private bookings / Audit log) [x] Analytics [x] Parcels [x] Notifications [x] Settings
+Screens: [x] Overview [x] Trips — **route-centric**: Routes view (live-trip connector + combined revenue +
+drill-in of active/scheduled/completed) + All-trips list + Scheduling (agent+passenger waitlist, early-dispatch,
+origin-bus check) + detail + per-trip Manage [x] Booking desk (Bookings → Desk toggle) [x] Bookings
+[x] Fleet console (Vehicles / Drivers roster+fairness / Maintenance=coming-soon / Accidents)
+[x] Network — **Map** (live+scheduled buses, pin-to-add-stop) / Routes / Stops / Fares (per-route + matrix)
+[x] Users (Staff / Agents / Passengers-with-metrics) [x] Analytics [x] Parcels [x] Notifications [x] Settings
 Auth: [x] Login/Continue with Google (Clerk) · Remaining: [ ] Passenger portal [ ] Driver portal (mobile-first)
+Removed from ops build: standalone Live Map (now Network→Map), Admin/Companies/Audit/Private-bookings
+(→ future system-admin surface). Plates are formatted `RAA-000-A`.
 
 **All screens render from local stub data**, aligned to the backend contracts (shapes/enums verified against
 `../excelTravel_backend`), full EN/KIN i18n + dark mode + code-split routes. **Not wired to the API yet** —
