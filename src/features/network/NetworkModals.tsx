@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { MapPin } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
@@ -42,11 +43,17 @@ export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
-// POST /stops (CreateStop). Stubbed.
-export function AddStopModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+// POST /stops (CreateStop). Stubbed. `pin` prefills coordinates when the stop was dropped on the map.
+export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: () => void; pin?: { lat: number; lng: number } | null }) {
   const { t } = useTranslation();
   const { saving, go } = useSaver(onClose);
   const [type, setType] = useState<'station' | 'stop'>('station');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  // A fresh map pin fills the coordinate fields.
+  useEffect(() => {
+    if (pin) { setLat(pin.lat.toFixed(5)); setLng(pin.lng.toFixed(5)); }
+  }, [pin]);
   return (
     <Modal open={open} onClose={onClose} title={t('network.addStop')} description={t('network.addStopSub')}
       footer={<><Button variant="outline" onClick={onClose} disabled={saving}>{t('forms.cancel')}</Button><Button onClick={go} disabled={saving}>{saving ? t('forms.saving') : t('network.createStop')}</Button></>}>
@@ -67,9 +74,12 @@ export function AddStopModal({ open, onClose }: { open: boolean; onClose: () => 
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t('network.latitude')} htmlFor="ns-lat"><Input id="ns-lat" type="number" step="any" placeholder="-1.9536" /></Field>
-          <Field label={t('network.longitude')} htmlFor="ns-lng"><Input id="ns-lng" type="number" step="any" placeholder="30.0606" /></Field>
+          <Field label={t('network.latitude')} htmlFor="ns-lat" hint={pin ? t('network.fromMap') : undefined}><Input id="ns-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-1.9536" /></Field>
+          <Field label={t('network.longitude')} htmlFor="ns-lng"><Input id="ns-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="30.0606" /></Field>
         </div>
+        {pin && (
+          <p className="flex items-center gap-1.5 text-xs text-teal"><MapPin className="size-3.5" /> {t('network.pinnedHint')}</p>
+        )}
         <Field label={t('network.phone')} htmlFor="ns-phone"><Input id="ns-phone" type="tel" placeholder="+250 788 000 000" /></Field>
       </div>
     </Modal>

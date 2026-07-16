@@ -16,7 +16,6 @@ const TripDetailPage = lazy(() => import('./features/trips/TripDetailPage').then
 const BookingsPage = lazy(() => import('./features/bookings/BookingsPage').then((m) => ({ default: m.BookingsPage })));
 const ParcelsPage = lazy(() => import('./features/parcels/ParcelsPage').then((m) => ({ default: m.ParcelsPage })));
 const AnalyticsPage = lazy(() => import('./features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
-const LiveMapPage = lazy(() => import('./features/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })));
 const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const NetworkPage = lazy(() => import('./features/network/NetworkPage').then((m) => ({ default: m.NetworkPage })));
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
@@ -29,7 +28,6 @@ export function App() {
       {authEnabled && <Route path="/login/*" element={<LoginPage />} />}
       <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
-        <Route path="/map" element={<LiveMapPage />} />
         <Route path="/trips" element={<TripsPage />} />
         <Route path="/trips/:id" element={<TripDetailPage />} />
         <Route path="/fleet" element={<FleetPage />} />

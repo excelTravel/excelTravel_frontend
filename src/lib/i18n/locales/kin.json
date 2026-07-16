@@ -5,7 +5,6 @@
   },
   "nav": {
     "overview": "Incamake",
-    "map": "Ikarita",
     "trips": "Ingendo",
     "tripDetail": "Urugendo",
     "fleet": "Amamodoka",
@@ -290,7 +289,19 @@
     "status": { "pending": "Ryategereje", "sent": "Ryoherejwe", "failed": "Ryanze" }
   },
   "network": {
-    "tabs": { "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
+    "tabs": { "map": "Ikarita", "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
+    "addStopPin": "Ongeraho aho bahagarara (kanda ku ikarita)",
+    "pinCancel": "Kuraho",
+    "pinPrompt": "Kanda ahantu hose ku ikarita ushyireho aho bahagarara.",
+    "pinnedHint": "Aho biherereye byashyizweho ukurikije aho wakanze.",
+    "fromMap": "biva ku ikarita",
+    "scheduledBuses": "Bisi ziteganyijwe",
+    "selectRoute": "Hitamo umuhanda",
+    "faresByRoute": "Ibiciro ku muhanda",
+    "fareMode": { "byRoute": "Ku muhanda", "matrix": "Imbonerahamwe" },
+    "endToEnd": "kuva ku iherezo",
+    "notSet": "Ntacyashyizweho",
+    "perRouteNote": "Ibiciro by'ibice biva mu mbonerahamwe ya RURA — isoko rimwe ry'ibiciro ku mihanda yose.",
     "colRoute": "Umuhanda",
     "colDistance": "Intera",
     "colDuration": "Igihe",

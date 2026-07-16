@@ -1,15 +1,19 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Route as RouteIcon, MapPin, Coins, ArrowRight, Info } from 'lucide-react';
+import { Plus, Route as RouteIcon, MapPin, Coins, Map as MapIcon, ArrowRight, Info } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge, StatusPill } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 import { AddRouteModal, AddStopModal, AddFareModal } from './NetworkModals';
+import { NetworkMap } from './NetworkMap';
+import { RouteFares } from './RouteFares';
 import { ROUTES, STOPS, STATIONS, fareBetween } from './network';
 
 const TABS = [
+  { key: 'map', icon: MapIcon },
   { key: 'routes', icon: RouteIcon },
   { key: 'stops', icon: MapPin },
   { key: 'fares', icon: Coins },
@@ -18,7 +22,9 @@ type NetTab = (typeof TABS)[number]['key'];
 
 export function NetworkPage() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<NetTab>('routes');
+  const [params] = useSearchParams();
+  const initial = TABS.some((tb) => tb.key === params.get('tab')) ? (params.get('tab') as NetTab) : 'map';
+  const [tab, setTab] = useState<NetTab>(initial);
 
   return (
     <Reveal className="space-y-6">
@@ -42,6 +48,7 @@ export function NetworkPage() {
       </RevealItem>
 
       <RevealItem>
+        {tab === 'map' && <NetworkMap />}
         {tab === 'routes' && <RoutesPanel />}
         {tab === 'stops' && <StopsPanel />}
         {tab === 'fares' && <FaresPanel />}
@@ -130,16 +137,29 @@ function StopsPanel() {
 function FaresPanel() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<'byRoute' | 'matrix'>('byRoute');
   return (
     <GlassCard className="overflow-hidden">
       <AddFareModal open={open} onClose={() => setOpen(false)} />
       <div className="flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
-          <h3 className="text-base font-semibold">{t('network.matrixTitle')}</h3>
+          <h3 className="text-base font-semibold">{mode === 'byRoute' ? t('network.faresByRoute') : t('network.matrixTitle')}</h3>
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" /> {t('network.ruraNote')}</p>
         </div>
-        <Button size="sm" onClick={() => setOpen(true)}><Plus className="size-4" /> {t('network.addFare')}</Button>
+        <div className="flex items-center gap-2">
+          <div role="tablist" className="inline-flex gap-1 rounded-lg bg-secondary/60 p-1">
+            {(['byRoute', 'matrix'] as const).map((m) => (
+              <button key={m} role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
+                className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', mode === m ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                {t(`network.fareMode.${m}`)}
+              </button>
+            ))}
+          </div>
+          <Button size="sm" onClick={() => setOpen(true)}><Plus className="size-4" /> {t('network.addFare')}</Button>
+        </div>
       </div>
+      {mode === 'byRoute' && <div className="p-5 pt-0"><RouteFares /></div>}
+      {mode === 'matrix' && (
       <div className="overflow-x-auto p-2">
         <table className="w-full min-w-[640px] border-separate border-spacing-1 text-center text-sm">
           <thead>
@@ -167,6 +187,7 @@ function FaresPanel() {
           </tbody>
         </table>
       </div>
+      )}
     </GlassCard>
   );
 }

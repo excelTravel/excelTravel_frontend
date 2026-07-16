@@ -45,6 +45,8 @@ function makeMarkerEl(bus: LiveBus): HTMLButtonElement {
   return el;
 }
 
+export interface MapStop { id: string; name: string; lng: number; lat: number }
+
 interface RwandaMapProps {
   buses: LiveBus[];
   selectedId?: string | null;
@@ -52,6 +54,9 @@ interface RwandaMapProps {
   interactive?: boolean;
   loadingLabel?: string;
   className?: string;
+  stops?: MapStop[]; // static station/stop markers
+  pinMode?: boolean; // when true, clicking the map drops a pin
+  onPick?: (lng: number, lat: number) => void;
 }
 
 export function RwandaMap({
@@ -61,12 +66,20 @@ export function RwandaMap({
   interactive = true,
   loadingLabel = 'Loading map…',
   className,
+  stops,
+  pinMode = false,
+  onPick,
 }: RwandaMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const stopMarkersRef = useRef<maplibregl.Marker[]>([]);
   const selectRef = useRef(onSelectBus);
   selectRef.current = onSelectBus;
+  const pinRef = useRef(pinMode);
+  pinRef.current = pinMode;
+  const pickRef = useRef(onPick);
+  pickRef.current = onPick;
   const [ready, setReady] = useState(false);
 
   // Initialise the map exactly once.
@@ -85,6 +98,10 @@ export function RwandaMap({
     if (interactive) {
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
     }
+    // Pin mode: a click drops a stop where the user tapped.
+    map.on('click', (e) => {
+      if (pinRef.current) pickRef.current?.(e.lngLat.lng, e.lngLat.lat);
+    });
     // Add the route overlay once the style is up. Guarded + wrapped so a StrictMode double-mount or a
     // failed layer add can NEVER leave the loading shimmer covering the map (ready always flips).
     const onStyleReady = () => {
@@ -162,6 +179,28 @@ export function RwandaMap({
     const bus = buses.find((b) => b.id === selectedId);
     if (bus) map.flyTo({ center: [bus.lng, bus.lat], zoom: 8.6, duration: 900 });
   }, [selectedId, ready, buses]);
+
+  // Render static station/stop markers.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const layer = stopMarkersRef.current;
+    for (const m of layer) m.remove();
+    layer.length = 0;
+    for (const s of stops ?? []) {
+      const el = document.createElement('div');
+      el.title = s.name;
+      el.style.cssText = 'width:12px;height:12px;border-radius:9999px;background:#0F766E;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4)';
+      layer.push(new maplibregl.Marker({ element: el }).setLngLat([s.lng, s.lat]).addTo(map));
+    }
+  }, [stops, ready]);
+
+  // Crosshair cursor while pinning.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    map.getCanvas().style.cursor = pinMode ? 'crosshair' : '';
+  }, [pinMode, ready]);
 
   return (
     <div className={cn('relative overflow-hidden', className)}>

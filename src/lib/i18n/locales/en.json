@@ -5,7 +5,6 @@
   },
   "nav": {
     "overview": "Overview",
-    "map": "Live Map",
     "trips": "Trips",
     "tripDetail": "Trip",
     "fleet": "Fleet",
@@ -290,7 +289,19 @@
     "status": { "pending": "Queued", "sent": "Sent", "failed": "Failed" }
   },
   "network": {
-    "tabs": { "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
+    "tabs": { "map": "Map", "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
+    "addStopPin": "Add stop (pin on map)",
+    "pinCancel": "Cancel pin",
+    "pinPrompt": "Click anywhere on the map to drop the stop.",
+    "pinnedHint": "Coordinates set from your map pin.",
+    "fromMap": "from map pin",
+    "scheduledBuses": "Scheduled buses",
+    "selectRoute": "Select a route",
+    "faresByRoute": "Fares by route",
+    "fareMode": { "byRoute": "By route", "matrix": "Matrix" },
+    "endToEnd": "end to end",
+    "notSet": "Not set",
+    "perRouteNote": "Leg fares are read from the national RURA matrix — the single source of truth for all routes.",
     "colRoute": "Route",
     "colDistance": "Distance",
     "colDuration": "Duration",

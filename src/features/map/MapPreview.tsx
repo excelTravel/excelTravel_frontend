@@ -17,7 +17,7 @@ export function MapPreview({ className }: { className?: string }) {
         <RwandaMap buses={buses} interactive={false} loadingLabel={t('map.loading')} className="h-full w-full" />
       </Suspense>
       <Link
-        to="/map"
+        to="/network?tab=map"
         className="absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-semibold shadow-sm backdrop-blur transition-colors hover:bg-background"
       >
         {t('map.viewLive')} <ArrowUpRight className="size-3.5" />

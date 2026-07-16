@@ -55,11 +55,11 @@ export function useLiveBuses(): LiveBus[] {
       return { id, code, routeName: `${cap(from)} → ${cap(to)}`, from: cap(from), to: cap(to), status, eta, lng, lat };
     };
     return [
-      build('b1', 'RAB-402', 'kigali', 'musanze', 'in_transit', '14:30', 0.55),
-      build('b2', 'RAC-112', 'kigali', 'rubavu', 'delayed', '15:15', 0.35),
-      build('b3', 'RAD-88', 'kigali', 'huye', 'arriving', '14:05', 0.9),
-      build('b4', 'RAE-27', 'kigali', 'nyagatare', 'in_transit', '15:40', 0.4),
-      build('b5', 'RAF-51', 'musanze', 'kigali', 'in_transit', '14:50', 0.25),
+      build('b1', 'RAB-402-C', 'kigali', 'musanze', 'in_transit', '14:30', 0.55),
+      build('b2', 'RAC-112-D', 'kigali', 'rubavu', 'delayed', '15:15', 0.35),
+      build('b3', 'RAD-088-A', 'kigali', 'huye', 'arriving', '14:05', 0.9),
+      build('b4', 'RAE-027-B', 'kigali', 'nyagatare', 'in_transit', '15:40', 0.4),
+      build('b5', 'RAF-051-C', 'musanze', 'kigali', 'in_transit', '14:50', 0.25),
     ];
   }, []);
 }

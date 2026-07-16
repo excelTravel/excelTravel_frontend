@@ -1,4 +1,4 @@
-import { LayoutDashboard, Map, Route, Bus, Ticket, Package, BarChart3, Waypoints, UsersRound, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Route, Bus, Ticket, Package, BarChart3, Waypoints, UsersRound, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   to: string;
@@ -9,7 +9,6 @@ export interface NavItem {
 // Ops-manager navigation (we start here). Role-based variants layer on later.
 export const opsNav: NavItem[] = [
   { to: '/', labelKey: 'nav.overview', icon: LayoutDashboard },
-  { to: '/map', labelKey: 'nav.map', icon: Map },
   { to: '/trips', labelKey: 'nav.trips', icon: Route },
   { to: '/fleet', labelKey: 'nav.fleet', icon: Bus },
   { to: '/network', labelKey: 'nav.network', icon: Waypoints },
