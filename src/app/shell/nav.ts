@@ -1,4 +1,4 @@
-import { LayoutDashboard, Map, Route, Bus, Ticket, Package, BarChart3, Waypoints, UsersRound, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Map, Route, Bus, Ticket, Package, BarChart3, Waypoints, UsersRound, Shield, type LucideIcon } from 'lucide-react';
 
 export interface NavItem {
   to: string;
@@ -17,6 +17,7 @@ export const opsNav: NavItem[] = [
   { to: '/parcels', labelKey: 'nav.parcels', icon: Package },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
   { to: '/team', labelKey: 'nav.team', icon: UsersRound },
+  { to: '/admin', labelKey: 'nav.admin', icon: Shield },
 ];
 
 // The i18n key for the section title shown in the top bar for a given path.
