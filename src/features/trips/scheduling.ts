@@ -18,53 +18,57 @@ export const ROUTINES: Routine[] = [
   { id: 'RT-03', from: 'Kigali', to: 'Rubavu', frequency: 'weekends', times: ['08:00'], bus: 'RAC-112-D', active: false },
 ];
 
-export interface AgentDemand {
+// Agent + passenger waitlist per corridor. Agents at each station along the corridor register how many
+// passengers are waiting; the system stages an idle bus at the origin (if one is parked there) so ops can
+// early-dispatch once the bus is nearly full and everyone at pickup stations is boarded.
+export interface WaitSegment {
   agent: string;
   station: string;
   pax: number;
 }
-export interface DemandCorridor {
+export interface WaitCorridor {
   id: string;
   from: string;
   to: string;
+  origin: string; // station where a bus would be staged/dispatched from
   capacity: number;
-  agents: AgentDemand[];
+  scheduled: string; // scheduled departure time
+  minsToDepart: number; // minutes until the scheduled departure (drives the countdown)
+  segments: WaitSegment[];
+  stagedBus: { plate: string; capacity: number } | null; // an idle bus parked at origin, or none
 }
 
-export const DEMAND: DemandCorridor[] = [
+export const WAITLIST_CORRIDORS: WaitCorridor[] = [
   {
-    id: 'DC-1', from: 'Nyagatare', to: 'Remera', capacity: 33,
-    agents: [
-      { agent: 'A. Niyonzima', station: 'Nyagatare', pax: 10 },
-      { agent: 'B. Uwimana', station: 'Kayonza', pax: 3 },
-      { agent: 'C. Mukama', station: 'Rwamagana', pax: 6 },
+    id: 'WL-1', from: 'Kigali', to: 'Musanze', origin: 'Nyabugogo', capacity: 33, scheduled: '14:00', minsToDepart: 42,
+    segments: [
+      { agent: 'A. Niyonzima', station: 'Nyabugogo', pax: 20 },
+      { agent: 'C. Mukama', station: 'Muhanga', pax: 9 },
     ],
+    stagedBus: { plate: 'RAF-051-C', capacity: 40 },
   },
   {
-    id: 'DC-2', from: 'Huye', to: 'Kigali', capacity: 40,
-    agents: [
-      { agent: 'D. Ishimwe', station: 'Huye', pax: 14 },
-      { agent: 'E. Habineza', station: 'Nyanza', pax: 8 },
+    id: 'WL-2', from: 'Nyagatare', to: 'Kigali', origin: 'Nyagatare', capacity: 33, scheduled: '13:00', minsToDepart: 88,
+    segments: [
+      { agent: 'D. Ishimwe', station: 'Nyagatare', pax: 14 },
+      { agent: 'B. Uwimana', station: 'Kayonza', pax: 8 },
+      { agent: 'E. Habineza', station: 'Rwamagana', pax: 6 },
     ],
+    stagedBus: null,
+  },
+  {
+    id: 'WL-3', from: 'Rubavu', to: 'Kigali', origin: 'Rubavu', capacity: 30, scheduled: '16:00', minsToDepart: 210,
+    segments: [{ agent: 'F. Mutoni', station: 'Rubavu', pax: 11 }],
+    stagedBus: { plate: 'RAC-112-D', capacity: 30 },
   },
 ];
 
-export interface WaitEntry {
-  id: string;
-  from: string;
-  to: string;
-  station: string;
-  waiting: number;
-  threshold: number;
-  scheduled: string;
-  earliest: string;
-}
+export const waitingTotal = (c: WaitCorridor) => c.segments.reduce((s, x) => s + x.pax, 0);
 
-export const WAITLIST: WaitEntry[] = [
-  { id: 'WL-1', from: 'Kigali', to: 'Musanze', station: 'Nyabugogo', waiting: 28, threshold: 33, scheduled: '14:00', earliest: '12:20' },
-  { id: 'WL-2', from: 'Kigali', to: 'Huye', station: 'Nyabugogo', waiting: 33, threshold: 33, scheduled: '15:30', earliest: '13:10' },
-  { id: 'WL-3', from: 'Rubavu', to: 'Kigali', station: 'Rubavu', waiting: 11, threshold: 30, scheduled: '16:00', earliest: '—' },
-];
+// "42m left" / "1h 28m left" until scheduled departure.
+export function fmtCountdown(mins: number): { h: number; m: number } {
+  return { h: Math.floor(mins / 60), m: mins % 60 };
+}
 
 // Live demand vs scheduled capacity (peak board).
 export interface DemandNow {
@@ -78,5 +82,3 @@ export const DEMAND_NOW: DemandNow[] = [
   { corridor: 'Huye → Kigali', demand: 61, capacity: 80 },
   { corridor: 'Kigali → Rubavu', demand: 44, capacity: 60 },
 ];
-
-export const pax = (c: DemandCorridor) => c.agents.reduce((s, a) => s + a.pax, 0);

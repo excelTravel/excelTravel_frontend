@@ -96,6 +96,7 @@
     "title": "Trip Management",
     "subtitle": "Every scheduled, active and completed trip across the network.",
     "view": {
+      "routes": "Routes",
       "trips": "All trips",
       "scheduling": "Scheduling & demand"
     },
@@ -334,6 +335,25 @@
     "fareAmount": "Fare (RWF)",
     "fareHint": "Applies to both directions."
   },
+  "routesView": {
+    "tripsToday": "{{count}} trips today",
+    "liveN": "{{count}} live",
+    "tracking": "Tracking {{bus}} · departed {{departs}}",
+    "nextAt": "Next departure {{time}}",
+    "noneScheduled": "No trips scheduled",
+    "combinedRevenue": "Route revenue (all trips)",
+    "viewTrips": "View trips",
+    "modalSub": "{{count}} trips on this route — active, scheduled and completed.",
+    "liveNow": "Live now",
+    "scheduledN": "Scheduled",
+    "trackLive": "Track live",
+    "group": {
+      "active": "Live now",
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
   "sched": {
     "routines": "Recurring routines",
     "routinesSub": "Daily and weekly trip templates that run automatically.",
@@ -353,16 +373,19 @@
       "weekends": "Weekends",
       "weekly": "Weekly"
     },
-    "demand": "Agent demand",
-    "demandSub": "Pooled passenger requests along a corridor — dispatch a bus to cover them.",
     "dispatchBus": "Dispatch a bus",
     "paxCount": "{{n}} pax",
-    "waitlist": "Waitlist & early dispatch",
-    "waitlistSub": "When enough passengers are waiting, send the bus earlier than planned.",
-    "scheduledAt": "scheduled {{time}}",
-    "sendEarly": "Send bus early",
+    "waitlist": "Agent & passenger waitlist",
+    "waitlistSub": "Passengers waiting per station along a corridor. Dispatch the origin bus early once it's nearly full and pickup stations are boarded.",
+    "departsIn": "departs in {{countdown}}",
+    "countdownHm": "{{h}}h {{m}}m",
+    "countdownM": "{{m}}m",
+    "busStaged": "Bus {{plate}} staged at {{origin}}",
+    "noBusAtOrigin": "No idle bus at {{origin}}",
+    "dispatchEarly": "Early dispatch · {{plate}}",
+    "readyNoBus": "Ready to leave — no bus at origin yet",
     "waitingMore": "{{n}} more to fill",
-    "earlyNote": "Full now — can leave by {{earliest}} instead of {{scheduled}}.",
+    "earlyNote": "{{seats}} seats to fill · scheduled in {{countdown}}. Leaving early once pickup stations are boarded.",
     "board": "Live demand board",
     "boardSub": "Demand vs scheduled capacity right now (marker = capacity).",
     "spike": "Under-served",

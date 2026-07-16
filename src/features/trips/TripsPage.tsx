@@ -10,47 +10,20 @@ import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { TripScheduling } from './TripScheduling';
+import { RoutesView } from './RoutesView';
 import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
+import { TRIPS, countBy, type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
 
-// Stub trips (Rwanda). Wired later to /trips (list, filter by status) + /bookings (occupancy).
-type TripGroup = 'scheduled' | 'active' | 'completed' | 'cancelled';
-interface TripRow {
-  id: string;
-  from: string;
-  to: string;
-  kind: string;
-  departs: string;
-  bus: string;
-  driver: string;
-  booked: number;
-  capacity: number;
-  status: string;
-  group: TripGroup;
-  revenue: number;
-}
-
-const TRIPS: TripRow[] = [
-  { id: 'TRP-8492', from: 'Kigali', to: 'Musanze', kind: 'Express', departs: '08:30', bus: 'RAB-402-C', driver: 'S. Uwase', booked: 38, capacity: 40, status: 'in_transit', group: 'active', revenue: 1482000 },
-  { id: 'TRP-8495', from: 'Kigali', to: 'Rubavu', kind: 'Standard', departs: '09:00', bus: 'RAC-112-D', driver: 'P. Habimana', booked: 22, capacity: 30, status: 'delayed', group: 'active', revenue: 770000 },
-  { id: 'TRP-8502', from: 'Kigali', to: 'Huye', kind: 'Express', departs: '09:15', bus: 'RAD-088-A', driver: 'L. Ingabire', booked: 40, capacity: 40, status: 'in_transit', group: 'active', revenue: 1520000 },
-  { id: 'TRP-8510', from: 'Kigali', to: 'Nyagatare', kind: 'Standard', departs: '11:30', bus: 'RAE-027-B', driver: 'J. Mugabo', booked: 12, capacity: 33, status: 'scheduled', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8514', from: 'Musanze', to: 'Kigali', kind: 'Express', departs: '12:00', bus: 'RAF-051-C', driver: 'C. Umutoni', booked: 27, capacity: 40, status: 'boarding', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8478', from: 'Kigali', to: 'Rusizi', kind: 'Standard', departs: '06:00', bus: 'RAG-014-B', driver: 'E. Nkusi', booked: 33, capacity: 33, status: 'completed', group: 'completed', revenue: 1650000 },
-  { id: 'TRP-8480', from: 'Huye', to: 'Kigali', kind: 'Express', departs: '06:30', bus: 'RAH-009-A', driver: 'M. Uwase', booked: 39, capacity: 40, status: 'completed', group: 'completed', revenue: 1560000 },
-  { id: 'TRP-8471', from: 'Kigali', to: 'Nyamata', kind: 'Standard', departs: '05:45', bus: 'RAB-402-C', driver: 'S. Uwase', booked: 4, capacity: 30, status: 'cancelled', group: 'cancelled', revenue: 0 },
-];
-
 const TABS = ['all', 'scheduled', 'active', 'completed', 'cancelled'] as const;
-const countBy = (g: TripGroup) => TRIPS.filter((r) => r.group === g).length;
 const countTab = (k: (typeof TABS)[number]) => (k === 'all' ? TRIPS.length : countBy(k));
 
-const VIEWS = ['trips', 'scheduling'] as const;
+const VIEWS = ['routes', 'trips', 'scheduling'] as const;
 
 export function TripsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [view, setView] = useState<(typeof VIEWS)[number]>('trips');
+  const [view, setView] = useState<(typeof VIEWS)[number]>('routes');
   const [tab, setTab] = useState<TripGroup | 'all'>('all');
   const [newTripOpen, setNewTripOpen] = useState(false);
   const [manageTrip, setManageTrip] = useState<ManageTrip | null>(null);
@@ -84,7 +57,7 @@ export function TripsPage() {
               </button>
             ))}
           </div>
-          {view === 'trips' && (
+          {view !== 'scheduling' && (
             <Button size="sm" onClick={() => setNewTripOpen(true)}>
               <Plus className="size-4" /> {t('tripsList.newTrip')}
             </Button>
@@ -94,6 +67,8 @@ export function TripsPage() {
 
       <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
       <TripManageModal trip={manageTrip} open={manageTrip !== null} onClose={() => setManageTrip(null)} />
+
+      {view === 'routes' && <RoutesView />}
 
       {view === 'scheduling' && (
         <RevealItem>

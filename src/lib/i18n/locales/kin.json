@@ -96,6 +96,7 @@
     "title": "Imicungire y'ingendo",
     "subtitle": "Ingendo zose ziteganyijwe, zikora n'izarangiye.",
     "view": {
+      "routes": "Imihanda",
       "trips": "Ingendo zose",
       "scheduling": "Gahunda n'ibisabwa"
     },
@@ -334,6 +335,25 @@
     "fareAmount": "Igiciro (RWF)",
     "fareHint": "Bireba impande zombi."
   },
+  "routesView": {
+    "tripsToday": "ingendo {{count}} uyu munsi",
+    "liveN": "{{count}} zikora",
+    "tracking": "Gukurikirana {{bus}} · yagiye {{departs}}",
+    "nextAt": "Iyindi igenda {{time}}",
+    "noneScheduled": "Nta ngendo ziteganyijwe",
+    "combinedRevenue": "Amafaranga y'umuhanda (ingendo zose)",
+    "viewTrips": "Reba ingendo",
+    "modalSub": "Ingendo {{count}} kuri uyu muhanda — zikora, ziteganyijwe n'izarangiye.",
+    "liveNow": "Zikora ubu",
+    "scheduledN": "Ziteganyijwe",
+    "trackLive": "Kurikirana ako kanya",
+    "group": {
+      "active": "Zikora ubu",
+      "scheduled": "Ziteganyijwe",
+      "completed": "Zarangiye",
+      "cancelled": "Zahagaritswe"
+    }
+  },
   "sched": {
     "routines": "Ingendo zisubirwamo",
     "routinesSub": "Imodeli z'ingendo za buri munsi n'icyumweru zikora zishyizweho.",
@@ -353,16 +373,19 @@
       "weekends": "Impera z'icyumweru",
       "weekly": "Buri cyumweru"
     },
-    "demand": "Ibisabwa n'aba agent",
-    "demandSub": "Abagenzi basabwe hamwe ku muhanda — ohereza bisi ibatware.",
     "dispatchBus": "Ohereza bisi",
     "paxCount": "abagenzi {{n}}",
-    "waitlist": "Abategereje n'ohereza kare",
-    "waitlistSub": "Iyo abagenzi bahagije bategereje, ohereza bisi hakiri kare.",
-    "scheduledAt": "iteganyijwe {{time}}",
-    "sendEarly": "Ohereza bisi kare",
+    "waitlist": "Urutonde rw'abategereje (agent n'abagenzi)",
+    "waitlistSub": "Abagenzi bategereje kuri buri kigo ku muhanda. Ohereza bisi y'aho iva hakiri kare iyo yuzuye kandi abari ku bigo byo gufata binjiye.",
+    "departsIn": "igenda mu {{countdown}}",
+    "countdownHm": "amasaha {{h}} iminota {{m}}",
+    "countdownM": "iminota {{m}}",
+    "busStaged": "Bisi {{plate}} iri {{origin}}",
+    "noBusAtOrigin": "Nta bisi iruhutse iri {{origin}}",
+    "dispatchEarly": "Ohereza kare · {{plate}}",
+    "readyNoBus": "Yiteguye kugenda — nta bisi iri aho iva",
     "waitingMore": "hakenewe {{n}} yuzure",
-    "earlyNote": "Yuzuye ubu — ishobora kugenda {{earliest}} aho gutegereza {{scheduled}}.",
+    "earlyNote": "Imyanya {{seats}} isigaye · iteganyijwe mu {{countdown}}. Igenda kare iyo ibigo byo gufata byuzuye.",
     "board": "Ikibaho cy'ibisabwa",
     "boardSub": "Ibisabwa ugereranyije n'ubushobozi ubu (akamenyetso = ubushobozi).",
     "spike": "Bidahagije",
