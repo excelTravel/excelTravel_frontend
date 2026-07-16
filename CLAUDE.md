@@ -78,14 +78,16 @@ npm run test:e2e       # playwright
 
 ## Screen checklist (update as screens land)
 Foundation: [x] scaffold [x] tokens [x] API client [x] i18n [x] auth/shell [ ] design-system page
-Screens (per role — see `docs/frontend-plan.md`): [x] Overview [x] Live Map (MapLibre + OSM tiles, routes, bus markers)
-[x] Trips (management list `/trips` + detail `/trips/:id`) [ ] Booking desk [x] Bookings
-[x] Fleet console (Vehicles / Drivers-shifts-assignment / Maintenance tabs) [~] People (drivers live under Fleet; agents pending) [ ] Network (routes/stops/fares)
-[x] Analytics [x] Parcels [ ] Incidents [ ] Private bookings [ ] Notifications [ ] Super-admin (companies/audit)
-[ ] Settings [ ] Passenger portal [ ] Driver portal · Auth: [x] Login/Continue with Google (Clerk)
+Screens: [x] Overview [x] Live Map (MapLibre) [x] Trips (list + detail + Scheduling/demand + per-trip Manage)
+[x] Booking desk (Bookings → Desk toggle) [x] Bookings [x] Fleet console (Vehicles / Drivers roster+fairness /
+Maintenance=coming-soon / Accidents) [x] Network (routes / stops / fares matrix) [x] Team (Users + Agents)
+[x] Admin (Companies / Private bookings / Audit log) [x] Analytics [x] Parcels [x] Notifications [x] Settings
+Auth: [x] Login/Continue with Google (Clerk) · Remaining: [ ] Passenger portal [ ] Driver portal (mobile-first)
 
-Ops-manager stub screens (Overview/Fleet/Trips/Bookings/Parcels/Analytics) render from local stub data +
-full EN/KIN i18n + global date-range; next is wiring them to live TanStack Query hooks, then Live Map last.
+**All screens render from local stub data**, aligned to the backend contracts (shapes/enums verified against
+`../excelTravel_backend`), full EN/KIN i18n + dark mode + code-split routes. **Not wired to the API yet** —
+next big step is: regenerate `openapi.json` → typed client → TanStack Query hooks → Clerk token → live socket.
+Mock-ahead features + backend gaps are tracked in `docs/integration-map.md`.
 
 ## Status
 Foundation being set up while final visual designs are prepared (Stitch → Figma). Design-dependent screens
