@@ -11,6 +11,7 @@ import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { BookingDesk } from './BookingDesk';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /bookings (list/filter), /analytics (velocity/channel).
@@ -58,6 +59,7 @@ export function BookingsPage() {
   const { t } = useTranslation();
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
+  const [view, setView] = useState<'dashboard' | 'desk'>('dashboard');
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<string>('all');
 
@@ -75,6 +77,26 @@ export function BookingsPage() {
 
   return (
     <Reveal className="space-y-6">
+      <RevealItem>
+        <div role="tablist" aria-label={t('nav.bookings')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
+          {(['dashboard', 'desk'] as const).map((v) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => setView(v)}
+              className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', view === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {t(`bookings.view.${v}`)}
+            </button>
+          ))}
+        </div>
+      </RevealItem>
+
+      {view === 'desk' && <BookingDesk />}
+
+      {view === 'dashboard' && (
+      <>
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('bookings.totalDaily')} value="1,284" delta={{ value: '+12%', direction: 'up', comparison: compare }} />
@@ -277,6 +299,8 @@ export function BookingsPage() {
           </div>
         </GlassCard>
       </RevealItem>
+      </>
+      )}
     </Reveal>
   );
 }
