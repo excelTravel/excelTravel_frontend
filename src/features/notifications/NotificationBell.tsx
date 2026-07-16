@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Bell, CheckCheck } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -17,6 +19,7 @@ const stub: Notice[] = [
 ];
 
 export function NotificationBell() {
+  const { t } = useTranslation();
   const unread = stub.length;
   return (
     <Popover>
@@ -59,9 +62,9 @@ export function NotificationBell() {
           ))}
         </ul>
         <div className="border-t border-border px-4 py-2 text-center">
-          <button type="button" className="text-xs font-medium text-primary hover:underline">
-            View all
-          </button>
+          <Link to="/notifications" className="text-xs font-medium text-primary hover:underline">
+            {t('notifs.viewAll')}
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

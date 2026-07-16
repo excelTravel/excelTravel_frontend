@@ -22,6 +22,7 @@ export const opsNav: NavItem[] = [
 export function sectionTitleKey(pathname: string): string {
   if (pathname.startsWith('/trips/')) return 'nav.tripDetail';
   if (pathname.startsWith('/settings')) return 'nav.settings';
+  if (pathname.startsWith('/notifications')) return 'nav.notifications';
   const match = [...opsNav]
     .filter((n) => n.to !== '/')
     .find((n) => pathname.startsWith(n.to));
