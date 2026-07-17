@@ -1,24 +1,5 @@
 // Team stub data (Rwanda). Mirrors the backend users / agents modules. Wired to the API later.
 
-export type StaffRole = 'company_admin' | 'manager' | 'agent';
-export type StaffStatus = 'active' | 'inactive' | 'suspended';
-export interface Staff {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  role: StaffRole;
-  status: StaffStatus;
-}
-
-export const STAFF: Staff[] = [
-  { id: 'u1', name: 'David Nkusi', email: 'david@exceltravel.rw', phone: '+250 788 100 001', role: 'company_admin', status: 'active' },
-  { id: 'u2', name: 'Aline Uwase', email: 'aline@exceltravel.rw', phone: '+250 788 100 002', role: 'manager', status: 'active' },
-  { id: 'u3', name: 'Grace Mukamana', email: 'grace@exceltravel.rw', phone: '+250 788 100 003', role: 'agent', status: 'active' },
-  { id: 'u4', name: 'Eric Kayitare', email: 'eric@exceltravel.rw', phone: '+250 788 100 004', role: 'agent', status: 'suspended' },
-  { id: 'u5', name: 'Josiane Rugwiro', email: 'josiane@exceltravel.rw', phone: '+250 788 100 005', role: 'manager', status: 'inactive' },
-];
-
 export interface Agent {
   id: string;
   name: string;

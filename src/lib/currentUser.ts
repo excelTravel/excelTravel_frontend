@@ -1,12 +1,29 @@
+import { useMe, useCompanies } from './api/hooks';
+
 export interface CurrentUser {
   firstName: string;
   role: string;
   location: string;
 }
 
-// Stub profile until wired to Clerk (useUser) + GET /api/v1/me. Replace with the real signed-in user.
+const ROLE_LABEL: Record<string, string> = {
+  super_admin: 'Super admin',
+  company_admin: 'Company admin',
+  manager: 'Manager',
+  agent: 'Agent',
+  driver: 'Driver',
+  passenger: 'Passenger',
+};
+
+// The signed-in user from GET /api/v1/me; company name resolved from GET /companies. Both are cached
+// TanStack queries, so this is cheap to call from the header on every page.
 export function useCurrentUser(): CurrentUser {
-  return { firstName: 'Aline', role: 'Ops Manager', location: 'Kigali HQ' };
+  const me = useMe();
+  const companies = useCompanies();
+  const firstName = me.data?.name?.split(' ')[0] ?? '…';
+  const role = me.data ? ROLE_LABEL[me.data.role] ?? me.data.role : '';
+  const location = companies.data?.find((c) => c.id === me.data?.companyId)?.name ?? '';
+  return { firstName, role, location };
 }
 
 // Time-of-day period key ('morning' | 'afternoon' | 'evening') — translated in the header via i18n.

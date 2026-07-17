@@ -8,9 +8,11 @@ import { Select } from '@/components/ui/form';
 import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { Async } from '@/components/ui/async';
+import { useUsers } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 import { InviteUserModal, InviteAgentModal, AssignStationModal } from './TeamModals';
-import { STAFF, AGENTS, PASSENGERS, type Agent, type Passenger } from './team';
+import { AGENTS, PASSENGERS, type Agent, type Passenger } from './team';
 
 const TABS = [
   { key: 'staff', icon: Users },
@@ -141,6 +143,7 @@ function PassengersPanel() {
 function UsersPanel() {
   const { t } = useTranslation();
   const [invite, setInvite] = useState(false);
+  const users = useUsers();
   return (
     <GlassCard className="overflow-hidden">
       <InviteUserModal open={invite} onClose={() => setInvite(false)} />
@@ -148,37 +151,54 @@ function UsersPanel() {
         <h3 className="text-base font-semibold">{t('team.tabs.staff')}</h3>
         <Button size="sm" onClick={() => setInvite(true)}><Plus className="size-4" /> {t('team.inviteUser')}</Button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 font-medium">{t('team.colUser')}</th>
-              <th className="px-5 py-3 font-medium">{t('team.colPhone')}</th>
-              <th className="px-5 py-3 font-medium">{t('team.colRole')}</th>
-              <th className="px-5 py-3 font-medium">{t('team.colStatus')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {STAFF.map((u) => (
-              <tr key={u.id} className="transition-colors hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{u.name.charAt(0)}</span>
-                    <div>
-                      <p className="font-medium">{u.name}</p>
-                      <p className="text-xs text-muted-foreground">{u.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{u.phone}</td>
-                <td className="px-5 py-3"><Badge tone={u.role === 'company_admin' ? 'info' : u.role === 'manager' ? 'teal' : 'neutral'}>{t(`team.roles.${u.role}`)}</Badge></td>
-                <td className="px-5 py-3"><StatusPill status={u.status}>{t(`team.status.${u.status}`)}</StatusPill></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Async query={users} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={4} />}>
+        {(data) => (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3 font-medium">{t('team.colUser')}</th>
+                  <th className="px-5 py-3 font-medium">{t('team.colPhone')}</th>
+                  <th className="px-5 py-3 font-medium">{t('team.colRole')}</th>
+                  <th className="px-5 py-3 font-medium">{t('team.colStatus')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map((u) => (
+                  <tr key={u.id} className="transition-colors hover:bg-secondary/40">
+                    <td className="whitespace-nowrap px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{u.name.charAt(0)}</span>
+                        <div>
+                          <p className="font-medium">{u.name}</p>
+                          <p className="text-xs text-muted-foreground">{u.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{u.phone}</td>
+                    <td className="px-5 py-3"><Badge tone={u.role === 'company_admin' ? 'info' : u.role === 'manager' ? 'teal' : 'neutral'}>{t(`team.roles.${u.role}`)}</Badge></td>
+                    <td className="px-5 py-3"><StatusPill status={u.status}>{t(`team.status.${u.status}`)}</StatusPill></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Async>
     </GlassCard>
+  );
+}
+
+// Shimmer rows while a table loads.
+function TableSkeleton({ cols }: { cols: number }) {
+  return (
+    <div className="space-y-2 p-5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+          {Array.from({ length: cols }).map((__, j) => <div key={j} className="shimmer h-5 rounded" />)}
+        </div>
+      ))}
+    </div>
   );
 }
 
