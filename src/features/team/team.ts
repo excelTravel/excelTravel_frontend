@@ -1,5 +1,6 @@
 // Team stub data (Rwanda). Mirrors the backend users / agents modules. Wired to the API later.
 
+// Shape used by the assign-station modal + agent cards (agents come live from /agents).
 export interface Agent {
   id: string;
   name: string;
@@ -7,13 +8,6 @@ export interface Agent {
   phone: string;
   stations: string[];
 }
-
-export const AGENTS: Agent[] = [
-  { id: 'a1', name: 'Alice Niyonzima', email: 'a.niyonzima@exceltravel.rw', phone: '+250 788 200 001', stations: ['Nyagatare', 'Kayonza'] },
-  { id: 'a2', name: 'Bruno Uwimana', email: 'b.uwimana@exceltravel.rw', phone: '+250 788 200 002', stations: ['Rwamagana'] },
-  { id: 'a3', name: 'Diane Ishimwe', email: 'd.ishimwe@exceltravel.rw', phone: '+250 788 200 003', stations: ['Huye', 'Nyanza'] },
-  { id: 'a4', name: 'Chris Mukama', email: 'c.mukama@exceltravel.rw', phone: '+250 788 200 004', stations: [] },
-];
 
 // Passengers who have travelled with this company. `bookings` = trips booked with us; `logins`/`lastLogin`
 // come from Clerk (the backend users table doesn't track logins yet — see docs/integration-map.md).

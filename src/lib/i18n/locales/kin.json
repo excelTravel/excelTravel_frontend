@@ -265,6 +265,7 @@
     "paxFilter": { "all": "Abagenzi bose", "frequent": "Bakunze (10+)", "occasional": "Rimwe na rimwe", "oneTime": "Rimwe gusa" },
     "noEmail": "Nta imeyili",
     "noPax": "Nta bagenzi bahuye.",
+    "noAgents": "Nta ba agent barahari — tumira uwa mbere.",
     "colStatus": "Uko bimeze",
     "roles": { "company_admin": "Umuyobozi w'ikigo", "manager": "Umuyobozi", "agent": "Agent" },
     "status": { "active": "Arakora", "inactive": "Ntakora", "suspended": "Yahagaritswe" },

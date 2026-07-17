@@ -266,6 +266,7 @@
     "paxFilter": { "all": "All passengers", "frequent": "Frequent (10+)", "occasional": "Occasional", "oneTime": "One-time" },
     "noEmail": "No email",
     "noPax": "No passengers match.",
+    "noAgents": "No agents yet — invite your first booking agent.",
     "roles": { "company_admin": "Company admin", "manager": "Manager", "agent": "Agent" },
     "status": { "active": "Active", "inactive": "Inactive", "suspended": "Suspended" },
     "inviteUser": "Invite staff",

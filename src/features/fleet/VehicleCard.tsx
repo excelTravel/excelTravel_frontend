@@ -32,7 +32,7 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
             </span>
             <div>
               <p className="text-lg font-bold leading-tight tracking-tight">{vehicle.plate}</p>
-              <p className="text-xs text-muted-foreground">{vehicle.model} · {vehicle.year}</p>
+              <p className="text-xs text-muted-foreground">{vehicle.model}{vehicle.year ? ` · ${vehicle.year}` : ''}</p>
             </div>
           </div>
           <StatusPill status={vehicle.status}>{t(`vehicles.status.${vehicle.status}`)}</StatusPill>
