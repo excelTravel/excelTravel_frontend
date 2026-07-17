@@ -9,14 +9,15 @@ import { Button } from '@/components/ui/button';
 import { SortableTh } from '@/components/ui/sortable-th';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { Async } from '@/components/ui/async';
 import { TripScheduling } from './TripScheduling';
 import { RoutesView } from './RoutesView';
 import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
-import { TRIPS, countBy, type TripRow, type TripGroup } from './trips';
+import { useTripRows } from './useTripRows';
+import { type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
 
 const TABS = ['all', 'scheduled', 'active', 'completed', 'cancelled'] as const;
-const countTab = (k: (typeof TABS)[number]) => (k === 'all' ? TRIPS.length : countBy(k));
 
 const VIEWS = ['routes', 'trips', 'scheduling'] as const;
 
@@ -27,7 +28,11 @@ export function TripsPage() {
   const [tab, setTab] = useState<TripGroup | 'all'>('all');
   const [newTripOpen, setNewTripOpen] = useState(false);
   const [manageTrip, setManageTrip] = useState<ManageTrip | null>(null);
-  const rows = tab === 'all' ? TRIPS : TRIPS.filter((r) => r.group === tab);
+  const tripsQ = useTripRows();
+  const allRows = tripsQ.data;
+  const countBy = (g: TripGroup) => allRows.filter((r) => r.group === g).length;
+  const countTab = (k: (typeof TABS)[number]) => (k === 'all' ? allRows.length : countBy(k));
+  const rows = tab === 'all' ? allRows : allRows.filter((r) => r.group === tab);
   const { sorted, sortKey, sortDir, toggle } = useSort<TripRow>(rows, (row, key) => {
     switch (key) {
       case 'route': return `${row.from} ${row.to}`;
@@ -68,7 +73,11 @@ export function TripsPage() {
       <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
       <TripManageModal trip={manageTrip} open={manageTrip !== null} onClose={() => setManageTrip(null)} />
 
-      {view === 'routes' && <RoutesView />}
+      {view === 'routes' && (
+        <Async query={tripsQ} isEmpty={(d) => d.length === 0} empty={<RevealItem><GlassCard className="p-10 text-center text-sm text-muted-foreground">{t('tripsList.emptyTitle')}</GlassCard></RevealItem>}>
+          {(d) => <RoutesView trips={d} />}
+        </Async>
+      )}
 
       {view === 'scheduling' && (
         <RevealItem>
@@ -195,7 +204,7 @@ export function TripsPage() {
           </div>
 
           <div className="flex items-center justify-between p-4">
-            <p className="text-sm text-muted-foreground">{t('tripsList.showing', { shown: rows.length, total: TRIPS.length })}</p>
+            <p className="text-sm text-muted-foreground">{t('tripsList.showing', { shown: rows.length, total: allRows.length })}</p>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="icon" className="size-8" aria-label={t('tripsList.prev')}>
                 <ChevronLeft className="size-4" />

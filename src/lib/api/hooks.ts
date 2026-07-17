@@ -90,6 +90,56 @@ export interface ApiCompany {
   createdAt: string;
 }
 
+export interface ApiDriver {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  licenseNumber: string | null;
+  licenseExpiry: string | null;
+  rating: number | null;
+  status: string;
+}
+
+export interface ApiAgent {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  stationIds: string[];
+}
+
+export interface ApiBooking {
+  id: string;
+  tripId: string;
+  boardStopId: string;
+  alightStopId: string;
+  passengerName: string;
+  passengerPhone: string | null;
+  fareAmount: number;
+  paymentMethod: string | null;
+  paymentStatus: string;
+  status: string;
+}
+
+export interface ApiNotification {
+  id: string;
+  triggerType: string;
+  channel: string;
+  status: string;
+  message: string | null;
+  createdAt: string;
+}
+
+export interface ApiPackage {
+  id: string;
+  trackingCode: string;
+  senderName: string;
+  recipientName: string;
+  status: string;
+  fee: number | null;
+}
+
 // Stable query keys so mutations can invalidate precisely later.
 export const qk = {
   me: ['me'] as const,
@@ -100,6 +150,11 @@ export const qk = {
   trips: ['trips'] as const,
   users: ['users'] as const,
   companies: ['companies'] as const,
+  drivers: ['drivers'] as const,
+  agents: ['agents'] as const,
+  bookings: ['bookings'] as const,
+  notifications: ['notifications'] as const,
+  packages: ['packages'] as const,
 };
 
 export const useMe = () => useQuery({ queryKey: qk.me, queryFn: () => apiFetch<Me>('/me') });
@@ -110,3 +165,8 @@ export const useVehicles = () => useQuery({ queryKey: qk.vehicles, queryFn: () =
 export const useTrips = () => useQuery({ queryKey: qk.trips, queryFn: () => apiFetch<ApiTrip[]>('/trips') });
 export const useUsers = () => useQuery({ queryKey: qk.users, queryFn: () => apiFetch<ApiUser[]>('/users') });
 export const useCompanies = () => useQuery({ queryKey: qk.companies, queryFn: () => apiFetch<ApiCompany[]>('/companies') });
+export const useDrivers = () => useQuery({ queryKey: qk.drivers, queryFn: () => apiFetch<ApiDriver[]>('/drivers') });
+export const useAgents = () => useQuery({ queryKey: qk.agents, queryFn: () => apiFetch<ApiAgent[]>('/agents') });
+export const useBookings = () => useQuery({ queryKey: qk.bookings, queryFn: () => apiFetch<ApiBooking[]>('/bookings') });
+export const useNotifications = () => useQuery({ queryKey: qk.notifications, queryFn: () => apiFetch<ApiNotification[]>('/notifications') });
+export const usePackages = () => useQuery({ queryKey: qk.packages, queryFn: () => apiFetch<ApiPackage[]>('/packages') });

@@ -8,11 +8,10 @@ import { Badge, StatusPill } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 import { Async } from '@/components/ui/async';
-import { useRoutes, useStops } from '@/lib/api/hooks';
+import { useRoutes, useStops, useFares } from '@/lib/api/hooks';
 import { AddRouteModal, AddStopModal, AddFareModal } from './NetworkModals';
 import { NetworkMap } from './NetworkMap';
 import { RouteFares } from './RouteFares';
-import { STATIONS, fareBetween } from './network';
 
 const TABS = [
   { key: 'map', icon: MapIcon },
@@ -166,6 +165,14 @@ function FaresPanel() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<'byRoute' | 'matrix'>('byRoute');
+  const stopsQ = useStops();
+  const faresQ = useFares();
+  const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station');
+  // Live national fare lookup, keyed by the canonical (sorted) station-id pair.
+  const fareMap = new Map((faresQ.data ?? []).map((f) => [[f.originStationId, f.destinationStationId].sort().join('|'), f.fareAmount]));
+  const liveFare = (a: string, b: string) => (a === b ? null : fareMap.get([a, b].sort().join('|')) ?? null);
+  const matrixLoading = stopsQ.isLoading || faresQ.isLoading;
+  const matrixError = stopsQ.isError || faresQ.isError;
   return (
     <GlassCard className="overflow-hidden">
       <AddFareModal open={open} onClose={() => setOpen(false)} />
@@ -188,22 +195,25 @@ function FaresPanel() {
       </div>
       {mode === 'byRoute' && <div className="p-5 pt-0"><RouteFares /></div>}
       {mode === 'matrix' && (
+        matrixLoading ? <TableSkeleton cols={6} /> :
+        matrixError ? <p className="p-10 text-center text-sm text-muted-foreground">{t('common.loadError')}</p> :
+        stations.length === 0 ? <p className="p-10 text-center text-sm text-muted-foreground">{t('network.noStops')}</p> : (
       <div className="overflow-x-auto p-2">
         <table className="w-full min-w-[640px] border-separate border-spacing-1 text-center text-sm">
           <thead>
             <tr>
               <th className="p-2" />
-              {STATIONS.map((s) => (
+              {stations.map((s) => (
                 <th key={s.id} className="p-2 text-xs font-semibold text-muted-foreground">{s.name}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {STATIONS.map((row) => (
+            {stations.map((row) => (
               <tr key={row.id}>
                 <th className="whitespace-nowrap p-2 text-right text-xs font-semibold text-muted-foreground">{row.name}</th>
-                {STATIONS.map((col) => {
-                  const fare = fareBetween(row.id, col.id);
+                {stations.map((col) => {
+                  const fare = liveFare(row.id, col.id);
                   return (
                     <td key={col.id} className={cn('rounded-lg p-2 tabular-nums', row.id === col.id ? 'bg-secondary/40 text-muted-foreground/40' : fare ? 'bg-[hsl(var(--teal))]/10 font-medium text-foreground' : 'bg-secondary/30 text-muted-foreground/50')}>
                       {row.id === col.id ? '—' : fare ? formatRWF(fare) : '·'}
@@ -215,7 +225,7 @@ function FaresPanel() {
           </tbody>
         </table>
       </div>
-      )}
+      ))}
     </GlassCard>
   );
 }

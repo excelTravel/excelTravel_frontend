@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { StatusPill, Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
 import { RevealItem } from '@/components/motion/Motion';
-import { deriveRoutes, TRIPS, type RouteSummary, type TripRow } from './trips';
+import { deriveRoutes, type RouteSummary, type TripRow } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Visual "connection of a trip": origin ●─── live bus ───○ destination. The bus sits at `progress` (0..1)
@@ -34,9 +34,9 @@ function TripConnector({ progress }: { progress: number | null }) {
   );
 }
 
-export function RoutesView() {
+export function RoutesView({ trips }: { trips: TripRow[] }) {
   const { t } = useTranslation();
-  const routes = deriveRoutes(TRIPS);
+  const routes = deriveRoutes(trips);
   const [open, setOpen] = useState<RouteSummary | null>(null);
 
   return (
