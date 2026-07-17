@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Badge, StatusPill } from '@/components/ui/badge';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
+import { Async } from '@/components/ui/async';
+import { useRoutes, useStops } from '@/lib/api/hooks';
 import { AddRouteModal, AddStopModal, AddFareModal } from './NetworkModals';
 import { NetworkMap } from './NetworkMap';
 import { RouteFares } from './RouteFares';
-import { ROUTES, STOPS, STATIONS, fareBetween } from './network';
+import { STATIONS, fareBetween } from './network';
 
 const TABS = [
   { key: 'map', icon: MapIcon },
@@ -60,6 +62,8 @@ export function NetworkPage() {
 function RoutesPanel() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const routes = useRoutes();
+  const fmtDuration = (min: number | null) => (min == null ? '—' : `${Math.floor(min / 60)}h ${min % 60}m`);
   return (
     <GlassCard className="overflow-hidden">
       <AddRouteModal open={open} onClose={() => setOpen(false)} />
@@ -67,33 +71,37 @@ function RoutesPanel() {
         <h3 className="text-base font-semibold">{t('network.tabs.routes')}</h3>
         <Button size="sm" onClick={() => setOpen(true)}><Plus className="size-4" /> {t('network.addRoute')}</Button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 font-medium">{t('network.colRoute')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colDistance')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colDuration')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colTimes')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colStatus')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {ROUTES.map((r) => (
-              <tr key={r.id} className="transition-colors hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3">
-                  <p className="font-medium">{r.name}</p>
-                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin} <ArrowRight className="size-3" /> {r.destination}</p>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums">{r.distanceKm} km</td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums">{Math.floor(r.durationMin / 60)}h {r.durationMin % 60}m</td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{r.times.join(' · ')}</td>
-                <td className="px-5 py-3"><Badge tone={r.status === 'active' ? 'success' : 'neutral'}>{t(`network.${r.status}`)}</Badge></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Async query={routes} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={5} />} empty={<p className="p-10 text-center text-sm text-muted-foreground">{t('network.noRoutes')}</p>}>
+        {(data) => (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3 font-medium">{t('network.colRoute')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colDistance')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colDuration')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colTimes')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colStatus')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map((r) => (
+                  <tr key={r.id} className="transition-colors hover:bg-secondary/40">
+                    <td className="whitespace-nowrap px-5 py-3">
+                      <p className="font-medium">{r.name}</p>
+                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin} <ArrowRight className="size-3" /> {r.destination}</p>
+                    </td>
+                    <td className="whitespace-nowrap px-5 py-3 tabular-nums">{r.distanceKm == null ? '—' : `${r.distanceKm} km`}</td>
+                    <td className="whitespace-nowrap px-5 py-3 tabular-nums">{fmtDuration(r.estimatedDurationMin)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{r.departureTimes.length ? r.departureTimes.join(' · ') : '—'}</td>
+                    <td className="px-5 py-3"><Badge tone={r.status === 'active' ? 'success' : 'neutral'}>{t(`network.${r.status}`)}</Badge></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Async>
     </GlassCard>
   );
 }
@@ -101,6 +109,9 @@ function RoutesPanel() {
 function StopsPanel() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const stops = useStops();
+  // Resolve a stop's parent-station id to its name from the same list.
+  const nameById = (list: { id: string; name: string }[], id: string | null) => (id ? list.find((s) => s.id === id)?.name ?? '—' : '—');
   return (
     <GlassCard className="overflow-hidden">
       <AddStopModal open={open} onClose={() => setOpen(false)} />
@@ -108,29 +119,46 @@ function StopsPanel() {
         <h3 className="text-base font-semibold">{t('network.tabs.stops')}</h3>
         <Button size="sm" onClick={() => setOpen(true)}><Plus className="size-4" /> {t('network.addStop')}</Button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 font-medium">{t('network.colName')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colType')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colParent')}</th>
-              <th className="px-5 py-3 font-medium">{t('network.colPhone')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {STOPS.map((s) => (
-              <tr key={s.id} className="transition-colors hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3 font-medium">{s.name}</td>
-                <td className="px-5 py-3"><StatusPill status={s.type === 'station' ? 'active' : 'idle'}>{t(`network.${s.type}`)}</StatusPill></td>
-                <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{s.parent ?? '—'}</td>
-                <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{s.phone ?? '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Async query={stops} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={4} />} empty={<p className="p-10 text-center text-sm text-muted-foreground">{t('network.noStops')}</p>}>
+        {(data) => (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3 font-medium">{t('network.colName')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colType')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colParent')}</th>
+                  <th className="px-5 py-3 font-medium">{t('network.colPhone')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.map((s) => (
+                  <tr key={s.id} className="transition-colors hover:bg-secondary/40">
+                    <td className="whitespace-nowrap px-5 py-3 font-medium">{s.name}</td>
+                    <td className="px-5 py-3"><StatusPill status={s.type === 'station' ? 'active' : 'idle'}>{t(`network.${s.type}`)}</StatusPill></td>
+                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{nameById(data, s.parentStationId)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{s.phone ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Async>
     </GlassCard>
+  );
+}
+
+// Simple shimmer rows while a table loads.
+function TableSkeleton({ cols }: { cols: number }) {
+  return (
+    <div className="space-y-2 p-5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <div key={i} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+          {Array.from({ length: cols }).map((__, j) => <div key={j} className="shimmer h-5 rounded" />)}
+        </div>
+      ))}
+    </div>
   );
 }
 

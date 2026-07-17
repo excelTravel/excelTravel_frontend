@@ -1,8 +1,12 @@
 // Runtime config from Vite env (VITE_*). Only public values live here — never secrets.
 export const config = {
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
-  socketUrl: import.meta.env.VITE_SOCKET_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
+  // Includes the /api/v1 prefix — hooks call resource-relative paths (e.g. apiFetch('/trips')).
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1',
+  socketUrl: import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:3000',
   clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? '',
+  // Dev-auth shortcut: when set (local only), API calls send X-Dev-User instead of a Clerk token,
+  // matching the backend's DEV_AUTH mode. Leave empty in any real/hosted environment.
+  devUser: import.meta.env.VITE_DEV_USER ?? '',
   cloudinary: {
     cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ?? '',
     uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ?? '',

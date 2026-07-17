@@ -307,6 +307,8 @@
     "scheduledBuses": "Bisi ziteganyijwe",
     "selectRoute": "Hitamo umuhanda",
     "faresByRoute": "Ibiciro ku muhanda",
+    "noRoutes": "Nta mihanda irahari — ongeraho umuhanda wa mbere.",
+    "noStops": "Nta sitasiyo irahari — ongeraho sitasiyo.",
     "fareMode": { "byRoute": "Ku muhanda", "matrix": "Imbonerahamwe" },
     "endToEnd": "kuva ku iherezo",
     "notSet": "Ntacyashyizweho",
@@ -686,6 +688,8 @@
   },
   "common": {
     "retry": "Ongera ugerageze",
+    "loadError": "Ntibishoboye kuza — reba interineti yawe wongere ugerageze.",
+    "empty": "Nta kirimo.",
     "loading": "Biratunganywa…",
     "signIn": "Injira",
     "toggleTheme": "Hindura ishusho",

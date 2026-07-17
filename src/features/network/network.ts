@@ -15,24 +15,6 @@ export const STATIONS: Station[] = [
   { id: 's6', name: 'Muhanga', lng: 29.7554, lat: -2.0853 },
 ];
 
-export type StopType = 'station' | 'stop';
-export interface Stop {
-  id: string;
-  name: string;
-  type: StopType;
-  parent: string | null;
-  phone: string | null;
-}
-export const STOPS: Stop[] = [
-  { id: 'st1', name: 'Nyabugogo', type: 'station', parent: null, phone: '+250 788 000 111' },
-  { id: 'st2', name: 'Musanze', type: 'station', parent: null, phone: '+250 788 000 222' },
-  { id: 'st3', name: 'Rubavu', type: 'station', parent: null, phone: '+250 788 000 333' },
-  { id: 'st4', name: 'Huye', type: 'station', parent: null, phone: '+250 788 000 444' },
-  { id: 'st5', name: 'Shyorongi', type: 'stop', parent: 'Nyabugogo', phone: null },
-  { id: 'st6', name: 'Muhanga', type: 'stop', parent: 'Nyabugogo', phone: null },
-  { id: 'st7', name: 'Nyanza', type: 'stop', parent: 'Huye', phone: null },
-];
-
 export interface Route {
   id: string;
   name: string;

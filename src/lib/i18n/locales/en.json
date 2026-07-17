@@ -307,6 +307,8 @@
     "scheduledBuses": "Scheduled buses",
     "selectRoute": "Select a route",
     "faresByRoute": "Fares by route",
+    "noRoutes": "No routes yet — add your first route.",
+    "noStops": "No stops yet — add a station or stop.",
     "fareMode": { "byRoute": "By route", "matrix": "Matrix" },
     "endToEnd": "end to end",
     "notSet": "Not set",
@@ -686,6 +688,8 @@
   },
   "common": {
     "retry": "Retry",
+    "loadError": "Couldn't load this — check your connection and try again.",
+    "empty": "Nothing here yet.",
     "loading": "Loading…",
     "signIn": "Sign in",
     "toggleTheme": "Toggle theme",
