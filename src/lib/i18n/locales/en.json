@@ -468,6 +468,7 @@
     "collected": "Collected",
     "journey": "Parcel journey",
     "viewJourney": "View journey",
+    "empty": "No parcels yet.",
     "currentStage": "Current stage",
     "flowNew": "{{n}} new",
     "flowSorting": "{{n}} sorting",

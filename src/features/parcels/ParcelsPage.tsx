@@ -17,16 +17,11 @@ import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { Async } from '@/components/ui/async';
+import { usePackages } from '@/lib/api/hooks';
 import { ParcelJourneyModal, type ParcelLite } from './ParcelJourneyModal';
 import { UpdatePricingModal } from './UpdatePricingModal';
 import { cn } from '@/lib/utils';
-
-// Stub data (Rwanda). Wired later to /packages (custody chain) + ops pricing (setFee).
-const manifest = [
-  { wb: 'WB-99210', note: 'Exp 08:30 · Trip #402', sender: 'K. Mugabo', receiver: 'J. Mutoni', from: 'Kigali', to: 'Musanze', weight: '12.5 kg', status: 'in_transit' },
-  { wb: 'WB-99214', note: 'Late scan', sender: 'P. Habimana', receiver: 'S. Karekezi', from: 'Kigali', to: 'Rubavu', weight: '4.2 kg', status: 'at_hub' },
-  { wb: 'WB-99220', note: 'Exp 10:45 · Trip #408', sender: 'M. Umutoni', receiver: 'C. Ngabo', from: 'Kigali', to: 'Huye', weight: '25.0 kg', status: 'pending' },
-];
 
 export function ParcelsPage() {
   const { t } = useTranslation();
@@ -34,6 +29,18 @@ export function ParcelsPage() {
   const [pricingOpen, setPricingOpen] = useState(false);
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
+  const packagesQ = usePackages();
+  // /packages custody chain. from/to/weight/note aren't in the list payload yet → degrade to —.
+  const manifest = (packagesQ.data ?? []).map((p) => ({
+    wb: p.trackingCode,
+    note: '',
+    sender: p.senderName,
+    receiver: p.recipientName,
+    from: '—',
+    to: '—',
+    weight: '—',
+    status: p.status,
+  }));
 
   const steps = [
     { icon: CheckCircle2, label: t('parcels.booking'), meta: t('parcels.flowNew', { n: 248 }), done: true },
@@ -99,6 +106,8 @@ export function ParcelsPage() {
               </Button>
             </div>
           </div>
+          <Async query={packagesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="space-y-2 p-5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer h-8 rounded" />)}</div>} empty={<div className="grid place-items-center gap-2 px-6 py-16 text-center"><Package className="size-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">{t('parcels.empty')}</p></div>}>
+          {() => (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -151,9 +160,8 @@ export function ParcelsPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-5">
-            <p className="text-sm text-muted-foreground">{t('parcels.showing', { shown: 25, total: '1,245' })}</p>
-          </div>
+          )}
+          </Async>
         </GlassCard>
 
         <GlassCard className="p-6">

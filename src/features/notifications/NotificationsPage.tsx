@@ -4,41 +4,48 @@ import { MapPin, CheckCircle2, Clock, XCircle, Bell, CheckCheck, MessageSquare, 
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { useNotifications, type ApiNotification } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 
-// Aligned to GET /api/v1/notifications (NotificationResponse: type, triggerType, message, status, createdAt).
-type Trigger = '5km' | '2km' | 'arrived' | 'delay' | 'cancellation';
+// Aligned to GET /api/v1/notifications (triggerType, channel, message, status, createdAt).
 type Channel = 'sms' | 'push' | 'email';
-type NStatus = 'pending' | 'sent' | 'failed';
 interface Notif {
   id: string;
-  trigger: Trigger;
+  trigger: string;
   channel: Channel;
   message: string;
-  status: NStatus;
+  status: 'pending' | 'sent' | 'failed';
   time: string;
 }
 
-const NOTIFS: Notif[] = [
-  { id: 'n1', trigger: '5km', channel: 'push', message: 'Bus RAB-402-C is 5 km from Nyabugogo', status: 'sent', time: '2m' },
-  { id: 'n2', trigger: 'delay', channel: 'sms', message: 'Trip Kigali → Musanze delayed 15 min', status: 'sent', time: '18m' },
-  { id: 'n3', trigger: 'cancellation', channel: 'sms', message: 'Booking #TK-8915 cancelled — payment timeout', status: 'failed', time: '42m' },
-  { id: 'n4', trigger: 'arrived', channel: 'push', message: 'Bus RAD-088-A has arrived at Huye', status: 'sent', time: '1h' },
-  { id: 'n5', trigger: '2km', channel: 'push', message: 'Bus RAC-112-D is 2 km from Rubavu', status: 'pending', time: '1h' },
-  { id: 'n6', trigger: 'arrived', channel: 'email', message: 'Trip TRP-8471 completed — manifest emailed', status: 'sent', time: '3h' },
-];
-
-const TRIGGER_ICON: Record<Trigger, typeof MapPin> = { '5km': MapPin, '2km': MapPin, arrived: CheckCircle2, delay: Clock, cancellation: XCircle };
+const TRIGGER_ICON: Record<string, typeof MapPin> = { '5km': MapPin, '2km': MapPin, arrived: CheckCircle2, delay: Clock, cancellation: XCircle };
 const CHANNEL_ICON: Record<Channel, typeof MessageSquare> = { sms: MessageSquare, push: Smartphone, email: Mail };
+
+// Relative "2m" / "1h" / "3d" from an ISO timestamp.
+function ago(iso: string): string {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? `${h}h` : `${Math.floor(h / 24)}d`;
+}
+
+function toNotif(n: ApiNotification): Notif {
+  const status = n.status === 'sent' || n.status === 'delivered' ? 'sent' : n.status === 'failed' ? 'failed' : 'pending';
+  const channel = (['sms', 'push', 'email'].includes(n.channel) ? n.channel : 'push') as Channel;
+  return { id: n.id, trigger: n.triggerType, channel, message: n.message ?? '', status, time: ago(n.createdAt) };
+}
 
 export function NotificationsPage() {
   const { t } = useTranslation();
   const [read, setRead] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const notifsQ = useNotifications();
 
-  const rows = filter === 'unread' ? NOTIFS.filter((n) => !read.has(n.id)) : NOTIFS;
-  const unread = NOTIFS.filter((n) => !read.has(n.id)).length;
+  const all = (notifsQ.data ?? []).map(toNotif);
+  const rows = filter === 'unread' ? all.filter((n) => !read.has(n.id)) : all;
+  const unread = all.filter((n) => !read.has(n.id)).length;
 
   return (
     <Reveal className="mx-auto max-w-3xl space-y-6">
@@ -58,17 +65,19 @@ export function NotificationsPage() {
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setRead(new Set(NOTIFS.map((n) => n.id)))} disabled={unread === 0}>
+          <Button variant="outline" size="sm" onClick={() => setRead(new Set(all.map((n) => n.id)))} disabled={unread === 0}>
             <CheckCheck className="size-4" /> {t('notifs.markAll')}
           </Button>
         </div>
       </RevealItem>
 
       <RevealItem>
+        <Async query={notifsQ} skeleton={<GlassCard className="p-6"><div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer h-12 rounded-lg" />)}</div></GlassCard>}>
+        {() => (
         <GlassCard className="divide-y divide-border overflow-hidden">
           {rows.map((n) => {
-            const TIcon = TRIGGER_ICON[n.trigger];
-            const CIcon = CHANNEL_ICON[n.channel];
+            const TIcon = TRIGGER_ICON[n.trigger] ?? Bell;
+            const CIcon = CHANNEL_ICON[n.channel] ?? Smartphone;
             const isRead = read.has(n.id);
             return (
               <button
@@ -102,6 +111,8 @@ export function NotificationsPage() {
             </div>
           )}
         </GlassCard>
+        )}
+        </Async>
       </RevealItem>
     </Reveal>
   );
