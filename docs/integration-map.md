@@ -127,8 +127,17 @@ The frontend now talks to the real backend. Foundation + first slices are wired 
 - **Auth for local dev**: the backend supports `DEV_AUTH=true` (dev only) + an `X-Dev-User: <clerk_user_id>` header. The frontend sends it automatically when `VITE_DEV_USER` is set (see `.env.local`, git-ignored). Seeded company_admin id: `user_3GAhHKHfYTsv8FjymMdUpCSX3Ry`. For any hosted/prod run, leave `VITE_DEV_USER` empty and set `VITE_CLERK_PUBLISHABLE_KEY` so real Clerk login is used (`RequireAuth` already feeds the token into `apiFetch`).
 - **CORS**: backend `CORS_ORIGINS=http://localhost:5173` — run the frontend on **5173** (`npm run dev`) to hit a local backend; other ports are blocked.
 - **Client**: `lib/api/hooks.ts` (typed TanStack Query hooks, hand-typed from live responses — bare arrays, no envelope), `lib/api/client.ts` (`apiFetch`), `components/ui/async.tsx` (`<Async>` loading/error/empty wrapper).
-- **Wired + verified**: Network → Routes (`/routes`) + Stops (`/stops`); Users → Staff (`/users`); shell greeting/profile (`/me` + `/companies`).
-- **Not yet wired** (stub): Overview, Fleet, Trips, Bookings, Booking desk, Parcels, Analytics, Notifications, Settings, Network Fares matrix + Map markers, Users Agents/Passengers tabs.
+- **Wired + verified** (live data, in-browser, 200s + zero console errors):
+  - Shell greeting/profile → `/me` + `/companies`
+  - Network → Routes (`/routes`), Stops (`/stops`), **Fares matrix** (`/stops` stations + `/fares`)
+  - Users → **Staff** (`/users`), **Agents** (`/agents`, station names via `/stops`)
+  - **Trips** → Routes view + All-trips list (`/trips` joined with `/routes` + `/vehicles` in `useTripRows`)
+  - **Fleet → Vehicles** (`/vehicles` → cards + composition ring from real statuses)
+  - **Notifications** (`/notifications`), **Parcels** master manifest (`/packages`)
+- **Degrade to —/0 in the wired screens** (backend doesn't return these yet): trip occupancy + revenue (needs bookings aggregation), trip driver (needs `/drivers` join), vehicle model/year/driver/current-trip/next-service/maintenance.
+- **Still on stub** (need backend aggregation endpoints or GPS/socket — not just seed data):
+  - **Overview** KPIs, **Analytics** charts, **Bookings** dashboard (velocity/channel/revenue) — no aggregation endpoints (`/analytics/overview` is 404).
+  - **Booking desk** create flow (POST /bookings — capacity-safe txn; not yet wired), Network **Map markers/live buses** (needs GPS + socket), Trips **Scheduling** (recurring/waitlist — no backend), Fleet **Drivers roster / Accidents** tabs, **Settings**, Users **Passengers** tab (login metrics — see gap #11), Parcels/Notifications **aggregation KPIs**.
 
 ### ⚠ Blockers found while wiring (relay to backend team)
 - **Hosted server DB is down**: `http://13.140.133.61:3300` returns **500 on every DB route** (health is fine). Its `DATABASE_URL` is `localhost:5432` — the deploy has no working Postgres/migrations. Wiring was verified against a **local** backend instead. Fix the hosted DB before the frontend can point at the hosted API.
