@@ -58,7 +58,8 @@ export function AppShell() {
 
       <div className="lg:pl-24">
         <Header />
-        <main className="px-4 pb-10 sm:px-6 lg:px-8">
+        {/* Standard space under the top bar, then the page content. Consistent across every screen. */}
+        <main className="px-4 pb-12 pt-6 sm:px-6 sm:pt-8 lg:px-8">
           <Suspense fallback={<PageSkeleton />}>
             <Outlet />
           </Suspense>

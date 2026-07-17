@@ -19,40 +19,28 @@ const TABS = [
 ] as const;
 type FleetTab = (typeof TABS)[number]['key'];
 
-// Fleet management console — contextual KPI cards + tabbed panels (vehicles / drivers / maintenance).
+// Fleet management console — a stable fleet-wide KPI row, then sub-section tabs, then content. The cards
+// and tab bar stay put when switching tabs (only the content below changes) so nothing shifts vertically.
 export function FleetPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FleetTab>('vehicles');
   const s = FLEET_SUMMARY;
 
-  // KPI cards above the tabs, matching the selected sub-section.
-  const kpis: Record<FleetTab, { label: string; value: number }[]> = {
-    vehicles: [
-      { label: t('fleet.totalFleet'), value: s.total },
-      { label: t('fleet.activeNow'), value: s.active },
-      { label: t('fleet.scheduledToday'), value: s.scheduledToday },
-      { label: t('fleet.retiredCount'), value: s.retired },
-    ],
-    drivers: [
-      { label: t('fleet.totalDrivers'), value: s.totalDrivers },
-      { label: t('fleet.onShift'), value: s.onShift },
-      { label: t('fleet.inTrip'), value: s.inTrip },
-      { label: t('fleet.available'), value: s.available },
-    ],
-    maintenance: [],
-    accidents: [],
-  };
-  const cards = kpis[tab];
+  // One fixed set of cards across every sub-section — prevents layout shift when switching tabs.
+  const cards = [
+    { label: t('fleet.totalFleet'), value: s.total },
+    { label: t('fleet.activeNow'), value: s.active },
+    { label: t('fleet.totalDrivers'), value: s.totalDrivers },
+    { label: t('fleet.openMaintenance'), value: s.maintenance },
+  ];
 
   return (
     <Reveal className="space-y-6">
-      {cards.length > 0 && (
-        <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-          {cards.map((c) => (
-            <KpiCard key={c.label} label={c.label} value={c.value.toLocaleString()} />
-          ))}
-        </RevealItem>
-      )}
+      <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {cards.map((c) => (
+          <KpiCard key={c.label} label={c.label} value={c.value.toLocaleString()} />
+        ))}
+      </RevealItem>
 
       <RevealItem>
         <div role="tablist" aria-label={t('fleet.consoleTitle')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">

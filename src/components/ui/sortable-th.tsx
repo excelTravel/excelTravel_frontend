@@ -23,7 +23,7 @@ export function SortableTh({
   const active = activeKey === sortKey;
   return (
     <th
-      className={cn('px-4 py-3 font-medium', align === 'right' && 'text-right', className)}
+      className={cn('whitespace-nowrap border-y border-border/70 px-5 py-3 font-semibold first:pl-6 last:pr-6', align === 'right' && 'text-right', className)}
       aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
     >
       <button

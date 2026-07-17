@@ -253,6 +253,10 @@
   },
   "team": {
     "tabs": { "staff": "Abakozi", "agents": "Aba agent", "passengers": "Abagenzi" },
+    "kpiStaff": "Abakozi",
+    "kpiActive": "Abakozi bakora",
+    "kpiAgents": "Aba agent",
+    "kpiPassengers": "Abagenzi",
     "colUser": "Umukoresha",
     "colPhone": "Telefone",
     "colRole": "Uruhare",

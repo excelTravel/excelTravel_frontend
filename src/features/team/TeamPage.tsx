@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Users, UserCog, UsersRound, Mail, Phone, MapPin, Search } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
+import { KpiCard } from '@/components/ui/kpi-card';
 import { Button } from '@/components/ui/button';
 import { StatusPill, Badge } from '@/components/ui/badge';
 import { Select } from '@/components/ui/form';
 import { SortableTh } from '@/components/ui/sortable-th';
+import { Table, Thead, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
@@ -27,8 +29,22 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day
 export function TeamPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<TeamTab>('staff');
+  const usersQ = useUsers();
+  const agentsQ = useAgents();
+  // One fixed KPI row across all sub-sections (Staff / Agents / Passengers) — stable, no layout shift.
+  const cards = [
+    { label: t('team.kpiStaff'), value: usersQ.data?.length ?? 0 },
+    { label: t('team.kpiActive'), value: usersQ.data?.filter((u) => u.status === 'active').length ?? 0 },
+    { label: t('team.kpiAgents'), value: agentsQ.data?.length ?? 0 },
+    { label: t('team.kpiPassengers'), value: PASSENGERS.length },
+  ];
   return (
     <Reveal className="space-y-6">
+      <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {cards.map((c) => (
+          <KpiCard key={c.label} label={c.label} value={c.value.toLocaleString()} />
+        ))}
+      </RevealItem>
       <RevealItem>
         <div role="tablist" aria-label={t('nav.users')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
           {TABS.map((tb) => (
@@ -94,48 +110,46 @@ function PassengersPanel() {
           </Select>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <SortableTh label={t('team.colUser')} sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggle} />
-              <SortableTh label={t('team.colPhone')} sortKey="phone" activeKey={sortKey} dir={sortDir} onSort={toggle} />
-              <SortableTh label={t('team.colBookings')} sortKey="bookings" activeKey={sortKey} dir={sortDir} onSort={toggle} />
-              <SortableTh label={t('team.colLastLogin')} sortKey="lastLogin" activeKey={sortKey} dir={sortDir} onSort={toggle} />
-              <SortableTh label={t('team.colLogins')} sortKey="logins" activeKey={sortKey} dir={sortDir} onSort={toggle} />
-              <SortableTh label={t('team.colUpdated')} sortKey="updated" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {sorted.map((p) => (
-              <tr key={p.id} className="transition-colors hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{p.name.charAt(0)}</span>
-                    <div>
-                      <p className="font-medium">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">{p.email ?? t('team.noEmail')}</p>
-                    </div>
+      <Table>
+        <thead className="bg-secondary/40">
+          <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <SortableTh label={t('team.colUser')} sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+            <SortableTh label={t('team.colPhone')} sortKey="phone" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+            <SortableTh label={t('team.colBookings')} sortKey="bookings" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+            <SortableTh label={t('team.colLastLogin')} sortKey="lastLogin" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+            <SortableTh label={t('team.colLogins')} sortKey="logins" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+            <SortableTh label={t('team.colUpdated')} sortKey="updated" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" />
+          </tr>
+        </thead>
+        <Tbody>
+          {sorted.map((p) => (
+            <Tr key={p.id}>
+              <Td className="whitespace-nowrap">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{p.name.charAt(0)}</span>
+                  <div>
+                    <p className="font-medium">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.email ?? t('team.noEmail')}</p>
                   </div>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{p.phone}</td>
-                <td className="px-5 py-3">
-                  <span className="inline-flex items-center gap-2">
-                    <span className="font-semibold tabular-nums">{p.bookings}</span>
-                    {p.bookings >= 10 && <Badge tone="teal">{t('team.paxFilter.frequent')}</Badge>}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{fmtDate(p.lastLogin)}</td>
-                <td className="px-5 py-3 tabular-nums text-muted-foreground">{p.logins}</td>
-                <td className="whitespace-nowrap px-5 py-3 text-right tabular-nums text-muted-foreground">{fmtDate(p.updated)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {sorted.length === 0 && (
-          <div className="p-10 text-center text-sm text-muted-foreground">{t('team.noPax')}</div>
-        )}
-      </div>
+                </div>
+              </Td>
+              <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{p.phone}</Td>
+              <Td>
+                <span className="inline-flex items-center gap-2">
+                  <span className="font-semibold tabular-nums">{p.bookings}</span>
+                  {p.bookings >= 10 && <Badge tone="teal">{t('team.paxFilter.frequent')}</Badge>}
+                </span>
+              </Td>
+              <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{fmtDate(p.lastLogin)}</Td>
+              <Td className="tabular-nums text-muted-foreground">{p.logins}</Td>
+              <Td className="whitespace-nowrap text-right tabular-nums text-muted-foreground">{fmtDate(p.updated)}</Td>
+            </Tr>
+          ))}
+        </Tbody>
+      </Table>
+      {sorted.length === 0 && (
+        <div className="p-10 text-center text-sm text-muted-foreground">{t('team.noPax')}</div>
+      )}
     </GlassCard>
   );
 }
@@ -153,36 +167,32 @@ function UsersPanel() {
       </div>
       <Async query={users} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={4} />}>
         {(data) => (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-medium">{t('team.colUser')}</th>
-                  <th className="px-5 py-3 font-medium">{t('team.colPhone')}</th>
-                  <th className="px-5 py-3 font-medium">{t('team.colRole')}</th>
-                  <th className="px-5 py-3 font-medium">{t('team.colStatus')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.map((u) => (
-                  <tr key={u.id} className="transition-colors hover:bg-secondary/40">
-                    <td className="whitespace-nowrap px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{u.name.charAt(0)}</span>
-                        <div>
-                          <p className="font-medium">{u.name}</p>
-                          <p className="text-xs text-muted-foreground">{u.email}</p>
-                        </div>
+          <Table>
+            <Thead>
+              <Th>{t('team.colUser')}</Th>
+              <Th>{t('team.colPhone')}</Th>
+              <Th>{t('team.colRole')}</Th>
+              <Th>{t('team.colStatus')}</Th>
+            </Thead>
+            <Tbody>
+              {data.map((u) => (
+                <Tr key={u.id}>
+                  <Td className="whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{u.name.charAt(0)}</span>
+                      <div>
+                        <p className="font-medium">{u.name}</p>
+                        <p className="text-xs text-muted-foreground">{u.email}</p>
                       </div>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{u.phone}</td>
-                    <td className="px-5 py-3"><Badge tone={u.role === 'company_admin' ? 'info' : u.role === 'manager' ? 'teal' : 'neutral'}>{t(`team.roles.${u.role}`)}</Badge></td>
-                    <td className="px-5 py-3"><StatusPill status={u.status}>{t(`team.status.${u.status}`)}</StatusPill></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </Td>
+                  <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{u.phone}</Td>
+                  <Td><Badge tone={u.role === 'company_admin' ? 'info' : u.role === 'manager' ? 'teal' : 'neutral'}>{t(`team.roles.${u.role}`)}</Badge></Td>
+                  <Td><StatusPill status={u.status}>{t(`team.status.${u.status}`)}</StatusPill></Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         )}
       </Async>
     </GlassCard>

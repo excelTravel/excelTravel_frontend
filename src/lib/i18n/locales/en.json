@@ -253,6 +253,10 @@
   },
   "team": {
     "tabs": { "staff": "Staff", "agents": "Agents", "passengers": "Passengers" },
+    "kpiStaff": "Staff members",
+    "kpiActive": "Active staff",
+    "kpiAgents": "Agents",
+    "kpiPassengers": "Passengers",
     "colUser": "User",
     "colPhone": "Phone",
     "colRole": "Role",

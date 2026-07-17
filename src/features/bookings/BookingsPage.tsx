@@ -8,10 +8,10 @@ import { Badge, StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/form';
 import { SortableTh } from '@/components/ui/sortable-th';
+import { Table, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { useSort } from '@/lib/useSort';
 import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { BookingDesk } from './BookingDesk';
 import { formatRWF, cn } from '@/lib/utils';
 
 // Stub data (Rwanda). Wired later to /bookings (list/filter), /analytics (velocity/channel).
@@ -59,7 +59,6 @@ export function BookingsPage() {
   const { t } = useTranslation();
   const preset = useDateRange((s) => s.preset);
   const compare = t(`range.compare.${preset}`);
-  const [view, setView] = useState<'dashboard' | 'desk'>('dashboard');
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<string>('all');
 
@@ -77,26 +76,6 @@ export function BookingsPage() {
 
   return (
     <Reveal className="space-y-6">
-      <RevealItem>
-        <div role="tablist" aria-label={t('nav.bookings')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
-          {(['dashboard', 'desk'] as const).map((v) => (
-            <button
-              key={v}
-              role="tab"
-              aria-selected={view === v}
-              onClick={() => setView(v)}
-              className={cn('rounded-lg px-4 py-2 text-sm font-medium transition-colors', view === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
-            >
-              {t(`bookings.view.${v}`)}
-            </button>
-          ))}
-        </div>
-      </RevealItem>
-
-      {view === 'desk' && <BookingDesk />}
-
-      {view === 'dashboard' && (
-      <>
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t('bookings.totalDaily')} value="1,284" delta={{ value: '+12%', direction: 'up', comparison: compare }} />
@@ -250,43 +229,41 @@ export function BookingsPage() {
               <Button variant="outline" size="sm"><Download className="size-4" /> {t('bookings.export')}</Button>
             </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <SortableTh label={t('bookings.colTicket')} sortKey="id" activeKey={sortKey} dir={sortDir} onSort={toggle} className="px-5" />
-                  <SortableTh label={t('bookings.colPassenger')} sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggle} className="px-5" />
-                  <SortableTh label={t('bookings.colRoute')} sortKey="route" activeKey={sortKey} dir={sortDir} onSort={toggle} className="px-5" />
-                  <SortableTh label={t('bookings.colTime')} sortKey="time" activeKey={sortKey} dir={sortDir} onSort={toggle} className="px-5" />
-                  <SortableTh label={t('bookings.colStatus')} sortKey="status" activeKey={sortKey} dir={sortDir} onSort={toggle} className="px-5" />
-                  <SortableTh label={t('bookings.colAmount')} sortKey="amount" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" className="px-5" />
-                  <th className="px-5 py-3 font-medium">{t('bookings.colBusStation')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sorted.map((r) => (
-                  <tr key={r.id} className="transition-colors hover:bg-secondary/40">
-                    <td className="whitespace-nowrap px-5 py-3 font-semibold">#{r.id}</td>
-                    <td className="px-5 py-3">
-                      <p className="font-medium">{r.name}</p>
-                      <p className="text-xs text-muted-foreground tabular-nums">{r.phone}</p>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{r.route}</td>
-                    <td className="whitespace-nowrap px-5 py-3 tabular-nums">{r.time}</td>
-                    <td className="px-5 py-3"><StatusPill status={r.status} /></td>
-                    <td className="whitespace-nowrap px-5 py-3 text-right font-semibold tabular-nums">{r.amount ? formatRWF(r.amount) : '—'}</td>
-                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{r.bus}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {sorted.length === 0 && (
-              <div className="p-10 text-center">
-                <p className="text-sm font-medium">{t('bookings.emptyTitle')}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{t('bookings.emptySub')}</p>
-              </div>
-            )}
-          </div>
+          <Table>
+            <thead className="bg-secondary/40">
+              <tr className="text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <SortableTh label={t('bookings.colTicket')} sortKey="id" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                <SortableTh label={t('bookings.colPassenger')} sortKey="name" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                <SortableTh label={t('bookings.colRoute')} sortKey="route" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                <SortableTh label={t('bookings.colTime')} sortKey="time" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                <SortableTh label={t('bookings.colStatus')} sortKey="status" activeKey={sortKey} dir={sortDir} onSort={toggle} />
+                <SortableTh label={t('bookings.colAmount')} sortKey="amount" activeKey={sortKey} dir={sortDir} onSort={toggle} align="right" />
+                <Th>{t('bookings.colBusStation')}</Th>
+              </tr>
+            </thead>
+            <Tbody>
+              {sorted.map((r) => (
+                <Tr key={r.id}>
+                  <Td className="whitespace-nowrap font-semibold">#{r.id}</Td>
+                  <Td>
+                    <p className="font-medium">{r.name}</p>
+                    <p className="text-xs text-muted-foreground tabular-nums">{r.phone}</p>
+                  </Td>
+                  <Td className="whitespace-nowrap text-muted-foreground">{r.route}</Td>
+                  <Td className="whitespace-nowrap tabular-nums">{r.time}</Td>
+                  <Td><StatusPill status={r.status} /></Td>
+                  <Td className="whitespace-nowrap text-right font-semibold tabular-nums">{r.amount ? formatRWF(r.amount) : '—'}</Td>
+                  <Td className="whitespace-nowrap text-muted-foreground">{r.bus}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+          {sorted.length === 0 && (
+            <div className="p-10 text-center">
+              <p className="text-sm font-medium">{t('bookings.emptyTitle')}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{t('bookings.emptySub')}</p>
+            </div>
+          )}
           <div className="flex items-center justify-between p-5">
             <p className="text-sm text-muted-foreground">{t('bookings.showing', { shown: sorted.length, total: '1,248' })}</p>
             <div className="flex items-center gap-1">
@@ -299,8 +276,6 @@ export function BookingsPage() {
           </div>
         </GlassCard>
       </RevealItem>
-      </>
-      )}
     </Reveal>
   );
 }

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Route as RouteIcon, MapPin, Coins, Map as MapIcon, ArrowRight, Info } from 'lucide-react';
+import { Plus, ArrowRight, Info } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge, StatusPill } from '@/components/ui/badge';
+import { Table, Thead, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
 import { Async } from '@/components/ui/async';
@@ -13,47 +13,14 @@ import { AddRouteModal, AddStopModal, AddFareModal } from './NetworkModals';
 import { NetworkMap } from './NetworkMap';
 import { RouteFares } from './RouteFares';
 
-const TABS = [
-  { key: 'map', icon: MapIcon },
-  { key: 'routes', icon: RouteIcon },
-  { key: 'stops', icon: MapPin },
-  { key: 'fares', icon: Coins },
-] as const;
-type NetTab = (typeof TABS)[number]['key'];
-
+// Flattened: map + routes + stops + fares all stack on one scrolling page (no sub-tabs), Bookings-style.
 export function NetworkPage() {
-  const { t } = useTranslation();
-  const [params] = useSearchParams();
-  const initial = TABS.some((tb) => tb.key === params.get('tab')) ? (params.get('tab') as NetTab) : 'map';
-  const [tab, setTab] = useState<NetTab>(initial);
-
   return (
     <Reveal className="space-y-6">
-      <RevealItem>
-        <div role="tablist" aria-label={t('nav.network')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
-          {TABS.map((tb) => (
-            <button
-              key={tb.key}
-              role="tab"
-              aria-selected={tab === tb.key}
-              onClick={() => setTab(tb.key)}
-              className={cn(
-                'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
-                tab === tb.key ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <tb.icon className="size-4" /> {t(`network.tabs.${tb.key}`)}
-            </button>
-          ))}
-        </div>
-      </RevealItem>
-
-      <RevealItem>
-        {tab === 'map' && <NetworkMap />}
-        {tab === 'routes' && <RoutesPanel />}
-        {tab === 'stops' && <StopsPanel />}
-        {tab === 'fares' && <FaresPanel />}
-      </RevealItem>
+      <RevealItem><NetworkMap /></RevealItem>
+      <RevealItem><RoutesPanel /></RevealItem>
+      <RevealItem><StopsPanel /></RevealItem>
+      <RevealItem><FaresPanel /></RevealItem>
     </Reveal>
   );
 }
@@ -72,33 +39,29 @@ function RoutesPanel() {
       </div>
       <Async query={routes} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={5} />} empty={<p className="p-10 text-center text-sm text-muted-foreground">{t('network.noRoutes')}</p>}>
         {(data) => (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-medium">{t('network.colRoute')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colDistance')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colDuration')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colTimes')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colStatus')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.map((r) => (
-                  <tr key={r.id} className="transition-colors hover:bg-secondary/40">
-                    <td className="whitespace-nowrap px-5 py-3">
-                      <p className="font-medium">{r.name}</p>
-                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin} <ArrowRight className="size-3" /> {r.destination}</p>
-                    </td>
-                    <td className="whitespace-nowrap px-5 py-3 tabular-nums">{r.distanceKm == null ? '—' : `${r.distanceKm} km`}</td>
-                    <td className="whitespace-nowrap px-5 py-3 tabular-nums">{fmtDuration(r.estimatedDurationMin)}</td>
-                    <td className="whitespace-nowrap px-5 py-3 tabular-nums text-muted-foreground">{r.departureTimes.length ? r.departureTimes.join(' · ') : '—'}</td>
-                    <td className="px-5 py-3"><Badge tone={r.status === 'active' ? 'success' : 'neutral'}>{t(`network.${r.status}`)}</Badge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <Thead>
+              <Th>{t('network.colRoute')}</Th>
+              <Th>{t('network.colDistance')}</Th>
+              <Th>{t('network.colDuration')}</Th>
+              <Th>{t('network.colTimes')}</Th>
+              <Th>{t('network.colStatus')}</Th>
+            </Thead>
+            <Tbody>
+              {data.map((r) => (
+                <Tr key={r.id}>
+                  <Td className="whitespace-nowrap">
+                    <p className="font-medium">{r.name}</p>
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin} <ArrowRight className="size-3" /> {r.destination}</p>
+                  </Td>
+                  <Td className="whitespace-nowrap tabular-nums">{r.distanceKm == null ? '—' : `${r.distanceKm} km`}</Td>
+                  <Td className="whitespace-nowrap tabular-nums">{fmtDuration(r.estimatedDurationMin)}</Td>
+                  <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{r.departureTimes.length ? r.departureTimes.join(' · ') : '—'}</Td>
+                  <Td><Badge tone={r.status === 'active' ? 'success' : 'neutral'}>{t(`network.${r.status}`)}</Badge></Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         )}
       </Async>
     </GlassCard>
@@ -120,28 +83,24 @@ function StopsPanel() {
       </div>
       <Async query={stops} isEmpty={(d) => d.length === 0} skeleton={<TableSkeleton cols={4} />} empty={<p className="p-10 text-center text-sm text-muted-foreground">{t('network.noStops')}</p>}>
         {(data) => (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-5 py-3 font-medium">{t('network.colName')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colType')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colParent')}</th>
-                  <th className="px-5 py-3 font-medium">{t('network.colPhone')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {data.map((s) => (
-                  <tr key={s.id} className="transition-colors hover:bg-secondary/40">
-                    <td className="whitespace-nowrap px-5 py-3 font-medium">{s.name}</td>
-                    <td className="px-5 py-3"><StatusPill status={s.type === 'station' ? 'active' : 'idle'}>{t(`network.${s.type}`)}</StatusPill></td>
-                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{nameById(data, s.parentStationId)}</td>
-                    <td className="whitespace-nowrap px-5 py-3 text-muted-foreground">{s.phone ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <Thead>
+              <Th>{t('network.colName')}</Th>
+              <Th>{t('network.colType')}</Th>
+              <Th>{t('network.colParent')}</Th>
+              <Th>{t('network.colPhone')}</Th>
+            </Thead>
+            <Tbody>
+              {data.map((s) => (
+                <Tr key={s.id}>
+                  <Td className="whitespace-nowrap font-medium">{s.name}</Td>
+                  <Td><StatusPill status={s.type === 'station' ? 'active' : 'idle'}>{t(`network.${s.type}`)}</StatusPill></Td>
+                  <Td className="whitespace-nowrap text-muted-foreground">{nameById(data, s.parentStationId)}</Td>
+                  <Td className="whitespace-nowrap text-muted-foreground">{s.phone ?? '—'}</Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         )}
       </Async>
     </GlassCard>
