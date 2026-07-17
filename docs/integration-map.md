@@ -120,6 +120,22 @@ tracking realtime (socket): bus:location · bus:alert · trip:status  (join:trip
 Companies (super-admin), Users + invite, Agents + station assignment, Routes, Stops, Fares matrix,
 Incidents (approve/reject), Private bookings, Audit-log viewer, Notifications list, Settings/`me`.
 
+## Live wiring status (started 2026-07-17)
+The frontend now talks to the real backend. Foundation + first slices are wired and **verified in-browser**.
+
+- **Base URL**: `VITE_API_BASE_URL` must include `/api/v1` (hooks call resource paths like `/trips`). Live server: `http://13.140.133.61:3300/api/v1`. Local: `http://localhost:3000/api/v1`.
+- **Auth for local dev**: the backend supports `DEV_AUTH=true` (dev only) + an `X-Dev-User: <clerk_user_id>` header. The frontend sends it automatically when `VITE_DEV_USER` is set (see `.env.local`, git-ignored). Seeded company_admin id: `user_3GAhHKHfYTsv8FjymMdUpCSX3Ry`. For any hosted/prod run, leave `VITE_DEV_USER` empty and set `VITE_CLERK_PUBLISHABLE_KEY` so real Clerk login is used (`RequireAuth` already feeds the token into `apiFetch`).
+- **CORS**: backend `CORS_ORIGINS=http://localhost:5173` — run the frontend on **5173** (`npm run dev`) to hit a local backend; other ports are blocked.
+- **Client**: `lib/api/hooks.ts` (typed TanStack Query hooks, hand-typed from live responses — bare arrays, no envelope), `lib/api/client.ts` (`apiFetch`), `components/ui/async.tsx` (`<Async>` loading/error/empty wrapper).
+- **Wired + verified**: Network → Routes (`/routes`) + Stops (`/stops`); Users → Staff (`/users`); shell greeting/profile (`/me` + `/companies`).
+- **Not yet wired** (stub): Overview, Fleet, Trips, Bookings, Booking desk, Parcels, Analytics, Notifications, Settings, Network Fares matrix + Map markers, Users Agents/Passengers tabs.
+
+### ⚠ Blockers found while wiring (relay to backend team)
+- **Hosted server DB is down**: `http://13.140.133.61:3300` returns **500 on every DB route** (health is fine). Its `DATABASE_URL` is `localhost:5432` — the deploy has no working Postgres/migrations. Wiring was verified against a **local** backend instead. Fix the hosted DB before the frontend can point at the hosted API.
+- **Unauth → 500 (should be 401)**: data routes hit Postgres RLS with no tenant context and throw a raw 500 instead of a clean 401.
+- **`GET /api/v1/analytics/overview` → 404**: Overview/Analytics need aggregation endpoints (revenue totals, daily volume, occupancy). Only `/analytics/peak-travel` exists (and returns `[]`). See gap #2 below.
+- **Empty seed data**: drivers, agents, bookings, notifications, packages, incidents, private-bookings all return `[]` — those screens will show empty states until data is seeded.
+
 ## Backend gaps to flag (frontend wants, backend can't fully serve)
 1. **Ops→driver / broadcast messaging** — `notifications.triggerType` enum is passenger-only. Add e.g. `ops_message` / `broadcast`.
 2. **Dashboard aggregation analytics** — revenue totals, daily ticket volume, occupancy, period-over-period deltas. Only peak-hours + seat-map exist today.
