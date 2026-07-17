@@ -69,16 +69,3 @@ export const waitingTotal = (c: WaitCorridor) => c.segments.reduce((s, x) => s +
 export function fmtCountdown(mins: number): { h: number; m: number } {
   return { h: Math.floor(mins / 60), m: mins % 60 };
 }
-
-// Live demand vs scheduled capacity (peak board).
-export interface DemandNow {
-  corridor: string;
-  demand: number;
-  capacity: number;
-}
-export const DEMAND_NOW: DemandNow[] = [
-  { corridor: 'Kigali → Musanze', demand: 92, capacity: 80 },
-  { corridor: 'Nyagatare → Remera', demand: 74, capacity: 33 },
-  { corridor: 'Huye → Kigali', demand: 61, capacity: 80 },
-  { corridor: 'Kigali → Rubavu', demand: 44, capacity: 60 },
-];

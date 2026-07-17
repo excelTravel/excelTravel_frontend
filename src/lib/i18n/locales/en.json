@@ -100,6 +100,9 @@
       "scheduling": "Scheduling & demand"
     },
     "newTrip": "New trip",
+    "kpiTotal": "Total trips made",
+    "historyTitle": "Trips history",
+    "historySub": "Every dispatched trip across all routes.",
     "manage": "Manage",
     "mng": {
       "newTripSub": "Schedule a new trip on a route.",
@@ -381,6 +384,21 @@
       "cancelled": "Cancelled"
     }
   },
+  "schedules": {
+    "title": "Route schedules",
+    "sub": "Recurring routes ops dispatches from. Select routes to recur, or edit / freeze / delete each.",
+    "add": "Add schedule",
+    "selectAll": "Select all schedules",
+    "selected": "{{n}} selected",
+    "recurSelected": "Recur selected",
+    "clear": "Clear",
+    "colActions": "Actions",
+    "edit": "Edit schedule",
+    "freeze": "Freeze",
+    "unfreeze": "Unfreeze",
+    "frozen": "Frozen",
+    "delete": "Delete"
+  },
   "sched": {
     "routines": "Recurring routines",
     "routinesSub": "Daily and weekly trip templates that run automatically.",
@@ -575,6 +593,18 @@
   "trip": {
     "breadcrumb": "Trip Management",
     "tripsCovered": "Trips covered",
+    "recurs": "Recurring route · {{freq}}",
+    "thisTrip": "This trip {{id}} · departs {{departs}}",
+    "otherTrips": "Other trips on this route today",
+    "stopsTitle": "Boarding & free seats by stop",
+    "stopsSub": "Segment capacity {{capacity}} — a seat freed at a stop is available onward.",
+    "capacity": "Capacity {{n}}",
+    "colStop": "Stop",
+    "colArrival": "Arrival",
+    "colBoarded": "Boarded",
+    "colAlighted": "Alighted",
+    "colOnboard": "On board",
+    "colFree": "Free seats",
     "mapComing": "Live route map on the Map screen",
     "estimatedArrival": "Estimated arrival",
     "delayRisk": "Delay risk",

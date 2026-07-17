@@ -5,6 +5,7 @@
 /* Design tokens — navy base + teal signature accent + glass. Light and dark. HSL for shadcn/ui compat. */
 @layer base {
   :root {
+    color-scheme: light; /* native selects/scrollbars/date pickers follow the theme */
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -36,6 +37,7 @@
   }
 
   .dark {
+    color-scheme: dark; /* renders native dropdown popups + scrollbars dark, not white */
     --background: 222 47% 7%;
     --foreground: 210 40% 96%;
     --card: 222 40% 12%;
@@ -76,6 +78,12 @@
       background-color 0.2s ease,
       color 0.2s ease,
       border-color 0.2s ease;
+  }
+  /* Native <select> dropdown popup — theme the option list (some engines ignore color-scheme here). */
+  select option,
+  select optgroup {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
   }
 }
 

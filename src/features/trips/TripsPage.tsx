@@ -11,7 +11,8 @@ import { Table, Tbody, Td, Tr } from '@/components/ui/table';
 import { useSort } from '@/lib/useSort';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
-import { TripScheduling } from './TripScheduling';
+import { SchedulesTable } from './SchedulesTable';
+import { WaitlistBoard } from './WaitlistBoard';
 import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
 import { useTripRows } from './useTripRows';
 import { type TripRow, type TripGroup } from './trips';
@@ -46,15 +47,25 @@ export function TripsPage() {
 
       {/* KPI cards */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label={t('tripsList.kpiTotal')} value={allRows.length.toLocaleString()} />
         <KpiCard label={t('tripsList.kpiScheduled')} value={String(countBy('scheduled'))} />
         <KpiCard label={t('tripsList.kpiActive')} value={String(countBy('active'))} badge={{ text: t('tripsList.live'), tone: 'teal' }} />
         <KpiCard label={t('tripsList.kpiCompleted')} value={String(countBy('completed'))} />
-        <KpiCard label={t('tripsList.kpiCancelled')} value={String(countBy('cancelled'))} tone="danger" />
       </RevealItem>
 
-      {/* Trips table */}
+      {/* Schedules — recurring routes with actions + select-to-recur */}
+      <RevealItem><SchedulesTable /></RevealItem>
+
+      {/* Agent & passenger waitlist */}
+      <RevealItem><WaitlistBoard /></RevealItem>
+
+      {/* Trips history */}
       <RevealItem>
         <GlassCard className="overflow-hidden">
+          <div className="border-b border-border p-5 pb-3">
+            <h3 className="text-base font-semibold">{t('tripsList.historyTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('tripsList.historySub')}</p>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div role="tablist" aria-label={t('tripsList.title')} className="inline-flex flex-wrap gap-1 rounded-xl bg-secondary/60 p-1">
               {TABS.map((tb) => (
@@ -158,12 +169,6 @@ export function TripsPage() {
           </Async>
         </GlassCard>
       </RevealItem>
-
-      {/* Scheduling & demand — flattened onto the same page */}
-      <RevealItem>
-        <h2 className="text-lg font-bold tracking-tight">{t('tripsList.view.scheduling')}</h2>
-      </RevealItem>
-      <TripScheduling />
     </Reveal>
   );
 }

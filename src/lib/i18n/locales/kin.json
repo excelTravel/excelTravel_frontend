@@ -100,6 +100,9 @@
       "scheduling": "Gahunda n'ibisabwa"
     },
     "newTrip": "Urugendo rushya",
+    "kpiTotal": "Ingendo zose zakozwe",
+    "historyTitle": "Amateka y'ingendo",
+    "historySub": "Ingendo zose zoherejwe ku mihanda yose.",
     "manage": "Cunga",
     "mng": {
       "newTripSub": "Teganya urugendo rushya ku muhanda.",
@@ -381,6 +384,21 @@
       "cancelled": "Zahagaritswe"
     }
   },
+  "schedules": {
+    "title": "Gahunda z'imihanda",
+    "sub": "Imihanda isubirwamo ohereza. Hitamo imihanda kugira isubirwemo, cyangwa uhindure / uhagarike / usibe.",
+    "add": "Ongeraho gahunda",
+    "selectAll": "Hitamo zose",
+    "selected": "{{n}} byatoranyijwe",
+    "recurSelected": "Subiramo byatoranyijwe",
+    "clear": "Siba",
+    "colActions": "Ibikorwa",
+    "edit": "Hindura gahunda",
+    "freeze": "Hagarika",
+    "unfreeze": "Ongera utangire",
+    "frozen": "Yahagaritswe",
+    "delete": "Siba"
+  },
   "sched": {
     "routines": "Ingendo zisubirwamo",
     "routinesSub": "Imodeli z'ingendo za buri munsi n'icyumweru zikora zishyizweho.",
@@ -575,6 +593,18 @@
   "trip": {
     "breadcrumb": "Imicungire y'ingendo",
     "tripsCovered": "Ingendo zikorwa",
+    "recurs": "Umuhanda usubirwamo · {{freq}}",
+    "thisTrip": "Uru rugendo {{id}} · rugenda {{departs}}",
+    "otherTrips": "Izindi ngendo kuri uyu muhanda uyu munsi",
+    "stopsTitle": "Kwinjira n'imyanya isigaye ku buri kigo",
+    "stopsSub": "Ubushobozi bw'igice {{capacity}} — umwanya usigaye ku kigo urahita uboneka imbere.",
+    "capacity": "Ubushobozi {{n}}",
+    "colStop": "Aho bahagarara",
+    "colArrival": "Kugera",
+    "colBoarded": "Binjiye",
+    "colAlighted": "Bavuye",
+    "colOnboard": "Bari muri bisi",
+    "colFree": "Imyanya isigaye",
     "mapComing": "Ikarita y'urugendo iri ku rupapuro rw'ikarita",
     "estimatedArrival": "Igihe giteganyijwe cyo kugera",
     "delayRisk": "Ibyago byo gutinda",

@@ -9,6 +9,8 @@ import {
   Megaphone,
   MessageSquare,
   Phone,
+  Repeat,
+  Route,
   Shuffle,
   Star,
   Ticket,
@@ -16,7 +18,8 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Badge, StatusPill } from '@/components/ui/badge';
+import { Table, Thead, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { MapPreview } from '@/features/map/MapPreview';
 import { MessageDriverModal } from './MessageDriverModal';
@@ -25,8 +28,27 @@ import { downloadCsv } from '@/lib/csv';
 import { formatRWF, cn } from '@/lib/utils';
 
 const DRIVER_NAME = 'Sarah Uwase';
+const CAPACITY = 40;
 
-// Stub trip (Rwanda). Wired later to /trips/{id}, /bookings (manifest), /tracking (map/ETA), /me (driver).
+// This timed trip belongs to a recurring route. A route (Kigali → Musanze) is always there; each timed
+// departure is one independent trip that still accounts to the route. Stub — wired later to /trips/{id}.
+const ROUTE = { name: 'Kigali → Musanze', frequency: 'Daily' };
+const SIBLING_TRIPS = [
+  { id: 'TRP-8488', bus: 'RAA-000-Z', departs: '06:30', status: 'completed', current: false },
+  { id: 'TRP-8492', bus: 'RAB-402-C', departs: '08:30', status: 'in_transit', current: true },
+  { id: 'TRP-8510', bus: 'RAB-001-Z', departs: '11:30', status: 'scheduled', current: false },
+];
+
+// Segment-based capacity (no assigned seats): a seat freed at one stop is available onward. `onboard` is the
+// running count on the bus after each stop; `free` = capacity − onboard (unbooked seats from that stop).
+const STOPS = [
+  { name: 'Nyabugogo', arrival: '08:30', boarded: 22, alighted: 0 },
+  { name: 'Shyorongi', arrival: '09:12', boarded: 8, alighted: 2 },
+  { name: 'Muhanga', arrival: '09:50', boarded: 6, alighted: 5 },
+  { name: 'Musanze', arrival: '10:45', boarded: 0, alighted: 29 }, // terminus — everyone still aboard alights
+];
+
+// Manifest + event log (stub). Wired later to /bookings (manifest), /tracking (map/ETA), /me (driver).
 const manifest = [
   { name: 'Jean-Paul N.', ticket: '#ET-8921', source: 'App' },
   { name: 'Marie-Claire U.', ticket: '#ET-8922', source: 'Agent' },
@@ -70,24 +92,49 @@ export function TripDetailPage() {
           <span className="font-medium text-foreground">{id ?? 'TRX-8921'}</span>
         </nav>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
-          <h2 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
-            Kigali to Musanze
-          </h2>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold">
-              <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary">
-                <Bus className="size-3.5" />
-              </span>
-              RAB-218
-            </span>
-            <span className="inline-flex flex-col items-center rounded-xl border border-border bg-card px-4 py-1.5 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('trip.tripsCovered')}
-              </span>
-              <span className="text-sm font-bold">2</span>
-            </span>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
+              {ROUTE.name}
+            </h2>
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+              <Repeat className="size-3.5" /> {t('trip.recurs', { freq: t(`sched.freq.${ROUTE.frequency.toLowerCase()}`) })}
+              <span className="text-muted-foreground/50">·</span>
+              {t('trip.thisTrip', { id: id ?? 'TRP-8492', departs: '08:30' })}
+            </p>
           </div>
+          <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold">
+            <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary">
+              <Bus className="size-3.5" />
+            </span>
+            RAB-402-C
+          </span>
         </div>
+      </RevealItem>
+
+      {/* Route context — sibling trips on the same recurring route today */}
+      <RevealItem>
+        <GlassCard className="p-4">
+          <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <Route className="size-3.5" /> {t('trip.otherTrips')}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {SIBLING_TRIPS.map((s) => (
+              <Link
+                key={s.id}
+                to={`/trips/${s.id}`}
+                aria-current={s.current ? 'page' : undefined}
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors',
+                  s.current ? 'border-primary/50 bg-primary/5 font-semibold' : 'border-border hover:bg-secondary/50',
+                )}
+              >
+                <span className="tabular-nums">{s.departs}</span>
+                <span className="text-muted-foreground">{s.bus}</span>
+                <StatusPill status={s.status}>{t(`tripsList.status.${s.status}`)}</StatusPill>
+              </Link>
+            ))}
+          </div>
+        </GlassCard>
       </RevealItem>
 
       <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -114,6 +161,48 @@ export function TripDetailPage() {
                 <AlertTriangle className="size-4" /> {t('trip.constructionZones', { count: 2 })}
               </div>
             </div>
+          </GlassCard>
+
+          {/* Boarding & free seats per stop — segment-based occupancy for THIS trip */}
+          <GlassCard className="overflow-hidden">
+            <div className="flex items-center justify-between p-5 pb-3">
+              <div>
+                <h3 className="text-base font-semibold">{t('trip.stopsTitle')}</h3>
+                <p className="text-sm text-muted-foreground">{t('trip.stopsSub', { capacity: CAPACITY })}</p>
+              </div>
+              <Badge tone="neutral">{t('trip.capacity', { n: CAPACITY })}</Badge>
+            </div>
+            <Table>
+              <Thead>
+                <Th>{t('trip.colStop')}</Th>
+                <Th>{t('trip.colArrival')}</Th>
+                <Th className="text-right">{t('trip.colBoarded')}</Th>
+                <Th className="text-right">{t('trip.colAlighted')}</Th>
+                <Th className="text-right">{t('trip.colOnboard')}</Th>
+                <Th className="text-right">{t('trip.colFree')}</Th>
+              </Thead>
+              <Tbody>
+                {(() => {
+                  let onboard = 0;
+                  return STOPS.map((s) => {
+                    onboard = Math.max(0, onboard + s.boarded - s.alighted);
+                    const free = Math.max(0, CAPACITY - onboard);
+                    return (
+                      <Tr key={s.name}>
+                        <Td className="whitespace-nowrap font-medium">{s.name}</Td>
+                        <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{s.arrival}</Td>
+                        <Td className="text-right tabular-nums text-teal">{s.boarded ? `+${s.boarded}` : '—'}</Td>
+                        <Td className="text-right tabular-nums text-muted-foreground">{s.alighted ? `−${s.alighted}` : '—'}</Td>
+                        <Td className="text-right font-semibold tabular-nums">{onboard}</Td>
+                        <Td className="text-right tabular-nums">
+                          <span className={cn('font-semibold', free === 0 ? 'text-warning' : 'text-foreground')}>{free}</span>
+                        </Td>
+                      </Tr>
+                    );
+                  });
+                })()}
+              </Tbody>
+            </Table>
           </GlassCard>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
