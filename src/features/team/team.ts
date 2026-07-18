@@ -1,13 +1,4 @@
-// Team stub data (Rwanda). Mirrors the backend users / agents modules. Wired to the API later.
-
-// Shape used by the assign-station modal + agent cards (agents come live from /agents).
-export interface Agent {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  stations: string[];
-}
+// Team stub data (Rwanda). Passengers list; staff/agents come live from /users.
 
 // Passengers who have travelled with this company. `bookings` = trips booked with us; `logins`/`lastLogin`
 // come from Clerk (the backend users table doesn't track logins yet — see docs/integration-map.md).

@@ -1,11 +1,10 @@
 import { lazy, Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Radio, Bus, Clock, MapPin, X } from 'lucide-react';
+import { Radio, Bus, MapPin, X } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/badge';
 import { useLiveBuses } from '@/features/map/useLiveBuses';
-import { TRIPS } from '@/features/trips/trips';
 import { AddStopModal } from './NetworkModals';
 import { STATIONS } from './network';
 import { cn } from '@/lib/utils';
@@ -22,7 +21,6 @@ export function NetworkMap() {
   const [pinMode, setPinMode] = useState(false);
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
   const [stopOpen, setStopOpen] = useState(false);
-  const scheduled = TRIPS.filter((tr) => tr.group === 'scheduled');
 
   function handlePick(lng: number, lat: number) {
     setPin({ lng, lat });
@@ -66,9 +64,10 @@ export function NetworkMap() {
       </div>
 
       <GlassCard className="flex h-full flex-col p-5">
-        {/* Live trips */}
-        <h3 className="flex items-center gap-2 text-base font-semibold"><Radio className="size-4 text-teal" /> {t('map.activeTrips')}</h3>
-        <ul className="mt-3 space-y-2">
+        {/* All buses on the map — active ones are trackable (click to focus). Scrolls within itself. */}
+        <h3 className="flex items-center gap-2 text-base font-semibold"><Radio className="size-4 text-teal" /> {t('map.busesOnMap')}</h3>
+        <p className="text-sm text-muted-foreground">{t('map.busesSub')}</p>
+        <ul className="mt-3 max-h-[420px] space-y-2 overflow-y-auto pr-1">
           {buses.map((b) => {
             const active = b.id === selected;
             return (
@@ -92,19 +91,6 @@ export function NetworkMap() {
               </li>
             );
           })}
-        </ul>
-
-        {/* Scheduled trips */}
-        <h4 className="mt-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <Clock className="size-3.5" /> {t('network.scheduledBuses')}
-        </h4>
-        <ul className="mt-2 space-y-1.5">
-          {scheduled.map((s) => (
-            <li key={s.id} className="flex items-center justify-between gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-sm">
-              <span className="truncate">{s.from} → {s.to}</span>
-              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{s.bus} · {s.departs}</span>
-            </li>
-          ))}
         </ul>
       </GlassCard>
     </div>

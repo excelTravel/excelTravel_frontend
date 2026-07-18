@@ -7,8 +7,9 @@
     "overview": "Incamake",
     "trips": "Ingendo",
     "tripDetail": "Urugendo",
+    "routes": "Imihanda",
     "fleet": "Amamodoka",
-    "network": "Urusobe",
+    "liveMap": "Ikarita",
     "bookings": "Amatike",
     "parcels": "Imizigo",
     "analytics": "Isesengura",
@@ -246,6 +247,8 @@
     "loading": "Ikarita irapakira…",
     "activeTrips": "Ingendo zikora",
     "activeTripsSub": "Bisi zoherereza aho ziri ako kanya",
+    "busesOnMap": "Bisi",
+    "busesSub": "Bisi zose; kanda iyikora kugira uyikurikirane ako kanya.",
     "focusHint": "Hitamo bisi kugira ngo uyigaragaze ku ikarita",
     "viewLive": "Reba ikarita yuzuye",
     "status": {
@@ -267,6 +270,7 @@
     "colLastLogin": "Kwinjira giheruka",
     "colLogins": "Inshuro yinjiye",
     "colUpdated": "Byahinduwe",
+    "searchStaff": "Shakisha abakozi",
     "searchPax": "Shakisha abagenzi",
     "paxFilterLabel": "Shungura abagenzi",
     "paxFilter": { "all": "Abagenzi bose", "frequent": "Bakunze (10+)", "occasional": "Rimwe na rimwe", "oneTime": "Rimwe gusa" },
@@ -304,6 +308,14 @@
     "emptySub": "Nta menyesha rihari.",
     "channel": { "sms": "SMS", "push": "Push", "email": "Imeyili" },
     "status": { "pending": "Ryategereje", "sent": "Ryoherejwe", "failed": "Ryanze" }
+  },
+  "routesMgmt": {
+    "totalRoutes": "Imihanda yose",
+    "activeRoutes": "Imihanda ikora",
+    "stations": "Sitasiyo",
+    "topRoute": "Umuhanda w'imbere (mu mafaranga)",
+    "searchRoutes": "Shakisha imihanda",
+    "searchStops": "Shakisha sitasiyo"
   },
   "network": {
     "tabs": { "map": "Ikarita", "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
@@ -721,6 +733,16 @@
     "pricingSub": "Shyiraho igiciro cy'ibanze n'inyongera kuri buri kilo.",
     "rwf": "RWF",
     "perKg": "RWF kuri kilo"
+  },
+  "table": {
+    "search": "Shakisha",
+    "filter": "Shungura",
+    "all": "Byose",
+    "empty": "Nta kirimo.",
+    "showing": "Byerekana {{from}}–{{to}} muri {{total}}",
+    "showingNone": "Nta bisubizo",
+    "prev": "Urupapuro rubanza",
+    "next": "Urupapuro rukurikira"
   },
   "common": {
     "retry": "Ongera ugerageze",

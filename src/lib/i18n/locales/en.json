@@ -7,8 +7,9 @@
     "overview": "Overview",
     "trips": "Trips",
     "tripDetail": "Trip",
+    "routes": "Routes",
     "fleet": "Fleet",
-    "network": "Network",
+    "liveMap": "Live Map",
     "bookings": "Bookings",
     "parcels": "Parcels",
     "analytics": "Analytics",
@@ -246,6 +247,8 @@
     "loading": "Loading map…",
     "activeTrips": "Active trips",
     "activeTripsSub": "Buses currently broadcasting location",
+    "busesOnMap": "Buses",
+    "busesSub": "All buses; tap an active one to track it live.",
     "focusHint": "Select a bus to focus the map",
     "viewLive": "View live map",
     "status": {
@@ -268,6 +271,7 @@
     "colLastLogin": "Last login",
     "colLogins": "Logins",
     "colUpdated": "Updated",
+    "searchStaff": "Search staff",
     "searchPax": "Search passengers",
     "paxFilterLabel": "Filter passengers",
     "paxFilter": { "all": "All passengers", "frequent": "Frequent (10+)", "occasional": "Occasional", "oneTime": "One-time" },
@@ -304,6 +308,14 @@
     "emptySub": "No notifications to show.",
     "channel": { "sms": "SMS", "push": "Push", "email": "Email" },
     "status": { "pending": "Queued", "sent": "Sent", "failed": "Failed" }
+  },
+  "routesMgmt": {
+    "totalRoutes": "Total routes",
+    "activeRoutes": "Active routes",
+    "stations": "Stations",
+    "topRoute": "Top route (by revenue)",
+    "searchRoutes": "Search routes",
+    "searchStops": "Search stops"
   },
   "network": {
     "tabs": { "map": "Map", "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
@@ -721,6 +733,16 @@
     "pricingSub": "Set the base delivery fee and per-kg surcharge.",
     "rwf": "RWF",
     "perKg": "RWF per kg"
+  },
+  "table": {
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "empty": "Nothing to show.",
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "showingNone": "No results",
+    "prev": "Previous page",
+    "next": "Next page"
   },
   "common": {
     "retry": "Retry",
