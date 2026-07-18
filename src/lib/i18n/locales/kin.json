@@ -317,7 +317,14 @@
     "stations": "Sitasiyo",
     "topRoute": "Umuhanda w'imbere (mu mafaranga)",
     "searchRoutes": "Shakisha imihanda",
-    "searchStops": "Shakisha sitasiyo"
+    "searchStops": "Shakisha sitasiyo",
+    "uploadFares": "Ohereza PDF ya RURA",
+    "uploadFaresTitle": "Ohereza ibiciro bya RURA (PDF)",
+    "uploadFaresSub": "Imbonerahamwe za PDF (uva → ugana → igiciro) zisomwa zishyirwe ku mihanda no ku mbonerahamwe y'ibiciro.",
+    "dropPdf": "Hitamo cyangwa ushyire dosiye PDF y'ibiciro bya RURA",
+    "pdfHint": "PDF gusa. Buri murongo: sitasiyo iva, sitasiyo igana, igiciro.",
+    "importRows": "Soma & winjize",
+    "uploadPending": "Gusoma PDF kuri seriveri ntibirahuzwa — ubu ntacyo bwinjiza. Kongera kohereza PDF nshya bizavugurura ibiciro kandi bibike itariki byakoreweho/byavuguruweho nyuma y'uko iyi serivisi iboneka."
   },
   "network": {
     "tabs": { "map": "Ikarita", "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
@@ -621,6 +628,9 @@
     "capacity": "Ubushobozi {{n}}",
     "colStop": "Aho bahagarara",
     "colArrival": "Kugera",
+    "colIn": "Bari muri bisi",
+    "startBadge": "Intangiriro",
+    "via": { "app": "Porogaramu", "agent": "Agent", "web": "Urubuga" },
     "colBoarded": "Binjiye",
     "colAlighted": "Bavuye",
     "colOnboard": "Bari muri bisi",

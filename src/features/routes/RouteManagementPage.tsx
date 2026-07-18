@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, ArrowRight, Info, Coins } from 'lucide-react';
+import { Plus, ArrowRight, Info, Coins, Upload, FileText } from 'lucide-react';
+import { Modal } from '@/components/ui/modal';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge, StatusPill } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ export function RouteManagementPage() {
   const [addRoute, setAddRoute] = useState(false);
   const [addStop, setAddStop] = useState(false);
   const [addFare, setAddFare] = useState(false);
+  const [uploadFares, setUploadFares] = useState(false);
 
   const routes = routesQ.data ?? [];
   const stops = stopsQ.data ?? [];
@@ -68,6 +70,7 @@ export function RouteManagementPage() {
       <AddRouteModal open={addRoute} onClose={() => setAddRoute(false)} />
       <AddStopModal open={addStop} onClose={() => setAddStop(false)} />
       <AddFareModal open={addFare} onClose={() => setAddFare(false)} />
+      <UploadFaresModal open={uploadFares} onClose={() => setUploadFares(false)} />
 
       {/* KPI cards */}
       <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -129,7 +132,10 @@ export function RouteManagementPage() {
               <h3 className="flex items-center gap-2 text-base font-semibold"><Coins className="size-4" /> {t('network.faresByRoute')}</h3>
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" /> {t('network.ruraNote')}</p>
             </div>
-            <Button size="sm" onClick={() => setAddFare(true)}><Plus className="size-4" /> {t('network.addFare')}</Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setUploadFares(true)}><Upload className="size-4" /> {t('routesMgmt.uploadFares')}</Button>
+              <Button size="sm" onClick={() => setAddFare(true)}><Plus className="size-4" /> {t('network.addFare')}</Button>
+            </div>
           </div>
           <div className="p-5"><RouteFares /></div>
         </GlassCard>
@@ -140,4 +146,36 @@ export function RouteManagementPage() {
 
 function TableSkeleton() {
   return <div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="shimmer h-9 rounded" />)}</div>;
+}
+
+// Upload the RURA fares PDF → server parses the from/to/fare rows and upserts routes + the national fare
+// matrix, stamping created/updated timestamps. Backend endpoint pending (see docs/integration-map.md) —
+// this is the affordance + flow; the parse/import runs server-side once that endpoint lands.
+function UploadFaresModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [file, setFile] = useState<File | null>(null);
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('routesMgmt.uploadFaresTitle')}
+      description={t('routesMgmt.uploadFaresSub')}
+      footer={<><Button variant="outline" onClick={onClose}>{t('forms.close')}</Button><Button disabled>{t('routesMgmt.importRows')}</Button></>}
+    >
+      <div className="space-y-4">
+        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:bg-secondary/40">
+          <Upload className="size-7 text-muted-foreground" />
+          <span className="text-sm font-medium">{file ? file.name : t('routesMgmt.dropPdf')}</span>
+          <span className="text-xs text-muted-foreground">{t('routesMgmt.pdfHint')}</span>
+          <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        </label>
+        {file && (
+          <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-sm"><FileText className="size-4 text-primary" /> {file.name}</div>
+        )}
+        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
+          <Info className="mt-0.5 size-3.5 shrink-0" /> {t('routesMgmt.uploadPending')}
+        </p>
+      </div>
+    </Modal>
+  );
 }

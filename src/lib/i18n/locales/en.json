@@ -317,7 +317,14 @@
     "stations": "Stations",
     "topRoute": "Top route (by revenue)",
     "searchRoutes": "Search routes",
-    "searchStops": "Search stops"
+    "searchStops": "Search stops",
+    "uploadFares": "Upload RURA PDF",
+    "uploadFaresTitle": "Upload RURA fares (PDF)",
+    "uploadFaresSub": "The PDF's from → to → fare rows are read and applied to routes + the national fare matrix.",
+    "dropPdf": "Choose or drop the RURA fares PDF",
+    "pdfHint": "PDF only. Each row: origin station, destination station, fare.",
+    "importRows": "Parse & import",
+    "uploadPending": "Server-side PDF parsing isn't wired yet — this imports nothing for now. Re-uploading an updated PDF will refresh prices and keep created/updated timestamps once the endpoint lands."
   },
   "network": {
     "tabs": { "map": "Map", "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
@@ -621,6 +628,9 @@
     "capacity": "Capacity {{n}}",
     "colStop": "Stop",
     "colArrival": "Arrival",
+    "colIn": "Carried in",
+    "startBadge": "Start",
+    "via": { "app": "App", "agent": "Agent", "web": "Web" },
     "colBoarded": "Boarded",
     "colAlighted": "Alighted",
     "colOnboard": "On board",

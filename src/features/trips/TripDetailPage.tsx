@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
+  ArrowRight,
   Bus,
   ChevronRight,
   Download,
@@ -48,11 +49,15 @@ const STOPS = [
   { name: 'Musanze', arrival: '10:45', boarded: 0, alighted: 29 }, // terminus — everyone still aboard alights
 ];
 
-// Manifest + event log (stub). Wired later to /bookings (manifest), /tracking (map/ETA), /me (driver).
+// Manifest (stub). Each passenger's board→alight segment + how the ticket was sold. Wired later to /bookings.
 const manifest = [
-  { name: 'Jean-Paul N.', ticket: '#ET-8921', source: 'App' },
-  { name: 'Marie-Claire U.', ticket: '#ET-8922', source: 'Agent' },
-  { name: 'Emmanuel K.', ticket: '#ET-8923', source: 'Web' },
+  { name: 'Jean-Paul N.', ticket: 'ET-8921', via: 'app', from: 'Nyabugogo', to: 'Musanze' },
+  { name: 'Marie-Claire U.', ticket: 'ET-8922', via: 'agent', from: 'Nyabugogo', to: 'Muhanga' },
+  { name: 'Emmanuel K.', ticket: 'ET-8923', via: 'app', from: 'Nyabugogo', to: 'Shyorongi' },
+  { name: 'Sandrine M.', ticket: 'ET-8924', via: 'agent', from: 'Shyorongi', to: 'Musanze' },
+  { name: 'Patrick H.', ticket: 'ET-8925', via: 'app', from: 'Muhanga', to: 'Musanze' },
+  { name: 'Grace U.', ticket: 'ET-8926', via: 'agent', from: 'Nyabugogo', to: 'Musanze' },
+  { name: 'Eric N.', ticket: 'ET-8927', via: 'app', from: 'Nyabugogo', to: 'Muhanga' },
 ];
 
 const log = [
@@ -72,8 +77,8 @@ export function TripDetailPage() {
   function downloadManifest() {
     downloadCsv(
       `manifest-${id ?? 'trip'}.csv`,
-      ['Passenger', 'Ticket', 'Source'],
-      manifest.map((p) => [p.name, p.ticket, p.source]),
+      ['Passenger', 'Ticket', 'From', 'To', 'Booked via'],
+      manifest.map((p) => [p.name, p.ticket, p.from, p.to, p.via]),
     );
   }
 
@@ -163,69 +168,27 @@ export function TripDetailPage() {
             </div>
           </GlassCard>
 
-          {/* Boarding & free seats per stop — segment-based occupancy for THIS trip */}
-          <GlassCard className="overflow-hidden">
-            <div className="flex items-center justify-between p-5 pb-3">
-              <div>
-                <h3 className="text-base font-semibold">{t('trip.stopsTitle')}</h3>
-                <p className="text-sm text-muted-foreground">{t('trip.stopsSub', { capacity: CAPACITY })}</p>
-              </div>
-              <Badge tone="neutral">{t('trip.capacity', { n: CAPACITY })}</Badge>
-            </div>
-            <Table>
-              <Thead>
-                <Th>{t('trip.colStop')}</Th>
-                <Th>{t('trip.colArrival')}</Th>
-                <Th className="text-right">{t('trip.colBoarded')}</Th>
-                <Th className="text-right">{t('trip.colAlighted')}</Th>
-                <Th className="text-right">{t('trip.colOnboard')}</Th>
-                <Th className="text-right">{t('trip.colFree')}</Th>
-              </Thead>
-              <Tbody>
-                {(() => {
-                  let onboard = 0;
-                  return STOPS.map((s) => {
-                    onboard = Math.max(0, onboard + s.boarded - s.alighted);
-                    const free = Math.max(0, CAPACITY - onboard);
-                    return (
-                      <Tr key={s.name}>
-                        <Td className="whitespace-nowrap font-medium">{s.name}</Td>
-                        <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{s.arrival}</Td>
-                        <Td className="text-right tabular-nums text-teal">{s.boarded ? `+${s.boarded}` : '—'}</Td>
-                        <Td className="text-right tabular-nums text-muted-foreground">{s.alighted ? `−${s.alighted}` : '—'}</Td>
-                        <Td className="text-right font-semibold tabular-nums">{onboard}</Td>
-                        <Td className="text-right tabular-nums">
-                          <span className={cn('font-semibold', free === 0 ? 'text-warning' : 'text-foreground')}>{free}</span>
-                        </Td>
-                      </Tr>
-                    );
-                  });
-                })()}
-              </Tbody>
-            </Table>
-          </GlassCard>
-
+          {/* Manifest + trip log (moved up) — each scrolls within itself */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <GlassCard className="p-5">
+            <GlassCard className="flex flex-col p-5">
               <div className="flex items-center justify-between">
                 <h3 className="flex items-center gap-2 text-base font-semibold">
                   <Users className="size-4" /> {t('trip.manifest')}
                 </h3>
-                <Badge tone="neutral">{t('trip.booked', { n: 38, total: 40 })}</Badge>
+                <Badge tone="neutral">{t('trip.booked', { n: manifest.length, total: CAPACITY })}</Badge>
               </div>
-              <ul className="mt-4 space-y-2">
+              <ul className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
                 {manifest.map((p, i) => (
                   <li key={p.ticket} className="flex items-center gap-3 rounded-xl bg-secondary/40 p-3">
-                    <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                       S{i + 1}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{p.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Ticket {p.ticket} · {p.source}
-                      </p>
+                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{p.from} <ArrowRight className="size-3" /> {p.to}</p>
+                      <p className="text-[11px] text-muted-foreground">#{p.ticket} · {t(`trip.via.${p.via}`)}</p>
                     </div>
-                    <Ticket className="size-4 text-muted-foreground" aria-hidden />
+                    <Ticket className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                   </li>
                 ))}
               </ul>
@@ -234,14 +197,14 @@ export function TripDetailPage() {
               </Button>
             </GlassCard>
 
-            <GlassCard className="p-5">
+            <GlassCard className="flex flex-col p-5">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold">{t('trip.tripLog')}</h3>
                 <button type="button" className="text-xs font-medium text-primary hover:underline">
                   {t('trip.viewFull')}
                 </button>
               </div>
-              <ol className="mt-4">
+              <ol className="mt-4 max-h-72 overflow-y-auto pr-1">
                 {log.map((e, i) => (
                   <li key={e.title} className="flex gap-3">
                     <div className="flex flex-col items-center">
@@ -260,6 +223,54 @@ export function TripDetailPage() {
               </ol>
             </GlassCard>
           </div>
+
+          {/* Boarding & free seats per stop (moved down) — first row is the trip start; scrolls itself */}
+          <GlassCard className="overflow-hidden">
+            <div className="flex items-center justify-between p-5 pb-3">
+              <div>
+                <h3 className="text-base font-semibold">{t('trip.stopsTitle')}</h3>
+                <p className="text-sm text-muted-foreground">{t('trip.stopsSub', { capacity: CAPACITY })}</p>
+              </div>
+              <Badge tone="neutral">{t('trip.capacity', { n: CAPACITY })}</Badge>
+            </div>
+            <div className="max-h-96 overflow-auto">
+              <Table>
+                <Thead>
+                  <Th>{t('trip.colStop')}</Th>
+                  <Th>{t('trip.colArrival')}</Th>
+                  <Th className="text-right">{t('trip.colIn')}</Th>
+                  <Th className="text-right">{t('trip.colBoarded')}</Th>
+                  <Th className="text-right">{t('trip.colAlighted')}</Th>
+                  <Th className="text-right">{t('trip.colOnboard')}</Th>
+                  <Th className="text-right">{t('trip.colFree')}</Th>
+                </Thead>
+                <Tbody>
+                  {(() => {
+                    let onboard = 0;
+                    return STOPS.map((s, i) => {
+                      const carriedIn = onboard;
+                      onboard = Math.max(0, onboard + s.boarded - s.alighted);
+                      const free = Math.max(0, CAPACITY - onboard);
+                      return (
+                        <Tr key={s.name}>
+                          <Td className="whitespace-nowrap font-medium">
+                            {s.name}
+                            {i === 0 && <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{t('trip.startBadge')}</span>}
+                          </Td>
+                          <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{s.arrival}</Td>
+                          <Td className="text-right tabular-nums text-muted-foreground">{i === 0 ? '—' : carriedIn}</Td>
+                          <Td className="text-right tabular-nums text-teal">{s.boarded ? `+${s.boarded}` : '—'}</Td>
+                          <Td className="text-right tabular-nums text-muted-foreground">{s.alighted ? `−${s.alighted}` : '—'}</Td>
+                          <Td className="text-right font-semibold tabular-nums">{onboard}</Td>
+                          <Td className="text-right tabular-nums"><span className={cn('font-semibold', free === 0 ? 'text-warning' : 'text-foreground')}>{free}</span></Td>
+                        </Tr>
+                      );
+                    });
+                  })()}
+                </Tbody>
+              </Table>
+            </div>
+          </GlassCard>
         </div>
 
         {/* Right: driver, vehicle, revenue, dispatch */}
