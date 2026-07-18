@@ -26,12 +26,17 @@ export function useTripRows() {
     const r = routeById.get(t.routeId);
     const v = vehById.get(t.vehicleId);
     const group = toGroup(t.status);
+    const dep = new Date(t.departureTime);
+    const durMin = r?.estimatedDurationMin ?? 0;
+    const arr = new Date(dep.getTime() + durMin * 60_000);
     return {
       id: t.id,
       from: r?.origin ?? '—',
       to: r?.destination ?? '—',
       kind: t.direction === 'return' ? 'Return' : 'Outbound',
+      date: dep.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
       departs: fmtTime(t.departureTime),
+      arrives: durMin ? fmtTime(arr.toISOString()) : '—',
       bus: v?.plateNumber ?? '—',
       driver: '—',
       booked: 0,
