@@ -1,83 +1,133 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
-import { Download } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
-import { useDateRange } from '@/store/dateRange';
+import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { formatRWF, cn } from '@/lib/utils';
+import {
+  useOverview,
+  usePeakBooking,
+  useBookings,
+  useTrips,
+  useRoutes,
+  useUpdatePayment,
+  useCancelBooking,
+  type ApiBooking,
+} from '@/lib/api/hooks';
 
-// Stub data (Rwanda). Wired later to /bookings (list/filter), /analytics (velocity/channel).
-const velocityByHour = [
-  { h: '00:00', v: 22 }, { h: '03:00', v: 34 }, { h: '06:00', v: 55 }, { h: '09:00', v: 70 },
-  { h: '12:00', v: 96 }, { h: '15:00', v: 82 }, { h: '18:00', v: 61 }, { h: '23:59', v: 33 },
-];
-const velocityByDay = [
-  { h: 'Mon', v: 60 }, { h: 'Tue', v: 72 }, { h: 'Wed', v: 68 }, { h: 'Thu', v: 96 },
-  { h: 'Fri', v: 88 }, { h: 'Sat', v: 40 }, { h: 'Sun', v: 52 },
-];
-const channel = [
-  { name: 'web', value: 4102, color: '#0F766E' },
-  { name: 'agent', value: 1598, color: '#C7EDE7' },
-];
+const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}K` : String(n));
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const CHANNEL_COLORS: Record<string, string> = { app: '#0F766E', agent: '#14B8A6', walk_in: '#C7EDE7', tapgo: '#5EEAD4' };
 
 interface BookingRow {
   id: string;
   name: string;
   phone: string;
   route: string;
-  pickup: string; // station/stop the passenger chose to board at (booked from)
   time: string;
   status: string;
+  paymentStatus: string;
   bus: string;
   amount: number;
 }
-const BOOKINGS: BookingRow[] = [
-  { id: 'TK-8921', name: 'Jean Paul N.', phone: '078****923', route: 'Kigali → Musanze', pickup: 'Nyabugogo', time: '14:00', status: 'confirmed', bus: 'RAB-123-C', amount: 5000 },
-  { id: 'TK-8919', name: 'Sandrine M.', phone: '073****112', route: 'Kigali → Rubavu', pickup: 'Nyabugogo', time: '15:30', status: 'hold', bus: 'RAC-112-D', amount: 3500 },
-  { id: 'TK-8915', name: 'Erick Gatete', phone: '072****445', route: 'Kigali → Huye', pickup: 'Muhanga', time: '14:45', status: 'cancelled', bus: 'RAD-088-A', amount: 0 },
-  { id: 'TK-8910', name: 'Divine I.', phone: '079****001', route: 'Kigali → Gisenyi', pickup: 'Nyabugogo', time: '16:00', status: 'paid', bus: 'RAE-027-B', amount: 4200 },
-  { id: 'TK-8907', name: 'Patrick H.', phone: '078****338', route: 'Kigali → Nyagatare', pickup: 'Kayonza', time: '11:30', status: 'confirmed', bus: 'RAF-051-C', amount: 4800 },
-  { id: 'TK-8904', name: 'Aline U.', phone: '073****900', route: 'Musanze → Kigali', pickup: 'Musanze', time: '12:00', status: 'boarding', bus: 'RAB-402-C', amount: 5000 },
-  { id: 'TK-8901', name: 'Claude N.', phone: '072****771', route: 'Huye → Kigali', pickup: 'Huye', time: '13:15', status: 'paid', bus: 'RAG-014-B', amount: 3900 },
-  { id: 'TK-8898', name: 'Grace M.', phone: '079****205', route: 'Kigali → Rusizi', pickup: 'Nyabugogo', time: '06:00', status: 'confirmed', bus: 'RAH-009-A', amount: 6200 },
-  { id: 'TK-8895', name: 'Eric K.', phone: '078****664', route: 'Kigali → Musanze', pickup: 'Nyabugogo', time: '09:30', status: 'cancelled', bus: 'RAB-123-C', amount: 0 },
-  { id: 'TK-8890', name: 'Josiane R.', phone: '073****018', route: 'Rubavu → Kigali', pickup: 'Rubavu', time: '10:45', status: 'paid', bus: 'RAC-112-D', amount: 3500 },
-];
 
 export function BookingsPage() {
   const { t } = useTranslation();
-  const preset = useDateRange((s) => s.preset);
-  const compare = t(`range.compare.${preset}`);
+  const overviewQ = useOverview();
+  const peakQ = usePeakBooking();
+  const bookingsQ = useBookings();
+  const tripsQ = useTrips();
+  const routesQ = useRoutes();
+  const updatePayment = useUpdatePayment();
+  const cancelBooking = useCancelBooking();
   const [velMode, setVelMode] = useState<'hours' | 'days'>('hours');
-  const velocityData = velMode === 'hours' ? velocityByHour : velocityByDay;
+  const o = overviewQ.data;
+
+  // Join bookings -> trip -> route so the table shows route / time / bus from live data.
+  const rows: BookingRow[] = useMemo(() => {
+    const tripById = new Map((tripsQ.data ?? []).map((tp) => [tp.id, tp]));
+    const routeById = new Map((routesQ.data ?? []).map((r) => [r.id, r]));
+    return (bookingsQ.data ?? []).map((b: ApiBooking) => {
+      const tp = tripById.get(b.tripId);
+      const r = tp ? routeById.get(tp.routeId) : undefined;
+      return {
+        id: b.id,
+        name: b.passengerName,
+        phone: b.passengerPhone ?? '—',
+        route: r ? `${r.origin} → ${r.destination}` : '—',
+        time: tp ? new Date(tp.departureTime).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—',
+        status: b.status,
+        paymentStatus: b.paymentStatus,
+        bus: tp?.vehiclePlate ?? '—',
+        amount: b.fareAmount,
+      };
+    });
+  }, [bookingsQ.data, tripsQ.data, routesQ.data]);
+
+  const velocity = useMemo(() => {
+    const rowsP = peakQ.data ?? [];
+    if (velMode === 'hours') {
+      const byHour = new Map<number, number>();
+      rowsP.forEach((p) => byHour.set(p.hourOfDay, (byHour.get(p.hourOfDay) ?? 0) + p.bookingCount));
+      return [...byHour.entries()].sort((a, b) => a[0] - b[0]).map(([h, v]) => ({ h: `${String(h).padStart(2, '0')}:00`, v }));
+    }
+    const byDay = new Map<string, number>();
+    rowsP.forEach((p) => byDay.set(p.dayName, (byDay.get(p.dayName) ?? 0) + p.bookingCount));
+    return DAYS.map((d) => ({ h: d, v: byDay.get(d) ?? 0 }));
+  }, [peakQ.data, velMode]);
+  const maxVel = Math.max(...velocity.map((d) => d.v), 0);
+
+  const channel = (o?.sourceSplit ?? []).map((s) => ({ name: s.source, value: s.count, color: CHANNEL_COLORS[s.source] ?? '#94A3B8' }));
+  const channelTotal = channel.reduce((sum, c) => sum + c.value, 0) || 1;
+  const appPct = Math.round(((o?.sourceSplit.find((s) => s.source === 'app')?.count ?? 0) / channelTotal) * 100);
 
   const cols: Column<BookingRow>[] = [
-    { key: 'id', header: t('bookings.colTicket'), sort: (r) => r.id, cell: (r) => <span className="font-semibold">#{r.id}</span>, td: 'whitespace-nowrap' },
+    { key: 'id', header: t('bookings.colTicket'), sort: (r) => r.id, cell: (r) => <span className="font-semibold">#{r.id.slice(0, 8)}</span>, td: 'whitespace-nowrap' },
     { key: 'name', header: t('bookings.colPassenger'), sort: (r) => r.name, cell: (r) => (<div><p className="font-medium">{r.name}</p><p className="text-xs text-muted-foreground tabular-nums">{r.phone}</p></div>) },
     { key: 'route', header: t('bookings.colRoute'), filter: (r) => r.route, sort: (r) => r.route, cell: (r) => r.route, td: 'whitespace-nowrap text-muted-foreground' },
-    { key: 'pickup', header: t('bookings.colPickup'), filter: (r) => r.pickup, sort: (r) => r.pickup, cell: (r) => r.pickup, td: 'whitespace-nowrap text-muted-foreground' },
-    { key: 'time', header: t('bookings.colTime'), filter: (r) => r.time, sort: (r) => r.time, cell: (r) => r.time, td: 'whitespace-nowrap tabular-nums' },
+    { key: 'time', header: t('bookings.colTime'), sort: (r) => r.time, cell: (r) => r.time, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
     { key: 'status', header: t('bookings.colStatus'), sort: (r) => r.status, cell: (r) => <StatusPill status={r.status} /> },
+    { key: 'payment', header: t('bookings.colPayment', 'Payment'), sort: (r) => r.paymentStatus, cell: (r) => <StatusPill status={r.paymentStatus} /> },
     { key: 'bus', header: t('bookings.colBusStation'), filter: (r) => r.bus, sort: (r) => r.bus, cell: (r) => r.bus, td: 'whitespace-nowrap text-muted-foreground' },
     { key: 'amount', header: t('bookings.colAmount'), align: 'right', sort: (r) => r.amount, cell: (r) => (r.amount ? formatRWF(r.amount) : '—'), td: 'whitespace-nowrap font-semibold tabular-nums' },
+    {
+      key: 'actions',
+      header: '',
+      cell: (r) => (
+        <div className="flex justify-end gap-1">
+          {r.status !== 'cancelled' && r.paymentStatus === 'pending' && (
+            <Button variant="outline" size="sm" disabled={updatePayment.isPending} onClick={() => updatePayment.mutate({ id: r.id, paymentStatus: 'paid' })}>
+              <CheckCircle2 className="size-4" /> {t('bookings.approve', 'Approve')}
+            </Button>
+          )}
+          {r.status !== 'cancelled' && (
+            <Button variant="ghost" size="sm" disabled={cancelBooking.isPending} onClick={() => cancelBooking.mutate({ id: r.id, override: true })}>
+              <XCircle className="size-4" />
+            </Button>
+          )}
+        </div>
+      ),
+      td: 'whitespace-nowrap',
+    },
   ];
 
   return (
     <Reveal className="space-y-6">
-      {/* KPI row */}
+      {/* KPI row — live from GET /analytics/overview */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label={t('bookings.totalDaily')} value="1,284" delta={{ value: '+12%', direction: 'up', comparison: compare }} />
-        <KpiCard label={t('bookings.monthly')} value="32,910" delta={{ value: '+5.4%', direction: 'up', comparison: compare }} />
-        <KpiCard label={t('bookings.revenueToday')} value="4.2M" unit="RWF" badge={{ text: t('bookings.stable'), tone: 'neutral' }} />
-        <KpiCard label={t('bookings.dailyGoal')} value="85%" badge={{ text: t('bookings.stable'), tone: 'success' }} />
+        <KpiCard loading={overviewQ.isLoading} label={t('overview.ticketsToday')} value={o ? String(o.ticketsToday) : '—'} />
+        <KpiCard loading={overviewQ.isLoading} label={t('overview.dailyRevenue')} value={o ? K(o.dailyRevenue) : '—'} unit="RWF" />
+        <KpiCard loading={overviewQ.isLoading} label={t('overview.revenueMtd')} value={o ? K(o.revenueMtd) : '—'} unit="RWF" />
+        <KpiCard loading={overviewQ.isLoading} label={t('overview.busesActive')} value={o ? String(o.busesActive) : '—'} />
       </RevealItem>
 
-      {/* Velocity (hours / days) + channel split */}
+      {/* Velocity (hours / days) + channel split — live from peak-booking + overview.sourceSplit */}
       <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <GlassCard className="p-6 xl:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -95,63 +145,74 @@ export function BookingsPage() {
             </div>
           </div>
           <div className="mt-6 h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={velocityData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
-                <XAxis dataKey="h" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748B' }} interval={0} />
-                <Tooltip cursor={{ fill: '#64748B', opacity: 0.12 }} contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, color: 'hsl(var(--popover-foreground))', fontSize: 12 }} />
-                <Bar dataKey="v" radius={[8, 8, 0, 0]}>
-                  {velocityData.map((d) => <Cell key={d.h} fill={d.v >= 90 ? '#14B8A6' : 'rgba(20,184,166,0.28)'} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <Async query={peakQ} isEmpty={() => velocity.length === 0} skeleton={<div className="shimmer h-full rounded-xl" />}>
+              {() => (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={velocity} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                    <XAxis dataKey="h" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748B' }} interval={velMode === 'hours' ? 2 : 0} />
+                    <Tooltip cursor={{ fill: '#64748B', opacity: 0.12 }} contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, color: 'hsl(var(--popover-foreground))', fontSize: 12 }} />
+                    <Bar dataKey="v" radius={[8, 8, 0, 0]}>
+                      {velocity.map((d) => <Cell key={d.h} fill={d.v === maxVel && maxVel > 0 ? '#14B8A6' : 'rgba(20,184,166,0.28)'} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </Async>
           </div>
         </GlassCard>
 
         <GlassCard className="p-6">
           <h3 className="text-base font-semibold">{t('bookings.channelSplit')}</h3>
           <p className="text-sm text-muted-foreground">{t('bookings.webVsAgent')}</p>
-          <div className="relative mx-auto mt-4 h-44 w-44">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={channel} dataKey="value" innerRadius={58} outerRadius={80} paddingAngle={2} stroke="none">
-                  {channel.map((c) => <Cell key={c.name} fill={c.color} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold tabular-nums">72%</span>
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('bookings.directWeb')}</span>
-            </div>
-          </div>
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-primary" /> {t('bookings.webPortal')}</span>
-              <span className="font-semibold tabular-nums">4,102</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-accent" /> {t('bookings.agentNetwork')}</span>
-              <span className="font-semibold tabular-nums">1,598</span>
-            </div>
-          </div>
+          <Async query={overviewQ} isEmpty={() => channel.length === 0} skeleton={<div className="shimmer mx-auto mt-4 h-44 w-44 rounded-full" />}>
+            {() => (
+              <>
+                <div className="relative mx-auto mt-4 h-44 w-44">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={channel} dataKey="value" innerRadius={58} outerRadius={80} paddingAngle={2} stroke="none">
+                        {channel.map((c) => <Cell key={c.name} fill={c.color} />)}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold tabular-nums">{appPct}%</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('bookings.directWeb')}</span>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2 text-sm">
+                  {channel.map((c) => (
+                    <div key={c.name} className="flex items-center justify-between">
+                      <span className="flex items-center gap-2"><span className="size-2.5 rounded-full" style={{ background: c.color }} /> <span className="capitalize">{c.name.replace('_', ' ')}</span></span>
+                      <span className="font-semibold tabular-nums">{c.value.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </Async>
         </GlassCard>
       </RevealItem>
 
-      {/* Booking information */}
+      {/* Booking information — live table with ops payment approval + cancel */}
       <RevealItem>
         <GlassCard className="overflow-hidden">
           <div className="border-b border-border p-5 pb-3">
             <h3 className="text-base font-semibold">{t('bookings.bookingInfo')}</h3>
             <p className="text-sm text-muted-foreground">{t('bookings.bookingInfoSub')}</p>
           </div>
-          <DataTable
-            rows={BOOKINGS}
-            columns={cols}
-            rowKey={(r) => r.id}
-            search={(r) => `${r.name} ${r.id} ${r.route} ${r.pickup}`}
-            searchPlaceholder={t('bookings.search')}
-            empty={t('bookings.emptyTitle')}
-            toolbarRight={<Button variant="outline" size="sm"><Download className="size-4" /> {t('bookings.export')}</Button>}
-          />
+          <Async query={bookingsQ} isEmpty={() => rows.length === 0} skeleton={<div className="shimmer m-5 h-72 rounded-xl" />}>
+            {() => (
+              <DataTable
+                rows={rows}
+                columns={cols}
+                rowKey={(r) => r.id}
+                search={(r) => `${r.name} ${r.id} ${r.route} ${r.bus}`}
+                searchPlaceholder={t('bookings.search')}
+                empty={t('bookings.emptyTitle')}
+              />
+            )}
+          </Async>
         </GlassCard>
       </RevealItem>
     </Reveal>

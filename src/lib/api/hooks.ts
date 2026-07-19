@@ -334,7 +334,24 @@ export interface ApiFareImportResult {
 // Read hooks
 // ---------------------------------------------------------------------------
 
+export interface ApiPeakBooking {
+  dayOfWeek: number;
+  dayName: string;
+  hourOfDay: number;
+  bookingCount: number;
+}
+export interface ApiPeakTravel {
+  routeId: string;
+  routeName: string;
+  dayOfWeek: number;
+  dayName: string;
+  hourOfDay: number;
+  passengerCount: number;
+}
+
 export const useOverview = () => useQuery({ queryKey: qk.overview, queryFn: () => apiFetch<ApiOverview>('/analytics/overview') });
+export const usePeakBooking = () => useQuery({ queryKey: ['analytics', 'peakBooking'], queryFn: () => apiFetch<ApiPeakBooking[]>('/analytics/peak-booking') });
+export const usePeakTravel = () => useQuery({ queryKey: ['analytics', 'peakTravel'], queryFn: () => apiFetch<ApiPeakTravel[]>('/analytics/peak-travel') });
 export const useRouteRevenue = () => useQuery({ queryKey: qk.routeRevenue, queryFn: () => apiFetch<ApiRouteRevenue[]>('/analytics/routes/revenue') });
 export const useTracking = () => useQuery({ queryKey: qk.tracking, queryFn: () => apiFetch<ApiLocation[]>('/tracking') });
 export const useTripTemplates = () => useQuery({ queryKey: qk.tripTemplates, queryFn: () => apiFetch<ApiTripTemplate[]>('/trip-templates') });
