@@ -24,7 +24,7 @@ export function useTripRows() {
 
   const rows: TripRow[] = (trips.data ?? []).map((t) => {
     const r = routeById.get(t.routeId);
-    const v = vehById.get(t.vehicleId);
+    const v = t.vehicleId ? vehById.get(t.vehicleId) : undefined;
     const group = toGroup(t.status);
     const dep = new Date(t.departureTime);
     const durMin = r?.estimatedDurationMin ?? 0;

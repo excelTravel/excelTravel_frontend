@@ -11,10 +11,12 @@ export function setTokenGetter(fn: TokenGetter): void {
 // The single fetch wrapper: attaches the Clerk token, hits the backend directly, normalizes errors.
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = await getToken();
+  // For multipart uploads let the browser set Content-Type (with the boundary); JSON otherwise.
+  const isForm = init.body instanceof FormData;
   const res = await fetch(`${config.apiBaseUrl}${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isForm ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       // Local dev-auth fallback (no Clerk token): stand in as a seeded backend user.
       ...(!token && config.devUser ? { 'X-Dev-User': config.devUser } : {}),
