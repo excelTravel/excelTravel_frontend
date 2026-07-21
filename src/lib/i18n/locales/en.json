@@ -673,6 +673,7 @@
     "lastServiced": "Last serviced",
     "passengerCount": "Passenger count",
     "tripRevenueLive": "Trip revenue (live)",
+    "liveSpeed": "Live speed",
     "vsAvg": "vs avg",
     "webApp": "Web / App",
     "agents": "Agents",

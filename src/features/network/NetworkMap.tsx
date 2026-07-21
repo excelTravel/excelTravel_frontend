@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 const RwandaMap = lazy(() => import('@/features/map/RwandaMap').then((m) => ({ default: m.RwandaMap })));
 
 // Live Map folded into Network: shows route corridors + live buses, lets you drop a stop by pinning the map,
-// and lists live + scheduled trips alongside. Live positions are the useLiveBuses stub (swaps to the socket).
+// and lists live + scheduled trips alongside. Live positions come from the /tracking snapshot (useLiveBuses).
 export function NetworkMap() {
   const { t } = useTranslation();
   const buses = useLiveBuses();

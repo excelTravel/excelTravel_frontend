@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
+  AlertTriangle,
   ArrowRight,
   Bus,
   ChevronRight,
   Download,
   Megaphone,
   MessageSquare,
+  Radio,
   Route as RouteIcon,
   Shuffle,
   Users,
@@ -30,9 +33,11 @@ import {
   useMessageDriver,
   useBroadcastPassengers,
   useUpdateTrip,
+  qk,
   type ApiManifestEntry,
   type ApiTripLogEntry,
 } from '@/lib/api/hooks';
+import { useTripLive } from '@/lib/socket';
 import { downloadCsv } from '@/lib/csv';
 import { formatRWF, cn } from '@/lib/utils';
 
@@ -48,12 +53,20 @@ export function TripDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams();
 
+  const qc = useQueryClient();
   const tripQ = useTrip(id);
   const tripsQ = useTrips();
   const routesQ = useRoutes();
   const vehiclesQ = useVehicles();
   const manifestQ = useTripManifest(id);
   const logQ = useTripLog(id);
+
+  // Live feed for this trip: a trip:status event refetches the trip + its log so the page tracks reality.
+  const onStatus = useCallback(() => {
+    void qc.invalidateQueries({ queryKey: qk.trips });
+    void qc.invalidateQueries({ queryKey: ['tripLog', id] });
+  }, [qc, id]);
+  const live = useTripLive(id, onStatus);
 
   const trip = tripQ.data;
   const routes = routesQ.data ?? [];
@@ -138,6 +151,11 @@ export function TripDetailPage() {
         {/* Left: map, manifest + trip log, occupancy logs */}
         <div className="space-y-6 xl:col-span-2">
           <GlassCard className={cn('overflow-hidden', !isLive && 'opacity-60')}>
+            {live.alert && (
+              <div className="flex items-center gap-2 border-b border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
+                <AlertTriangle className="size-4 shrink-0" /> {live.alert.message}
+              </div>
+            )}
             <MapPreview className="h-[360px] border-b border-border" />
             <div className="flex flex-wrap items-center gap-x-8 gap-y-2 p-4 text-sm">
               <div>
@@ -148,6 +166,14 @@ export function TripDetailPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.booked', { n: trip?.booked ?? 0, total: capacity })}</p>
                 <p className="font-bold tabular-nums">{trip?.booked ?? 0}/{capacity || '—'}</p>
               </div>
+              {live.location?.speed != null && (
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.liveSpeed')}</p>
+                  <p className="flex items-center gap-1.5 font-bold tabular-nums text-success">
+                    <Radio className="size-3.5 animate-pulse" /> {Math.round(live.location.speed)} km/h
+                  </p>
+                </div>
+              )}
               {!isLive && <span className="ml-auto text-xs text-muted-foreground">{t('trip.inactiveHint')}</span>}
             </div>
           </GlassCard>

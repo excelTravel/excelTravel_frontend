@@ -8,6 +8,11 @@ export function setTokenGetter(fn: TokenGetter): void {
   getToken = fn;
 }
 
+// The current Clerk token, for non-fetch transports (the Socket.io handshake).
+export function getAuthToken(): Promise<string | null> {
+  return getToken();
+}
+
 // The single fetch wrapper: attaches the Clerk token, hits the backend directly, normalizes errors.
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = await getToken();

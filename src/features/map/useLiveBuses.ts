@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
+import { useTracking, useVehicles, useTrips, useRoutes } from '@/lib/api/hooks';
 
-// Live bus positions for the map. STUB for now: seeded along real Rwanda corridors. The shape matches the
-// backend `bus:location` socket payload, so swapping this hook for a socket subscription is a drop-in later.
+// Live bus positions for the map, from the /tracking snapshot (all current company vehicle locations),
+// polled for near-live movement. Each position is enriched with its vehicle plate and locked route. The
+// per-trip socket (useTripLive) drives the individual trip detail; this fleet view is the company snapshot.
 
 export type BusStatus = 'in_transit' | 'delayed' | 'arriving';
 
@@ -29,9 +31,6 @@ const HUB: Record<Hub, Coord> = {
   nyagatare: [30.3272, -1.2929],
 };
 
-const lerp = (a: Coord, b: Coord, t: number): Coord => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 // Corridors drawn on the map (Kigali is the national hub).
 export const RWANDA_ROUTES: { id: string; coords: Coord[] }[] = [
   { id: 'kgl-mus', coords: [HUB.kigali, HUB.musanze] },
@@ -40,26 +39,44 @@ export const RWANDA_ROUTES: { id: string; coords: Coord[] }[] = [
   { id: 'kgl-nyg', coords: [HUB.kigali, HUB.nyagatare] },
 ];
 
+const LIVE_TRIP = new Set(['boarding', 'departed', 'in_transit', 'arriving']);
+function busStatus(tripStatus: string | undefined): BusStatus {
+  if (tripStatus === 'arriving') return 'arriving';
+  if (tripStatus === 'delayed') return 'delayed';
+  return 'in_transit';
+}
+
 export function useLiveBuses(): LiveBus[] {
+  const tracking = useTracking();
+  const vehicles = useVehicles();
+  const trips = useTrips();
+  const routes = useRoutes();
+
   return useMemo(() => {
-    const build = (
-      id: string,
-      code: string,
-      from: Hub,
-      to: Hub,
-      status: BusStatus,
-      eta: string,
-      t: number,
-    ): LiveBus => {
-      const [lng, lat] = lerp(HUB[from], HUB[to], t);
-      return { id, code, routeName: `${cap(from)} → ${cap(to)}`, from: cap(from), to: cap(to), status, eta, lng, lat };
-    };
-    return [
-      build('b1', 'RAB-402-C', 'kigali', 'musanze', 'in_transit', '14:30', 0.55),
-      build('b2', 'RAC-112-D', 'kigali', 'rubavu', 'delayed', '15:15', 0.35),
-      build('b3', 'RAD-088-A', 'kigali', 'huye', 'arriving', '14:05', 0.9),
-      build('b4', 'RAE-027-B', 'kigali', 'nyagatare', 'in_transit', '15:40', 0.4),
-      build('b5', 'RAF-051-C', 'musanze', 'kigali', 'in_transit', '14:50', 0.25),
-    ];
-  }, []);
+    const vehicleById = new Map((vehicles.data ?? []).map((v) => [v.id, v]));
+    const routeById = new Map((routes.data ?? []).map((r) => [r.id, r]));
+    // The live trip currently running on each vehicle (for the route + status label).
+    const tripByVehicle = new Map(
+      (trips.data ?? []).filter((tp) => tp.vehicleId && LIVE_TRIP.has(tp.status)).map((tp) => [tp.vehicleId!, tp]),
+    );
+
+    return (tracking.data ?? []).map((loc) => {
+      const vehicle = vehicleById.get(loc.vehicleId);
+      const trip = tripByVehicle.get(loc.vehicleId);
+      const route = routeById.get(trip?.routeId ?? vehicle?.routeId ?? '');
+      const from = route?.origin ?? '—';
+      const to = route?.destination ?? '—';
+      return {
+        id: loc.vehicleId,
+        code: vehicle?.plateNumber ?? loc.vehicleId,
+        routeName: route ? `${from} → ${to}` : '—',
+        from,
+        to,
+        status: busStatus(trip?.status),
+        eta: loc.speed != null ? `${Math.round(loc.speed)} km/h` : '',
+        lng: loc.longitude,
+        lat: loc.latitude,
+      };
+    });
+  }, [tracking.data, vehicles.data, trips.data, routes.data]);
 }

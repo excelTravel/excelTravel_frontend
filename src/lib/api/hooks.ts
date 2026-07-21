@@ -388,7 +388,8 @@ export const useOverview = () => useQuery({ queryKey: qk.overview, queryFn: () =
 export const usePeakBooking = () => useQuery({ queryKey: ['analytics', 'peakBooking'], queryFn: () => apiFetch<ApiPeakBooking[]>('/analytics/peak-booking') });
 export const usePeakTravel = () => useQuery({ queryKey: ['analytics', 'peakTravel'], queryFn: () => apiFetch<ApiPeakTravel[]>('/analytics/peak-travel') });
 export const useRouteRevenue = () => useQuery({ queryKey: qk.routeRevenue, queryFn: () => apiFetch<ApiRouteRevenue[]>('/analytics/routes/revenue') });
-export const useTracking = () => useQuery({ queryKey: qk.tracking, queryFn: () => apiFetch<ApiLocation[]>('/tracking') });
+// Company-wide live vehicle positions; polled for near-live movement on the fleet map.
+export const useTracking = () => useQuery({ queryKey: qk.tracking, queryFn: () => apiFetch<ApiLocation[]>('/tracking'), refetchInterval: 10_000 });
 export const useTripTemplates = () => useQuery({ queryKey: qk.tripTemplates, queryFn: () => apiFetch<ApiTripTemplate[]>('/trip-templates') });
 export const useWaitlists = (status?: 'open' | 'dispatched' | 'denied') =>
   useQuery({ queryKey: [...qk.waitlist, status ?? 'open'], queryFn: () => apiFetch<ApiWaitlist[]>(`/waitlist${status ? `?status=${status}` : ''}`) });
