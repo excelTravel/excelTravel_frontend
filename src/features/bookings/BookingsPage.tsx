@@ -23,7 +23,8 @@ import {
 
 const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}K` : String(n));
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const CHANNEL_COLORS: Record<string, string> = { app: '#0F766E', agent: '#14B8A6', walk_in: '#C7EDE7', tapgo: '#5EEAD4' };
+// Only two booking sources: App (passenger self-book) and Agent (agent-booked, incl. walk-ins).
+const CHANNEL_COLORS: Record<string, string> = { app: '#0F766E', agent: '#14B8A6' };
 
 interface BookingRow {
   id: string;
