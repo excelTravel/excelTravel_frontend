@@ -15,7 +15,6 @@ import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useDateRange } from '@/store/dateRange';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { usePackages } from '@/lib/api/hooks';
@@ -27,8 +26,6 @@ export function ParcelsPage() {
   const { t } = useTranslation();
   const [journey, setJourney] = useState<ParcelLite | null>(null);
   const [pricingOpen, setPricingOpen] = useState(false);
-  const preset = useDateRange((s) => s.preset);
-  const compare = t(`range.compare.${preset}`);
   const packagesQ = usePackages();
   // /packages custody chain. from/to/weight/note aren't in the list payload yet → degrade to —.
   const manifest = (packagesQ.data ?? []).map((p) => ({
@@ -42,11 +39,20 @@ export function ParcelsPage() {
     status: p.status,
   }));
 
+  // Live aggregates from the /packages custody chain.
+  const pkgs = packagesQ.data ?? [];
+  const countBy = (s: string): number => pkgs.filter((p) => p.status === s).length;
+  const revenue = pkgs.reduce((sum, p) => sum + (p.fee ?? 0), 0);
+  const registered = countBy('registered');
+  const inTransit = countBy('in_transit');
+  const arrived = countBy('arrived');
+  const collected = countBy('collected');
+
   const steps = [
-    { icon: CheckCircle2, label: t('parcels.booking'), meta: t('parcels.flowNew', { n: 248 }), done: true },
-    { icon: Package, label: t('parcels.sorting'), meta: t('parcels.flowSorting', { n: 85 }), done: true },
-    { icon: Truck, label: t('parcels.inTransitStep'), meta: t('parcels.flowTrucks', { n: 12 }), done: true },
-    { icon: CheckCheck, label: t('parcels.delivered'), meta: t('parcels.flowToday', { n: 0 }), done: false },
+    { icon: CheckCircle2, label: t('parcels.booking'), meta: t('parcels.flowNew', { n: registered }), done: registered > 0 },
+    { icon: Package, label: t('parcels.sorting'), meta: t('parcels.flowSorting', { n: arrived }), done: arrived > 0 },
+    { icon: Truck, label: t('parcels.inTransitStep'), meta: t('parcels.flowTrucks', { n: inTransit }), done: inTransit > 0 },
+    { icon: CheckCheck, label: t('parcels.delivered'), meta: t('parcels.flowToday', { n: collected }), done: collected > 0 },
   ];
 
   return (
@@ -55,10 +61,10 @@ export function ParcelsPage() {
       <UpdatePricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} />
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label={t('parcels.mostRoutes')} value="10" unit={t('parcels.parcels')} badge={{ text: 'KGL — MUS', tone: 'teal' }} />
-        <KpiCard label={t('parcels.revenueDaily')} value="4,250K" unit="RWF" delta={{ value: '+12.5%', direction: 'up', comparison: compare }} />
-        <KpiCard label={t('parcels.inTransit')} value="1,245" />
-        <KpiCard label={t('parcels.delayed')} value="18" tone="danger" badge={{ text: t('parcels.criticalAlerts'), tone: 'danger' }} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.parcels')} value={String(pkgs.length)} unit={t('parcels.parcels')} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.revenueDaily')} value={revenue >= 1000 ? `${Math.round(revenue / 1000)}K` : String(revenue)} unit="RWF" />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.inTransit')} value={String(inTransit)} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.delivered')} value={String(collected)} />
       </RevealItem>
 
       {/* Live logistics flow */}
