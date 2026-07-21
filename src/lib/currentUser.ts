@@ -2,6 +2,8 @@ import { useMe, useCompanies } from './api/hooks';
 
 export interface CurrentUser {
   firstName: string;
+  fullName: string;
+  email: string;
   role: string;
   location: string;
 }
@@ -23,7 +25,7 @@ export function useCurrentUser(): CurrentUser {
   const firstName = me.data?.name?.split(' ')[0] ?? '…';
   const role = me.data ? ROLE_LABEL[me.data.role] ?? me.data.role : '';
   const location = companies.data?.find((c) => c.id === me.data?.companyId)?.name ?? '';
-  return { firstName, role, location };
+  return { firstName, fullName: me.data?.name ?? '', email: me.data?.email ?? '', role, location };
 }
 
 // Time-of-day period key ('morning' | 'afternoon' | 'evening') — translated in the header via i18n.

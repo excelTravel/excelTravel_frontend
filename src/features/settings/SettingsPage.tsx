@@ -25,7 +25,7 @@ export function SettingsPage() {
   const [section, setSection] = useState<Section>('profile');
   const [avatar, setAvatar] = useState<string | null>(null);
   const [logo, setLogo] = useState<string | null>(null);
-  const [name, setName] = useState(user.firstName);
+  const [name, setName] = useState(user.fullName);
   const [company, setCompany] = useState('ExcelTravel');
   const [saving, setSaving] = useState(false);
 
@@ -73,7 +73,7 @@ export function SettingsPage() {
                   <Input id="s-role" value={user.role} disabled />
                 </Field>
                 <Field label={t('settings.email')} htmlFor="s-email">
-                  <Input id="s-email" type="email" defaultValue="aline@exceltravel.rw" />
+                  <Input id="s-email" type="email" value={user.email} disabled />
                 </Field>
                 <Field label={t('settings.station')} htmlFor="s-station">
                   <Input id="s-station" value={user.location} disabled />
