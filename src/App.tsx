@@ -9,6 +9,7 @@ import { PlaceholderPage } from './app/pages/PlaceholderPage';
 // Recharts / MapLibre) loads on demand behind a Suspense skeleton (see AppShell). Named exports are
 // re-mapped to default for React.lazy.
 const LoginPage = lazy(() => import('./features/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const SignUpPage = lazy(() => import('./features/auth/SignUpPage').then((m) => ({ default: m.SignUpPage })));
 const OverviewPage = lazy(() => import('./features/overview/OverviewPage').then((m) => ({ default: m.OverviewPage })));
 const FleetPage = lazy(() => import('./features/fleet/FleetPage').then((m) => ({ default: m.FleetPage })));
 const TripsPage = lazy(() => import('./features/trips/TripsPage').then((m) => ({ default: m.TripsPage })));
@@ -27,6 +28,7 @@ export function App() {
   return (
     <Routes>
       {authEnabled && <Route path="/login/*" element={<LoginPage />} />}
+      {authEnabled && <Route path="/signup/*" element={<SignUpPage />} />}
       <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
         <Route path="/trips" element={<TripsPage />} />

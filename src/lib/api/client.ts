@@ -18,8 +18,6 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     headers: {
       ...(isForm ? {} : { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      // Local dev-auth fallback (no Clerk token): stand in as a seeded backend user.
-      ...(!token && config.devUser ? { 'X-Dev-User': config.devUser } : {}),
       ...(init.headers ?? {}),
     },
   });

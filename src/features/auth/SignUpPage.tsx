@@ -1,11 +1,11 @@
-import { SignIn } from '@clerk/clerk-react';
+import { SignUp } from '@clerk/clerk-react';
 import { useTranslation } from 'react-i18next';
 import { Bus } from 'lucide-react';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 
-// Branded sign-in: navy brand panel + Clerk's <SignIn> (which shows "Continue with Google" when Google
-// OAuth is enabled in the Clerk dashboard). Staff sign in with their invited email.
-export function LoginPage() {
+// Branded sign-up: same navy brand panel as login. Used to create the first ops account (its role + company
+// come from the pre-created users row matched by email). Staff added later arrive via an invitation link.
+export function SignUpPage() {
   const { t } = useTranslation();
   return (
     <Reveal className="grid min-h-dvh lg:grid-cols-2">
@@ -25,10 +25,10 @@ export function LoginPage() {
       </RevealItem>
 
       <RevealItem className="app-gradient flex items-center justify-center p-6">
-        <SignIn
+        <SignUp
           appearance={{ variables: { colorPrimary: '#0F766E', borderRadius: '0.75rem' } }}
           fallbackRedirectUrl="/"
-          signUpUrl="/signup"
+          signInUrl="/login"
         />
       </RevealItem>
     </Reveal>
