@@ -420,6 +420,11 @@ export const useUpdateTripStatus = () =>
   useApiMutation<{ id: string; status: string; delayReason?: string }, ApiTrip>(({ id, ...b }) => apiFetch<ApiTrip>(`/trips/${id}/status`, patchBody(b)), [qk.trips, qk.overview]);
 export const useUpdateTrip = () =>
   useApiMutation<{ id: string } & Record<string, unknown>, ApiTrip>(({ id, ...b }) => apiFetch<ApiTrip>(`/trips/${id}`, patchBody(b)), [qk.trips]);
+// Dispatch controls — send an in-app message to the trip's driver, or broadcast to its passengers.
+export const useMessageDriver = () =>
+  useApiMutation<{ id: string; message: string }, { sent: boolean }>(({ id, message }) => apiFetch<{ sent: boolean }>(`/trips/${id}/message-driver`, jsonBody({ message })), [qk.notifications]);
+export const useBroadcastPassengers = () =>
+  useApiMutation<{ id: string; message: string }, { notified: number }>(({ id, message }) => apiFetch<{ notified: number }>(`/trips/${id}/broadcast`, jsonBody({ message })), [qk.notifications]);
 export const useCreateTrip = () =>
   useApiMutation<Record<string, unknown>, ApiTrip>((t) => apiFetch<ApiTrip>('/trips', jsonBody(t)), [qk.trips, qk.overview]);
 
