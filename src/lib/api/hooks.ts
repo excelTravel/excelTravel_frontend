@@ -26,6 +26,17 @@ export interface ApiRoute {
   status: 'active' | 'inactive';
 }
 
+export interface ApiRouteStop {
+  id: string;
+  stopId: string;
+  stopOrder: number;
+  distanceFromOriginKm: number | null;
+}
+
+export interface ApiRouteWithStops extends ApiRoute {
+  stops?: ApiRouteStop[];
+}
+
 export interface ApiStop {
   id: string;
   name: string;
@@ -183,6 +194,9 @@ export const qk = {
 
 export const useMe = () => useQuery({ queryKey: qk.me, queryFn: () => apiFetch<Me>('/me') });
 export const useRoutes = () => useQuery({ queryKey: qk.routes, queryFn: () => apiFetch<ApiRoute[]>('/routes') });
+// Single route with its ordered stops (GET /routes/:id) — used to read per-route fare legs.
+export const useRoute = (routeId?: string) =>
+  useQuery({ queryKey: [...qk.routes, routeId], enabled: Boolean(routeId), queryFn: () => apiFetch<ApiRouteWithStops>(`/routes/${routeId}`) });
 export const useStops = () => useQuery({ queryKey: qk.stops, queryFn: () => apiFetch<ApiStop[]>('/stops') });
 export const useFares = () => useQuery({ queryKey: qk.fares, queryFn: () => apiFetch<ApiFare[]>('/fares') });
 export const useVehicles = () => useQuery({ queryKey: qk.vehicles, queryFn: () => apiFetch<ApiVehicle[]>('/vehicles') });

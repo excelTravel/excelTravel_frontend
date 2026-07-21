@@ -330,10 +330,12 @@
     "uploadFares": "Ohereza PDF ya RURA",
     "uploadFaresTitle": "Ohereza ibiciro bya RURA (PDF)",
     "uploadFaresSub": "Imbonerahamwe za PDF (uva → ugana → igiciro) zisomwa zishyirwe ku mihanda no ku mbonerahamwe y'ibiciro.",
-    "dropPdf": "Hitamo cyangwa ushyire dosiye PDF y'ibiciro bya RURA",
-    "pdfHint": "PDF gusa. Buri murongo: sitasiyo iva, sitasiyo igana, igiciro.",
-    "importRows": "Soma & winjize",
-    "uploadPending": "Gusoma PDF kuri seriveri ntibirahuzwa — ubu ntacyo bwinjiza. Kongera kohereza PDF nshya bizavugurura ibiciro kandi bibike itariki byakoreweho/byavuguruweho nyuma y'uko iyi serivisi iboneka."
+    "dropPdf": "Hitamo cyangwa ushyire dosiye CSV y'ibiciro bya RURA",
+    "pdfHint": "Inkingi za CSV: sitasiyo iva, sitasiyo igana, igiciro (RWF). Umutwe w'imbonerahamwe ni amahitamo.",
+    "importRows": "Injiza ibiciro",
+    "uploadPending": "Amazina ya sitasiyo agomba guhuza neza n'aya sitasiyo zawe; imirongo itahujwe cyangwa itari yo iratangazwa igasimburwa.",
+    "importDone": "Ibiciro {{imported}} kuri {{total}} byinjijwe.",
+    "importSkipped": "Imirongo {{n}} yasimbutse:"
   },
   "network": {
     "tabs": { "map": "Ikarita", "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
@@ -393,7 +395,8 @@
     "originStation": "Sitasiyo itangirira",
     "destStation": "Sitasiyo igana",
     "fareAmount": "Igiciro (RWF)",
-    "fareHint": "Bireba impande zombi."
+    "fareHint": "Bireba impande zombi.",
+    "fareInvalid": "Hitamo sitasiyo ebyiri zitandukanye n'igiciro kiri hejuru ya zeru."
   },
   "routesView": {
     "tripsToday": "ingendo {{count}} uyu munsi",

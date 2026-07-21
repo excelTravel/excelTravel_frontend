@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useRoutes, useStops, useTrips, type ApiRoute, type ApiStop, type ApiTrip } from '@/lib/api/hooks';
+import { useRoutes, useStops, useTrips, useImportFares, type ApiRoute, type ApiStop, type ApiTrip } from '@/lib/api/hooks';
 import { AddRouteModal, AddStopModal, AddFareModal } from '@/features/network/NetworkModals';
 import { RouteFares } from '@/features/network/RouteFares';
 import { SchedulesTable } from '@/features/trips/SchedulesTable';
@@ -207,33 +207,58 @@ function RouteTripsModal({ route, trips, onClose }: { route: ApiRoute | null; tr
   );
 }
 
-// Upload the RURA fares PDF → server parses the from/to/fare rows and upserts routes + the national fare
-// matrix, stamping created/updated timestamps. Backend endpoint pending (see docs/integration-map.md) —
-// this is the affordance + flow; the parse/import runs server-side once that endpoint lands.
+// Upload the RURA fares CSV (origin, destination, fare) → server matches stations by name and upserts the
+// national fare matrix, reporting rows it imported and any it skipped.
 function UploadFaresModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
+  const importFares = useImportFares();
+  const result = importFares.data;
+
+  function close() {
+    setFile(null);
+    importFares.reset();
+    onClose();
+  }
+
   return (
     <Modal
       open={open}
-      onClose={onClose}
+      onClose={close}
       title={t('routesMgmt.uploadFaresTitle')}
       description={t('routesMgmt.uploadFaresSub')}
-      footer={<><Button variant="outline" onClick={onClose}>{t('forms.close')}</Button><Button disabled>{t('routesMgmt.importRows')}</Button></>}
+      footer={<><Button variant="outline" onClick={close}>{t('forms.close')}</Button><Button disabled={!file || importFares.isPending} onClick={() => file && importFares.mutate(file)}>{importFares.isPending ? t('forms.saving') : t('routesMgmt.importRows')}</Button></>}
     >
       <div className="space-y-4">
         <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:bg-secondary/40">
           <Upload className="size-7 text-muted-foreground" />
           <span className="text-sm font-medium">{file ? file.name : t('routesMgmt.dropPdf')}</span>
           <span className="text-xs text-muted-foreground">{t('routesMgmt.pdfHint')}</span>
-          <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input type="file" accept="text/csv,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); importFares.reset(); }} />
         </label>
-        {file && (
+        {file && !result && (
           <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-sm"><FileText className="size-4 text-primary" /> {file.name}</div>
         )}
-        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
-          <Info className="mt-0.5 size-3.5 shrink-0" /> {t('routesMgmt.uploadPending')}
-        </p>
+        {importFares.isError && (
+          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">{importFares.error instanceof Error ? importFares.error.message : t('routesMgmt.importRows')}</p>
+        )}
+        {result ? (
+          <div className="space-y-2">
+            <p className="rounded-lg bg-success/10 p-3 text-sm font-medium text-success">{t('routesMgmt.importDone', { imported: result.imported, total: result.totalRows })}</p>
+            {result.skipped.length > 0 && (
+              <div className="rounded-lg bg-warning/10 p-3 text-xs text-warning">
+                <p className="font-semibold">{t('routesMgmt.importSkipped', { n: result.skipped.length })}</p>
+                <ul className="mt-1 max-h-40 space-y-0.5 overflow-y-auto">
+                  {result.skipped.map((s) => <li key={s.line}>#{s.line} {s.origin} → {s.destination}: {s.reason}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
+            <Info className="mt-0.5 size-3.5 shrink-0" /> {t('routesMgmt.uploadPending')}
+          </p>
+        )}
       </div>
     </Modal>
   );

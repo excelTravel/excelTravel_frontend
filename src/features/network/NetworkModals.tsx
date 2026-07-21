@@ -4,6 +4,7 @@ import { MapPin } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
+import { useStops, useUpsertFare } from '@/lib/api/hooks';
 import { STATIONS } from './network';
 
 function useSaver(onClose: () => void) {
@@ -87,29 +88,55 @@ export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: (
 }
 
 // POST /fares (UpsertFare) — station-to-station, same both ways. Stubbed.
+// POST /fares (upsert_fare — canonical ordering + same-both-ways handled server-side). Live stations.
 export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
-  const { saving, go } = useSaver(onClose);
+  const stopsQ = useStops();
+  const upsert = useUpsertFare();
+  const [origin, setOrigin] = useState('');
+  const [dest, setDest] = useState('');
+  const [amount, setAmount] = useState('');
+  const [err, setErr] = useState<string | null>(null);
+  const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station');
+
+  function done() {
+    setOrigin(''); setDest(''); setAmount(''); setErr(null);
+    onClose();
+  }
+  function go() {
+    setErr(null);
+    const fareAmount = Number(amount);
+    if (!origin || !dest || origin === dest || !Number.isFinite(fareAmount) || fareAmount <= 0) {
+      setErr(t('network.fareInvalid'));
+      return;
+    }
+    upsert.mutate(
+      { originStationId: origin, destinationStationId: dest, fareAmount, fareSource: 'manual' },
+      { onSuccess: done, onError: (e) => setErr(e instanceof Error ? e.message : t('network.fareInvalid')) },
+    );
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={t('network.addFare')} description={t('network.addFareSub')}
-      footer={<><Button variant="outline" onClick={onClose} disabled={saving}>{t('forms.cancel')}</Button><Button onClick={go} disabled={saving}>{saving ? t('forms.saving') : t('network.saveFare')}</Button></>}>
+      footer={<><Button variant="outline" onClick={onClose} disabled={upsert.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={upsert.isPending}>{upsert.isPending ? t('forms.saving') : t('network.saveFare')}</Button></>}>
       <div className="space-y-4">
+        {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <div className="grid grid-cols-2 gap-4">
           <Field label={t('network.originStation')} htmlFor="nf-o">
-            <Select id="nf-o" defaultValue="">
+            <Select id="nf-o" value={origin} onChange={(e) => setOrigin(e.target.value)}>
               <option value="" disabled>{t('network.selectStation')}</option>
-              {STATIONS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
           </Field>
           <Field label={t('network.destStation')} htmlFor="nf-d">
-            <Select id="nf-d" defaultValue="">
+            <Select id="nf-d" value={dest} onChange={(e) => setDest(e.target.value)}>
               <option value="" disabled>{t('network.selectStation')}</option>
-              {STATIONS.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </Select>
           </Field>
         </div>
         <Field label={t('network.fareAmount')} htmlFor="nf-amt" hint={t('network.fareHint')}>
-          <Input id="nf-amt" type="number" min={0} placeholder="3500" />
+          <Input id="nf-amt" type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="3500" />
         </Field>
       </div>
     </Modal>

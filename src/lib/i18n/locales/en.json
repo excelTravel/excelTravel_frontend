@@ -330,10 +330,12 @@
     "uploadFares": "Upload RURA PDF",
     "uploadFaresTitle": "Upload RURA fares (PDF)",
     "uploadFaresSub": "The PDF's from → to → fare rows are read and applied to routes + the national fare matrix.",
-    "dropPdf": "Choose or drop the RURA fares PDF",
-    "pdfHint": "PDF only. Each row: origin station, destination station, fare.",
-    "importRows": "Parse & import",
-    "uploadPending": "Server-side PDF parsing isn't wired yet — this imports nothing for now. Re-uploading an updated PDF will refresh prices and keep created/updated timestamps once the endpoint lands."
+    "dropPdf": "Choose or drop the RURA fares CSV",
+    "pdfHint": "CSV columns: origin station, destination station, fare (RWF). A header row is optional.",
+    "importRows": "Import fares",
+    "uploadPending": "Station names must match your stations exactly; unmatched or invalid rows are reported and skipped.",
+    "importDone": "{{imported}} of {{total}} fares imported.",
+    "importSkipped": "{{n}} rows skipped:"
   },
   "network": {
     "tabs": { "map": "Map", "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
@@ -393,7 +395,8 @@
     "originStation": "Origin station",
     "destStation": "Destination station",
     "fareAmount": "Fare (RWF)",
-    "fareHint": "Applies to both directions."
+    "fareHint": "Applies to both directions.",
+    "fareInvalid": "Pick two different stations and a fare above zero."
   },
   "routesView": {
     "tripsToday": "{{count}} trips today",
