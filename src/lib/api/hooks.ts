@@ -475,6 +475,21 @@ export const useDispatchWaitlist = () =>
 export const useDenyWaitlist = () =>
   useApiMutation<{ id: string; reason: string }, ApiWaitlist>(({ id, ...b }) => apiFetch<ApiWaitlist>(`/waitlist/${id}/deny`, jsonBody(b)), [qk.waitlist]);
 
+// Staff invitations — each pre-creates the row and fires a Clerk email invite. Managers/admins use
+// /users/invite; agents and drivers use their own endpoints so the extension row is created too.
+export const useInviteUser = () =>
+  useApiMutation<{ email: string; phone: string; name: string; role: 'company_admin' | 'manager' | 'agent' }, ApiUser>(
+    (b) => apiFetch<ApiUser>('/users/invite', jsonBody(b)),
+    [qk.users],
+  );
+export const useInviteAgent = () =>
+  useApiMutation<{ email: string; phone: string; name: string }, ApiAgent>((b) => apiFetch<ApiAgent>('/agents', jsonBody(b)), [qk.users, qk.agents]);
+export const useInviteDriver = () =>
+  useApiMutation<{ email: string; phone: string; name: string; licenseNumber: string; licenseExpiry: string }, ApiDriver>(
+    (b) => apiFetch<ApiDriver>('/drivers', jsonBody(b)),
+    [qk.users, qk.drivers],
+  );
+
 // Incidents
 export const useApproveIncident = () =>
   useApiMutation<{ id: string; newVehicleId: string; opsComment?: string; resolution?: string }, ApiIncident>(

@@ -1,12 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Star, Bus, Phone, PhoneCall, CalendarClock, Clock, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import { Star, Bus, Phone, PhoneCall, CalendarClock, Clock, ShieldCheck, Image as ImageIcon, UserPlus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
 import { AssignDriverModal } from './AssignDriverModal';
+import { InviteDriverModal } from './InviteDriverModal';
 import { DriverScheduling } from './DriverScheduling';
 import { DRIVERS, type Driver } from './data';
 
@@ -19,6 +20,7 @@ const clampPct = (hour: number) => Math.max(0, Math.min(100, ((hour - DAY_START)
 export function DriversPanel() {
   const { t } = useTranslation();
   const [assignTo, setAssignTo] = useState<Driver | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowPct = clampPct(nowHour);
@@ -27,6 +29,7 @@ export function DriversPanel() {
   return (
     <div className="space-y-6">
       <AssignDriverModal driver={assignTo} open={assignTo !== null} onClose={() => setAssignTo(null)} />
+      <InviteDriverModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       {/* Trip schedule board (derived from assigned trips) */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between">
@@ -87,6 +90,12 @@ export function DriversPanel() {
 
       {/* Weekly roster + workload/fairness */}
       <DriverScheduling />
+
+      {/* Driver roster */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold">{t('drivers.roster')}</h3>
+        <Button size="sm" onClick={() => setInviteOpen(true)}><UserPlus className="size-4" /> {t('drivers.inviteDriver')}</Button>
+      </div>
 
       {/* Driver cards */}
       <Reveal className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
