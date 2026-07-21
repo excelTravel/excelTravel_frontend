@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, ArrowRight, Info, Coins, Upload, FileText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, ArrowRight, Info, Coins, Upload, FileText, Bus } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
@@ -9,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useRoutes, useStops, useTrips, type ApiRoute, type ApiStop } from '@/lib/api/hooks';
+import { useRoutes, useStops, useTrips, type ApiRoute, type ApiStop, type ApiTrip } from '@/lib/api/hooks';
 import { AddRouteModal, AddStopModal, AddFareModal } from '@/features/network/NetworkModals';
 import { RouteFares } from '@/features/network/RouteFares';
+import { SchedulesTable } from '@/features/trips/SchedulesTable';
+import { formatRWF } from '@/lib/utils';
 
 // Route management: KPI cards + Routes / Stops & stations / Fares. Moved out of the (now Live-Map-only)
 // Network section. Tables use the shared DataTable (search + filter + sort + 10-row pagination).
@@ -24,22 +27,23 @@ export function RouteManagementPage() {
   const [addStop, setAddStop] = useState(false);
   const [addFare, setAddFare] = useState(false);
   const [uploadFares, setUploadFares] = useState(false);
+  const [drillRoute, setDrillRoute] = useState<ApiRoute | null>(null);
 
   const routes = routesQ.data ?? [];
   const stops = stopsQ.data ?? [];
   const trips = tripsQ.data ?? [];
 
-  // Top route by combined trip revenue (falls back to trip count while bookings/revenue aren't populated).
+  // Route performance: trips covered + combined revenue per route (each trip accounts to its route).
   const revByRoute = new Map<string, number>();
   const cntByRoute = new Map<string, number>();
   for (const tr of trips) {
     cntByRoute.set(tr.routeId, (cntByRoute.get(tr.routeId) ?? 0) + 1);
+    revByRoute.set(tr.routeId, (revByRoute.get(tr.routeId) ?? 0) + tr.revenue);
   }
   const topRouteId = [...cntByRoute.entries()].sort((a, b) => (revByRoute.get(b[0]) ?? 0) - (revByRoute.get(a[0]) ?? 0) || b[1] - a[1])[0]?.[0];
   const topRoute = routes.find((r) => r.id === topRouteId);
 
   const nameById = (id: string | null) => (id ? stops.find((s) => s.id === id)?.name ?? '—' : '—');
-  const fmtDuration = (min: number | null) => (min == null ? '—' : `${Math.floor(min / 60)}h ${min % 60}m`);
 
   const routeCols: Column<ApiRoute>[] = [
     {
@@ -53,7 +57,8 @@ export function RouteManagementPage() {
       sort: (r) => r.name, filter: (r) => r.name,
     },
     { key: 'distance', header: t('network.colDistance'), cell: (r) => (r.distanceKm == null ? '—' : `${r.distanceKm} km`), sort: (r) => r.distanceKm ?? 0, td: 'whitespace-nowrap tabular-nums' },
-    { key: 'duration', header: t('network.colDuration'), cell: (r) => fmtDuration(r.estimatedDurationMin), sort: (r) => r.estimatedDurationMin ?? 0, td: 'whitespace-nowrap tabular-nums' },
+    { key: 'trips', header: t('routesMgmt.tripsCovered'), cell: (r) => (cntByRoute.get(r.id) ?? 0).toLocaleString(), sort: (r) => cntByRoute.get(r.id) ?? 0, align: 'right', td: 'whitespace-nowrap tabular-nums' },
+    { key: 'revenue', header: t('routesMgmt.revenue'), cell: (r) => formatRWF(revByRoute.get(r.id) ?? 0), sort: (r) => revByRoute.get(r.id) ?? 0, align: 'right', td: 'whitespace-nowrap font-semibold tabular-nums' },
     { key: 'times', header: t('network.colTimes'), cell: (r) => (r.departureTimes.length ? r.departureTimes.join(' · ') : '—'), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
     { key: 'status', header: t('network.colStatus'), cell: (r) => <Badge tone={r.status === 'active' ? 'success' : 'neutral'}>{t(`network.${r.status}`)}</Badge> },
   ];
@@ -71,6 +76,7 @@ export function RouteManagementPage() {
       <AddStopModal open={addStop} onClose={() => setAddStop(false)} />
       <AddFareModal open={addFare} onClose={() => setAddFare(false)} />
       <UploadFaresModal open={uploadFares} onClose={() => setUploadFares(false)} />
+      <RouteTripsModal route={drillRoute} trips={trips} onClose={() => setDrillRoute(null)} />
 
       {/* KPI cards */}
       <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
@@ -92,6 +98,7 @@ export function RouteManagementPage() {
                 rows={data}
                 columns={routeCols}
                 rowKey={(r) => r.id}
+                onRowClick={(r) => setDrillRoute(r)}
                 search={(r) => `${r.name} ${r.origin} ${r.destination}`}
                 searchPlaceholder={t('routesMgmt.searchRoutes')}
                 empty={t('network.noRoutes')}
@@ -101,6 +108,9 @@ export function RouteManagementPage() {
           </Async>
         </GlassCard>
       </RevealItem>
+
+      {/* Route schedules — the recurring template each route runs on */}
+      <RevealItem><SchedulesTable /></RevealItem>
 
       {/* Stops & stations */}
       <RevealItem>
@@ -146,6 +156,55 @@ export function RouteManagementPage() {
 
 function TableSkeleton() {
   return <div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="shimmer h-9 rounded" />)}</div>;
+}
+
+const drillTimeFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kigali' });
+
+// Route drill-in: every trip on the route (each direction/time is its own trip), selectable → the trip
+// detail. Route history, no live map (the map lives on the individual trip detail).
+function RouteTripsModal({ route, trips, onClose }: { route: ApiRoute | null; trips: ApiTrip[]; onClose: () => void }) {
+  const { t } = useTranslation();
+  const rows = route ? trips.filter((tr) => tr.routeId === route.id).sort((a, b) => b.departureTime.localeCompare(a.departureTime)) : [];
+  const revenue = rows.reduce((s, tr) => s + tr.revenue, 0);
+  return (
+    <Modal
+      open={route !== null}
+      onClose={onClose}
+      title={route ? `${route.origin} → ${route.destination}` : ''}
+      description={route ? t('routesMgmt.routeTripsSub', { trips: rows.length, revenue: formatRWF(revenue) }) : ''}
+      footer={<Button variant="outline" onClick={onClose}>{t('forms.close')}</Button>}
+    >
+      {rows.length === 0 ? (
+        <div className="grid place-items-center gap-2 py-12 text-center text-sm text-muted-foreground">
+          <Bus className="size-7" /> {t('routesMgmt.noTripsForRoute')}
+        </div>
+      ) : (
+        <ul className="max-h-[60vh] space-y-2 overflow-y-auto pr-1">
+          {rows.map((tr) => (
+            <li key={tr.id}>
+              <Link
+                to={`/trips/${tr.id}`}
+                onClick={onClose}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-secondary/50"
+              >
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <span className="tabular-nums">{drillTimeFmt.format(new Date(tr.departureTime))}</span>
+                    <span className="text-muted-foreground">{tr.vehiclePlate ?? '—'}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">{t(`tripsList.status.${tr.direction === 'return' ? 'return' : 'outbound'}`, tr.direction)} · {tr.booked}/{tr.capacity ?? '—'}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-sm font-semibold tabular-nums">{formatRWF(tr.revenue)}</span>
+                  <StatusPill status={tr.status}>{t(`tripsList.status.${tr.status}`)}</StatusPill>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Modal>
+  );
 }
 
 // Upload the RURA fares PDF → server parses the from/to/fare rows and upserts routes + the national fare

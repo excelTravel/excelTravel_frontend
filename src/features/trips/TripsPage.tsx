@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
-import { SchedulesTable } from './SchedulesTable';
 import { WaitlistBoard } from './WaitlistBoard';
 import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
 import { useTripRows } from './useTripRows';
@@ -81,10 +80,7 @@ export function TripsPage() {
         <KpiCard label={t('tripsList.kpiCompleted')} value={String(countBy('completed'))} />
       </RevealItem>
 
-      {/* Schedules — recurring routes with actions + select-to-recur */}
-      <RevealItem><SchedulesTable /></RevealItem>
-
-      {/* Agent & passenger waitlist */}
+      {/* Agent & passenger waitlist (route schedules now live under Routes) */}
       <RevealItem><WaitlistBoard /></RevealItem>
 
       {/* Trips history */}
