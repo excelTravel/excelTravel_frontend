@@ -71,6 +71,19 @@ export interface ApiTrip {
   revenue: number;
   driverName: string | null;
   vehiclePlate: string | null;
+  // Present on the single-trip fetch (GET /trips/:id): the instantiated stops and per-leg seat map.
+  stops?: ApiTripStop[];
+  seatMap?: ApiSeatMapLeg[];
+}
+
+export interface ApiTripStop {
+  id: string;
+  stopId: string | null;
+  stopName: string;
+  stopOrder: number;
+  status: string;
+  estimatedArrival: string | null;
+  actualArrival: string | null;
 }
 
 export interface ApiUser {
@@ -241,8 +254,16 @@ export interface ApiManifestEntry {
   boardStopOrder: number;
   alightStopName: string;
   alightStopOrder: number;
+  bookingSource: string;
+  fareAmount: number;
   boardedAt: string | null;
   alightedAt: string | null;
+}
+
+export interface ApiTripLogEntry {
+  type: 'published' | 'first_booking' | 'departed' | 'stop_arrival' | 'completed';
+  at: string;
+  stopName: string | null;
 }
 
 export interface ApiSeatMapLeg {
@@ -372,10 +393,14 @@ export const useTripSearch = (params: { originStopId?: string; destStopId?: stri
     },
   });
 
+export const useTrip = (tripId?: string) =>
+  useQuery({ queryKey: [...qk.trips, tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiTrip>(`/trips/${tripId}`) });
 export const useTripManifest = (tripId?: string) =>
   useQuery({ queryKey: ['manifest', tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiManifestEntry[]>(`/trips/${tripId}/manifest`) });
 export const useTripFreeSeats = (tripId?: string) =>
   useQuery({ queryKey: ['freeSeats', tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiSeatMapLeg[]>(`/trips/${tripId}/free-seats`) });
+export const useTripLog = (tripId?: string) =>
+  useQuery({ queryKey: ['tripLog', tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiTripLogEntry[]>(`/trips/${tripId}/log`) });
 
 // ---------------------------------------------------------------------------
 // Mutation layer — each invalidates the query keys it affects

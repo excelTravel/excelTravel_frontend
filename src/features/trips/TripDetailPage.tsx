@@ -2,236 +2,231 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import {
-  AlertTriangle,
   ArrowRight,
   Bus,
   ChevronRight,
   Download,
   Megaphone,
   MessageSquare,
-  Phone,
-  Repeat,
-  Route,
+  Route as RouteIcon,
   Shuffle,
-  Star,
-  Ticket,
   Users,
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge, StatusPill } from '@/components/ui/badge';
+import { Select, Textarea } from '@/components/ui/form';
 import { Table, Thead, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { Async } from '@/components/ui/async';
 import { MapPreview } from '@/features/map/MapPreview';
-import { MessageDriverModal } from './MessageDriverModal';
-import { RerouteModal, EmergencyBroadcastModal } from './DispatchModals';
+import {
+  useTrip,
+  useTrips,
+  useRoutes,
+  useVehicles,
+  useTripManifest,
+  useTripLog,
+  useMessageDriver,
+  useBroadcastPassengers,
+  useUpdateTrip,
+  type ApiManifestEntry,
+  type ApiTripLogEntry,
+} from '@/lib/api/hooks';
 import { downloadCsv } from '@/lib/csv';
 import { formatRWF, cn } from '@/lib/utils';
 
-const DRIVER_NAME = 'Sarah Uwase';
-const CAPACITY = 40;
+// Trips are live/operational only while boarding or en route. A completed trip still has final data, so its
+// occupancy + log stay readable; a scheduled/delayed/cancelled trip has nothing operational yet → greyed.
+const LIVE = new Set(['boarding', 'departed', 'in_transit', 'arriving']);
 
-// This timed trip belongs to a recurring route. A route (Kigali → Musanze) is always there; each timed
-// departure is one independent trip that still accounts to the route. Stub — wired later to /trips/{id}.
-const ROUTE = { name: 'Kigali → Musanze', frequency: 'Daily' };
-const SIBLING_TRIPS = [
-  { id: 'TRP-8488', bus: 'RAA-000-Z', departs: '06:30', status: 'completed', current: false },
-  { id: 'TRP-8492', bus: 'RAB-402-C', departs: '08:30', status: 'in_transit', current: true },
-  { id: 'TRP-8510', bus: 'RAB-001-Z', departs: '11:30', status: 'scheduled', current: false },
-];
-
-// Segment-based capacity (no assigned seats): a seat freed at one stop is available onward. `onboard` is the
-// running count on the bus after each stop; `free` = capacity − onboard (unbooked seats from that stop).
-const STOPS = [
-  { name: 'Nyabugogo', arrival: '08:30', boarded: 22, alighted: 0 },
-  { name: 'Shyorongi', arrival: '09:12', boarded: 8, alighted: 2 },
-  { name: 'Muhanga', arrival: '09:50', boarded: 6, alighted: 5 },
-  { name: 'Musanze', arrival: '10:45', boarded: 0, alighted: 29 }, // terminus — everyone still aboard alights
-];
-
-// Manifest (stub). Each passenger's board→alight segment + how the ticket was sold. Wired later to /bookings.
-const manifest = [
-  { name: 'Jean-Paul N.', ticket: 'ET-8921', via: 'app', from: 'Nyabugogo', to: 'Musanze' },
-  { name: 'Marie-Claire U.', ticket: 'ET-8922', via: 'agent', from: 'Nyabugogo', to: 'Muhanga' },
-  { name: 'Emmanuel K.', ticket: 'ET-8923', via: 'app', from: 'Nyabugogo', to: 'Shyorongi' },
-  { name: 'Sandrine M.', ticket: 'ET-8924', via: 'agent', from: 'Shyorongi', to: 'Musanze' },
-  { name: 'Patrick H.', ticket: 'ET-8925', via: 'app', from: 'Muhanga', to: 'Musanze' },
-  { name: 'Grace U.', ticket: 'ET-8926', via: 'agent', from: 'Nyabugogo', to: 'Musanze' },
-  { name: 'Eric N.', ticket: 'ET-8927', via: 'app', from: 'Nyabugogo', to: 'Muhanga' },
-];
-
-const log = [
-  { title: 'Passing Shyorongi', meta: '09:12 · 45 km/h' },
-  { title: 'Departed Kigali Central', meta: '08:30 · On-time' },
-  { title: 'Engine ignition / pre-check', meta: '08:15 · Status: optimal' },
-];
+const timeFmt = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Kigali' });
+const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'Africa/Kigali' });
+const fmtTime = (iso: string | null) => (iso ? timeFmt.format(new Date(iso)) : '—');
 
 export function TripDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams();
-  const [msgOpen, setMsgOpen] = useState(false);
-  const [rerouteOpen, setRerouteOpen] = useState(false);
-  const [emergencyOpen, setEmergencyOpen] = useState(false);
 
-  // Manifest export — client CSV from the trip's bookings (GET /bookings?tripId once wired).
+  const tripQ = useTrip(id);
+  const tripsQ = useTrips();
+  const routesQ = useRoutes();
+  const vehiclesQ = useVehicles();
+  const manifestQ = useTripManifest(id);
+  const logQ = useTripLog(id);
+
+  const trip = tripQ.data;
+  const routes = routesQ.data ?? [];
+  const route = routes.find((r) => r.id === trip?.routeId);
+  const routeName = route ? `${route.origin} → ${route.destination}` : (trip?.routeId ?? id ?? '');
+  const isLive = trip ? LIVE.has(trip.status) : false;
+  const hasOps = isLive || trip?.status === 'completed';
+
+  const manifest = manifestQ.data ?? [];
+  const appCount = manifest.filter((m) => m.bookingSource === 'app').length;
+  const agentCount = manifest.filter((m) => m.bookingSource === 'agent').length;
+  const appRevenue = manifest.filter((m) => m.bookingSource === 'app').reduce((s, m) => s + m.fareAmount, 0);
+  const agentRevenue = manifest.filter((m) => m.bookingSource === 'agent').reduce((s, m) => s + m.fareAmount, 0);
+  const capacity = trip?.capacity ?? 0;
+
+  // Sibling trips on the same route (each direction/time is its own trip) — selectable, no map.
+  const siblings = (tripsQ.data ?? []).filter((s) => s.routeId === trip?.routeId && s.id !== trip?.id).slice(0, 8);
+
   function downloadManifest() {
     downloadCsv(
       `manifest-${id ?? 'trip'}.csv`,
-      ['Passenger', 'Ticket', 'From', 'To', 'Booked via'],
-      manifest.map((p) => [p.name, p.ticket, p.from, p.to, p.via]),
+      ['Passenger', 'Phone', 'From', 'To', 'Booked via', 'Fare', 'Status'],
+      manifest.map((p) => [p.passengerName, p.passengerPhone ?? '', p.boardStopName, p.alightStopName, p.bookingSource, String(p.fareAmount), p.status]),
     );
   }
 
   return (
     <Reveal className="space-y-6">
-      <MessageDriverModal open={msgOpen} onClose={() => setMsgOpen(false)} driverName={DRIVER_NAME} />
-      <RerouteModal open={rerouteOpen} onClose={() => setRerouteOpen(false)} />
-      <EmergencyBroadcastModal open={emergencyOpen} onClose={() => setEmergencyOpen(false)} />
-      {/* Breadcrumb + title + trip pills */}
+      {/* Breadcrumb + title */}
       <RevealItem>
         <nav className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link to="/trips" className="rounded font-medium hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             {t('trip.breadcrumb')}
           </Link>
           <ChevronRight className="size-3.5" aria-hidden />
-          <span className="font-medium text-foreground">{id ?? 'TRX-8921'}</span>
+          <span className="font-medium text-foreground">{id}</span>
         </nav>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">
-              {ROUTE.name}
-            </h2>
+            <h2 className="text-3xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground">{routeName}</h2>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              <Repeat className="size-3.5" /> {t('trip.recurs', { freq: t(`sched.freq.${ROUTE.frequency.toLowerCase()}`) })}
-              <span className="text-muted-foreground/50">·</span>
-              {t('trip.thisTrip', { id: id ?? 'TRP-8492', departs: '08:30' })}
+              {trip && <StatusPill status={trip.status}>{t(`tripsList.status.${trip.status}`)}</StatusPill>}
+              {trip && <span className="text-muted-foreground/50">·</span>}
+              {trip && <span className="tabular-nums">{dateFmt.format(new Date(trip.departureTime))} · {fmtTime(trip.departureTime)}</span>}
+              {trip && <span className="uppercase text-muted-foreground/70">{t(`tripsList.status.${trip.direction === 'return' ? 'return' : 'outbound'}`, trip.direction)}</span>}
             </p>
           </div>
-          <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold">
-            <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary">
-              <Bus className="size-3.5" />
+          {trip?.vehiclePlate && (
+            <span className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold">
+              <span className="grid size-6 place-items-center rounded-full bg-primary/10 text-primary"><Bus className="size-3.5" /></span>
+              {trip.vehiclePlate}
             </span>
-            RAB-402-C
-          </span>
+          )}
         </div>
       </RevealItem>
 
-      {/* Route context — sibling trips on the same recurring route today */}
-      <RevealItem>
-        <GlassCard className="p-4">
-          <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            <Route className="size-3.5" /> {t('trip.otherTrips')}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SIBLING_TRIPS.map((s) => (
-              <Link
-                key={s.id}
-                to={`/trips/${s.id}`}
-                aria-current={s.current ? 'page' : undefined}
-                className={cn(
-                  'inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors',
-                  s.current ? 'border-primary/50 bg-primary/5 font-semibold' : 'border-border hover:bg-secondary/50',
-                )}
-              >
-                <span className="tabular-nums">{s.departs}</span>
-                <span className="text-muted-foreground">{s.bus}</span>
-                <StatusPill status={s.status}>{t(`tripsList.status.${s.status}`)}</StatusPill>
-              </Link>
-            ))}
-          </div>
-        </GlassCard>
-      </RevealItem>
+      {/* Sibling trips on the same route today — selectable, no map */}
+      {siblings.length > 0 && (
+        <RevealItem>
+          <GlassCard className="p-4">
+            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <RouteIcon className="size-3.5" /> {t('trip.otherTrips')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {siblings.map((s) => (
+                <Link
+                  key={s.id}
+                  to={`/trips/${s.id}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors hover:bg-secondary/50"
+                >
+                  <span className="tabular-nums">{fmtTime(s.departureTime)}</span>
+                  <span className="text-muted-foreground">{s.vehiclePlate ?? '—'}</span>
+                  <StatusPill status={s.status}>{t(`tripsList.status.${s.status}`)}</StatusPill>
+                </Link>
+              ))}
+            </div>
+          </GlassCard>
+        </RevealItem>
+      )}
 
       <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        {/* Left: map + ETA strip, manifest, trip log */}
+        {/* Left: map, manifest + trip log, occupancy logs */}
         <div className="space-y-6 xl:col-span-2">
-          <GlassCard className="overflow-hidden">
+          <GlassCard className={cn('overflow-hidden', !isLive && 'opacity-60')}>
             <MapPreview className="h-[360px] border-b border-border" />
-            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 p-4">
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-2 p-4 text-sm">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('trip.estimatedArrival')}
-                </p>
-                <p className="text-sm font-bold">
-                  11:45 <span className="font-normal text-muted-foreground">(in 2h 15m)</span>
-                </p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.tripRevenueLive')}</p>
+                <p className="font-bold tabular-nums">{trip ? formatRWF(trip.revenue) : '—'}</p>
               </div>
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('trip.delayRisk')}
-                </p>
-                <p className="text-sm font-bold text-success">{t('trip.delayLow')}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.booked', { n: trip?.booked ?? 0, total: capacity })}</p>
+                <p className="font-bold tabular-nums">{trip?.booked ?? 0}/{capacity || '—'}</p>
               </div>
-              <div className="ml-auto flex items-center gap-1.5 text-sm font-medium text-warning">
-                <AlertTriangle className="size-4" /> {t('trip.constructionZones', { count: 2 })}
-              </div>
+              {!isLive && <span className="ml-auto text-xs text-muted-foreground">{t('trip.inactiveHint')}</span>}
             </div>
           </GlassCard>
 
-          {/* Manifest + trip log (moved up) — each scrolls within itself */}
+          {/* Manifest + trip log */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <GlassCard className="flex flex-col p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-base font-semibold">
-                  <Users className="size-4" /> {t('trip.manifest')}
-                </h3>
-                <Badge tone="neutral">{t('trip.booked', { n: manifest.length, total: CAPACITY })}</Badge>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="flex items-center gap-2 text-base font-semibold"><Users className="size-4" /> {t('trip.manifest')}</h3>
+                <Badge tone="neutral">{t('trip.manifestChannels', { app: appCount, agent: agentCount })}</Badge>
               </div>
-              <ul className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
-                {manifest.map((p, i) => (
-                  <li key={p.ticket} className="flex items-center gap-3 rounded-xl bg-secondary/40 p-3">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                      S{i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium">{p.name}</p>
-                      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{p.from} <ArrowRight className="size-3" /> {p.to}</p>
-                      <p className="text-[11px] text-muted-foreground">#{p.ticket} · {t(`trip.via.${p.via}`)}</p>
-                    </div>
-                    <Ticket className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                  </li>
-                ))}
-              </ul>
-              <Button className="mt-4 w-full" onClick={downloadManifest}>
+              <Async
+                query={manifestQ}
+                isEmpty={(d) => d.length === 0}
+                skeleton={<div className="mt-4 space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer h-12 rounded-xl" />)}</div>}
+                empty={<div className="mt-4 grid place-items-center gap-2 py-10 text-center text-sm text-muted-foreground"><Users className="size-7" />{t('tripsList.emptyTitle')}</div>}
+              >
+                {(rows: ApiManifestEntry[]) => (
+                  <ul className="mt-4 max-h-72 space-y-2 overflow-y-auto pr-1">
+                    {rows.map((p, i) => (
+                      <li key={p.bookingId} className="flex items-center gap-3 rounded-xl bg-secondary/40 p-3">
+                        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium">{p.passengerName}</p>
+                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{p.boardStopName} <ArrowRight className="size-3" /> {p.alightStopName}</p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <Badge tone={p.bookingSource === 'app' ? 'info' : 'neutral'}>{t(`trip.via.${p.bookingSource}`, p.bookingSource)}</Badge>
+                          <span className="text-[11px] tabular-nums text-muted-foreground">{formatRWF(p.fareAmount)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Async>
+              <Button className="mt-4 w-full" onClick={downloadManifest} disabled={manifest.length === 0}>
                 <Download className="size-4" /> {t('trip.downloadManifest')}
               </Button>
             </GlassCard>
 
-            <GlassCard className="flex flex-col p-5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold">{t('trip.tripLog')}</h3>
-                <button type="button" className="text-xs font-medium text-primary hover:underline">
-                  {t('trip.viewFull')}
-                </button>
-              </div>
-              <ol className="mt-4 max-h-72 overflow-y-auto pr-1">
-                {log.map((e, i) => (
-                  <li key={e.title} className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <span
-                        className={cn('size-3 rounded-full', i === 0 ? 'bg-primary' : 'border-2 border-border bg-card')}
-                        aria-hidden
-                      />
-                      {i < log.length - 1 && <span className="w-px flex-1 bg-border" aria-hidden />}
-                    </div>
-                    <div className={cn('pb-5', i > 1 && 'opacity-60')}>
-                      <p className="text-sm font-medium leading-tight">{e.title}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">{e.meta}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
+            <GlassCard className={cn('flex flex-col p-5', !hasOps && 'opacity-60')}>
+              <h3 className="text-base font-semibold">{t('trip.tripLog')}</h3>
+              <Async
+                query={logQ}
+                isEmpty={(d) => d.length === 0}
+                skeleton={<div className="mt-4 space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="shimmer h-8 rounded" />)}</div>}
+                empty={<div className="mt-4 py-10 text-center text-sm text-muted-foreground">{t('trip.logEmpty')}</div>}
+              >
+                {(entries: ApiTripLogEntry[]) => {
+                  const ordered = [...entries].reverse(); // newest first
+                  return (
+                    <ol className="mt-4 max-h-72 overflow-y-auto pr-1">
+                      {ordered.map((e, i) => (
+                        <li key={`${e.type}-${e.at}`} className="flex gap-3">
+                          <div className="flex flex-col items-center">
+                            <span className={cn('mt-1 size-3 rounded-full', i === 0 ? 'bg-primary' : 'border-2 border-border bg-card')} aria-hidden />
+                            {i < ordered.length - 1 && <span className="w-px flex-1 bg-border" aria-hidden />}
+                          </div>
+                          <div className="pb-5">
+                            <p className="text-sm font-medium leading-tight">{logLabel(t, e)}</p>
+                            <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">{dateFmt.format(new Date(e.at))} · {fmtTime(e.at)}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  );
+                }}
+              </Async>
             </GlassCard>
           </div>
 
-          {/* Boarding & free seats per stop (moved down) — first row is the trip start; scrolls itself */}
-          <GlassCard className="overflow-hidden">
+          {/* Bus occupancy logs by stop (renamed from Boarding & free seats) — derived from stops + manifest */}
+          <GlassCard className={cn('overflow-hidden', !hasOps && 'opacity-60')}>
             <div className="flex items-center justify-between p-5 pb-3">
               <div>
-                <h3 className="text-base font-semibold">{t('trip.stopsTitle')}</h3>
-                <p className="text-sm text-muted-foreground">{t('trip.stopsSub', { capacity: CAPACITY })}</p>
+                <h3 className="text-base font-semibold">{t('trip.occupancyTitle')}</h3>
+                <p className="text-sm text-muted-foreground">{t('trip.occupancySub', { capacity: capacity || '—' })}</p>
               </div>
-              <Badge tone="neutral">{t('trip.capacity', { n: CAPACITY })}</Badge>
+              <Badge tone="neutral">{t('trip.capacity', { n: capacity || '—' })}</Badge>
             </div>
             <div className="max-h-96 overflow-auto">
               <Table>
@@ -246,23 +241,26 @@ export function TripDetailPage() {
                 </Thead>
                 <Tbody>
                   {(() => {
+                    const stops = [...(trip?.stops ?? [])].sort((a, b) => a.stopOrder - b.stopOrder);
                     let onboard = 0;
-                    return STOPS.map((s, i) => {
+                    return stops.map((s, i) => {
+                      const boarded = manifest.filter((m) => m.boardStopOrder === s.stopOrder).length;
+                      const alighted = manifest.filter((m) => m.alightStopOrder === s.stopOrder).length;
                       const carriedIn = onboard;
-                      onboard = Math.max(0, onboard + s.boarded - s.alighted);
-                      const free = Math.max(0, CAPACITY - onboard);
+                      onboard = Math.max(0, onboard + boarded - alighted);
+                      const free = Math.max(0, capacity - onboard);
                       return (
-                        <Tr key={s.name}>
+                        <Tr key={s.id}>
                           <Td className="whitespace-nowrap font-medium">
-                            {s.name}
+                            {s.stopName}
                             {i === 0 && <span className="ml-2 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">{t('trip.startBadge')}</span>}
                           </Td>
-                          <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{s.arrival}</Td>
+                          <Td className="whitespace-nowrap tabular-nums text-muted-foreground">{fmtTime(s.actualArrival ?? s.estimatedArrival)}</Td>
                           <Td className="text-right tabular-nums text-muted-foreground">{i === 0 ? '—' : carriedIn}</Td>
-                          <Td className="text-right tabular-nums text-teal">{s.boarded ? `+${s.boarded}` : '—'}</Td>
-                          <Td className="text-right tabular-nums text-muted-foreground">{s.alighted ? `−${s.alighted}` : '—'}</Td>
+                          <Td className="text-right tabular-nums text-teal">{boarded ? `+${boarded}` : '—'}</Td>
+                          <Td className="text-right tabular-nums text-muted-foreground">{alighted ? `−${alighted}` : '—'}</Td>
                           <Td className="text-right font-semibold tabular-nums">{onboard}</Td>
-                          <Td className="text-right tabular-nums"><span className={cn('font-semibold', free === 0 ? 'text-warning' : 'text-foreground')}>{free}</span></Td>
+                          <Td className="text-right tabular-nums"><span className={cn('font-semibold', free === 0 ? 'text-warning' : 'text-foreground')}>{capacity ? free : '—'}</span></Td>
                         </Tr>
                       );
                     });
@@ -276,105 +274,153 @@ export function TripDetailPage() {
         {/* Right: driver, vehicle, revenue, dispatch */}
         <div className="space-y-6">
           <GlassCard className="p-5">
-            <div className="flex items-start gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary/10 text-lg font-bold text-primary">
-                S
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.assignedDriver')}</p>
+            <div className="mt-1 flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
+                {trip?.driverName?.[0] ?? '—'}
               </span>
-              <div className="flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('trip.assignedDriver')}
-                </p>
-                <p className="text-lg font-bold leading-tight">Sarah Uwase</p>
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Star className="size-3 fill-warning text-warning" /> 4.92 · {t('trip.trips', { count: 1240 })}
-                </p>
-              </div>
-              <Button variant="outline" size="icon" aria-label="Call driver">
-                <Phone className="size-4" />
-              </Button>
+              <p className="text-lg font-bold leading-tight">{trip?.driverName ?? t('trip.noDriver')}</p>
             </div>
           </GlassCard>
 
           <GlassCard className="p-5">
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t('trip.vehicleDetails')}
-                </p>
-                <p className="text-lg font-bold">RAB-402</p>
-                <p className="text-xs text-muted-foreground">2023 Executive Coach</p>
-              </div>
-              <Badge tone="success">{t('trip.active')}</Badge>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-lg bg-secondary/50 p-3">
-                <p className="text-xs text-muted-foreground">{t('trip.lastServiced')}</p>
-                <p className="text-sm font-semibold tabular-nums">01/05/2026</p>
-              </div>
-              <div className="rounded-lg bg-secondary/50 p-3">
-                <p className="text-xs text-muted-foreground">{t('trip.passengerCount')}</p>
-                <p className="text-sm font-semibold tabular-nums">20</p>
-              </div>
-            </div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.vehicleDetails')}</p>
+            <p className="mt-1 text-lg font-bold">{trip?.vehiclePlate ?? '—'}</p>
           </GlassCard>
 
           <GlassCard className="border-t-2 border-t-primary p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {t('trip.tripRevenueLive')}
-            </p>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.tripRevenueLive')}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <span className="text-3xl font-bold tabular-nums">{formatRWF(1482000)}</span>
-              <Badge tone="success">+12% {t('trip.vsAvg')}</Badge>
+              <span className="text-3xl font-bold tabular-nums">{trip ? formatRWF(trip.revenue) : '—'}</span>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-lg bg-secondary/50 p-3 text-center">
                 <p className="text-xs text-muted-foreground">{t('trip.webApp')}</p>
-                <p className="text-sm font-bold tabular-nums">{formatRWF(940000)}</p>
+                <p className="text-sm font-bold tabular-nums">{formatRWF(appRevenue)}</p>
               </div>
               <div className="rounded-lg bg-secondary/50 p-3 text-center">
                 <p className="text-xs text-muted-foreground">{t('trip.agents')}</p>
-                <p className="text-sm font-bold tabular-nums">{formatRWF(542000)}</p>
+                <p className="text-sm font-bold tabular-nums">{formatRWF(agentRevenue)}</p>
               </div>
             </div>
           </GlassCard>
 
-          <GlassCard className="p-5">
-            <h3 className="text-base font-semibold">{t('trip.dispatchControls')}</h3>
-            <div className="mt-4 space-y-3">
-              <button
-                type="button"
-                onClick={() => setMsgOpen(true)}
-                className="flex w-full items-center justify-between rounded-xl bg-secondary px-4 py-3 text-sm font-medium transition-colors hover:bg-secondary/70"
-              >
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="size-4" /> {t('trip.messageDriver')}
-                </span>
-                <ChevronRight className="size-4 text-muted-foreground" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setRerouteOpen(true)}
-                className="flex w-full items-center justify-between rounded-xl bg-primary/10 px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
-              >
-                <span className="flex items-center gap-2">
-                  <Shuffle className="size-4" /> {t('trip.reroute')}
-                </span>
-                <ChevronRight className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setEmergencyOpen(true)}
-                className="flex w-full items-center justify-between rounded-xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15"
-              >
-                <span className="flex items-center gap-2">
-                  <Megaphone className="size-4" /> {t('trip.emergencyBroadcast')}
-                </span>
-                <ChevronRight className="size-4" />
-              </button>
-            </div>
-          </GlassCard>
+          <DispatchControls tripId={id ?? ''} enabled={isLive} vehicles={vehiclesQ.data ?? []} hasDriver={Boolean(trip?.driverId)} />
         </div>
       </RevealItem>
     </Reveal>
+  );
+}
+
+function logLabel(t: ReturnType<typeof useTranslation>['t'], e: ApiTripLogEntry): string {
+  switch (e.type) {
+    case 'published': return e.stopName ? t('trip.log.published', { stop: e.stopName }) : t('trip.log.publishedNoStop');
+    case 'first_booking': return t('trip.log.firstBooking');
+    case 'departed': return e.stopName ? t('trip.log.departed', { stop: e.stopName }) : t('trip.log.departedNoStop');
+    case 'stop_arrival': return t('trip.log.stopArrival', { stop: e.stopName ?? '' });
+    case 'completed': return e.stopName ? t('trip.log.completed', { stop: e.stopName }) : t('trip.log.completedNoStop');
+    default: return e.type;
+  }
+}
+
+// Inline dispatch composers (no modals): message the driver, broadcast to passengers, or swap the vehicle.
+// All post to live endpoints. Greyed with a hint when the trip isn't live.
+function DispatchControls({ tripId, enabled, vehicles, hasDriver }: {
+  tripId: string;
+  enabled: boolean;
+  vehicles: { id: string; plateNumber: string }[];
+  hasDriver: boolean;
+}) {
+  const { t } = useTranslation();
+  const [driverMsg, setDriverMsg] = useState('');
+  const [broadcastMsg, setBroadcastMsg] = useState('');
+  const [vehicleId, setVehicleId] = useState('');
+  const message = useMessageDriver();
+  const broadcast = useBroadcastPassengers();
+  const reroute = useUpdateTrip();
+
+  return (
+    <GlassCard className={cn('p-5', !enabled && 'opacity-60')}>
+      <h3 className="text-base font-semibold">{t('trip.dispatchControls')}</h3>
+      {!enabled && <p className="mt-1 text-xs text-muted-foreground">{t('trip.inactiveHint')}</p>}
+
+      {/* Message driver */}
+      <div className="mt-4 space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium"><MessageSquare className="size-4" /> {t('trip.messageDriver')}</label>
+        <Textarea
+          value={driverMsg}
+          onChange={(e) => setDriverMsg(e.target.value)}
+          placeholder={t('trip.messagePlaceholder')}
+          maxLength={500}
+          disabled={!enabled || !hasDriver}
+          className="min-h-16"
+        />
+        {!hasDriver && enabled && <p className="text-xs text-muted-foreground">{t('trip.noDriver')}</p>}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs" aria-live="polite">
+            {message.isSuccess && <span className="text-success">{t('trip.messageSent')}</span>}
+            {message.isError && <span className="text-destructive">{t('trip.sendFailed')}</span>}
+          </span>
+          <Button
+            size="sm"
+            disabled={!enabled || !hasDriver || !driverMsg.trim() || message.isPending}
+            onClick={() => message.mutate({ id: tripId, message: driverMsg.trim() }, { onSuccess: () => setDriverMsg('') })}
+          >
+            {message.isPending ? t('trip.sending') : t('trip.send')}
+          </Button>
+        </div>
+      </div>
+
+      {/* Broadcast passengers */}
+      <div className="mt-5 space-y-2 border-t border-border pt-4">
+        <label className="flex items-center gap-2 text-sm font-medium"><Megaphone className="size-4" /> {t('trip.broadcastPassengers')}</label>
+        <Textarea
+          value={broadcastMsg}
+          onChange={(e) => setBroadcastMsg(e.target.value)}
+          placeholder={t('trip.broadcastPlaceholder')}
+          maxLength={500}
+          disabled={!enabled}
+          className="min-h-16"
+        />
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs" aria-live="polite">
+            {broadcast.isSuccess && <span className="text-success">{t('trip.broadcastSent', { n: broadcast.data?.notified ?? 0 })}</span>}
+            {broadcast.isError && <span className="text-destructive">{t('trip.sendFailed')}</span>}
+          </span>
+          <Button
+            size="sm"
+            disabled={!enabled || !broadcastMsg.trim() || broadcast.isPending}
+            onClick={() => broadcast.mutate({ id: tripId, message: broadcastMsg.trim() }, { onSuccess: () => setBroadcastMsg('') })}
+          >
+            {broadcast.isPending ? t('trip.sending') : t('trip.send')}
+          </Button>
+        </div>
+      </div>
+
+      {/* Reroute / vehicle swap */}
+      <div className="mt-5 space-y-2 border-t border-border pt-4">
+        <label className="flex items-center gap-2 text-sm font-medium"><Shuffle className="size-4" /> {t('trip.reroute')}</label>
+        <Select value={vehicleId} onChange={(e) => setVehicleId(e.target.value)} disabled={!enabled}>
+          <option value="" disabled>{t('trip.selectVehicle')}</option>
+          {vehicles.map((v) => (
+            <option key={v.id} value={v.id}>{v.plateNumber}</option>
+          ))}
+        </Select>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs" aria-live="polite">
+            {reroute.isSuccess && <span className="text-success">{t('trip.swapDone')}</span>}
+            {reroute.isError && <span className="text-destructive">{t('trip.sendFailed')}</span>}
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={!enabled || !vehicleId || reroute.isPending}
+            onClick={() => reroute.mutate({ id: tripId, vehicleId }, { onSuccess: () => setVehicleId('') })}
+          >
+            {reroute.isPending ? t('trip.sending') : t('trip.confirmSwap')}
+          </Button>
+        </div>
+      </div>
+    </GlassCard>
   );
 }
