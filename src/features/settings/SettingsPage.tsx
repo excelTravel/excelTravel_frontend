@@ -7,6 +7,7 @@ import { Field, Input } from '@/components/ui/form';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { useCurrentUser } from '@/lib/currentUser';
+import { useUpdateMe } from '@/lib/api/hooks';
 import { useTheme } from '@/store/theme';
 import { cn } from '@/lib/utils';
 
@@ -27,11 +28,11 @@ export function SettingsPage() {
   const [logo, setLogo] = useState<string | null>(null);
   const [name, setName] = useState(user.fullName);
   const [company, setCompany] = useState('ExcelTravel');
-  const [saving, setSaving] = useState(false);
+  const updateMe = useUpdateMe();
 
   function save() {
-    setSaving(true);
-    setTimeout(() => setSaving(false), 600);
+    if (!name.trim() || name.trim() === user.fullName) return;
+    updateMe.mutate({ name: name.trim() });
   }
 
   return (
@@ -149,9 +150,13 @@ export function SettingsPage() {
         )}
 
         {/* Sticky save bar */}
-        <div className="sticky bottom-4 z-10 flex items-center justify-end gap-2 rounded-xl border border-border bg-card/85 p-3 shadow-lg backdrop-blur">
-          <Button variant="outline">{t('forms.cancel')}</Button>
-          <Button onClick={save} disabled={saving}>{saving ? t('forms.saving') : t('forms.save')}</Button>
+        <div className="sticky bottom-4 z-10 flex items-center justify-end gap-3 rounded-xl border border-border bg-card/85 p-3 shadow-lg backdrop-blur">
+          <span className="mr-auto text-xs" aria-live="polite">
+            {updateMe.isSuccess && <span className="text-success">{t('settings.saved')}</span>}
+            {updateMe.isError && <span className="text-destructive">{t('forms.checkFields')}</span>}
+          </span>
+          <Button variant="outline" onClick={() => setName(user.fullName)} disabled={updateMe.isPending}>{t('forms.cancel')}</Button>
+          <Button onClick={save} disabled={updateMe.isPending || !name.trim() || name.trim() === user.fullName}>{updateMe.isPending ? t('forms.saving') : t('forms.save')}</Button>
         </div>
       </RevealItem>
     </Reveal>

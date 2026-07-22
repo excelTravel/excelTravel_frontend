@@ -460,6 +460,9 @@ export const useUpdateTripStatus = () =>
   useApiMutation<{ id: string; status: string; delayReason?: string }, ApiTrip>(({ id, ...b }) => apiFetch<ApiTrip>(`/trips/${id}/status`, patchBody(b)), [qk.trips, qk.overview]);
 export const useUpdateTrip = () =>
   useApiMutation<{ id: string } & Record<string, unknown>, ApiTrip>(({ id, ...b }) => apiFetch<ApiTrip>(`/trips/${id}`, patchBody(b)), [qk.trips]);
+// Update the signed-in user's own profile (name/phone/email/language) → PATCH /me.
+export const useUpdateMe = () =>
+  useApiMutation<{ name?: string; phone?: string; email?: string | null; preferredLanguage?: string }, Me>((b) => apiFetch<Me>('/me', patchBody(b)), [qk.me]);
 // Dispatch controls — send an in-app message to the trip's driver, or broadcast to its passengers.
 export const useMessageDriver = () =>
   useApiMutation<{ id: string; message: string }, { sent: boolean }>(({ id, message }) => apiFetch<{ sent: boolean }>(`/trips/${id}/message-driver`, jsonBody({ message })), [qk.notifications]);
