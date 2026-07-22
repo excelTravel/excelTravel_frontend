@@ -520,6 +520,22 @@ export const useUpdateIncident = () =>
   useApiMutation<{ id: string; opsComment?: string; resolution?: string }, ApiIncident>(({ id, ...b }) => apiFetch<ApiIncident>(`/incidents/${id}`, patchBody(b)), [qk.incidents]);
 
 // Fares
+// Create route / stop / vehicle (ops network + fleet management).
+export const useCreateRoute = () =>
+  useApiMutation<{ name: string; origin: string; destination: string; distanceKm?: number; estimatedDurationMin?: number; departureTimes?: string[] }, ApiRoute>(
+    (b) => apiFetch<ApiRoute>('/routes', jsonBody(b)),
+    [qk.routes],
+  );
+export const useCreateStop = () =>
+  useApiMutation<{ name: string; type: 'station' | 'stop'; latitude: number; longitude: number; parentStationId?: string | null; phone?: string; address?: string }, ApiStop>(
+    (b) => apiFetch<ApiStop>('/stops', jsonBody(b)),
+    [qk.stops],
+  );
+export const useCreateVehicle = () =>
+  useApiMutation<{ plateNumber: string; routeId?: string | null; model?: string; capacity?: number; year?: number }, ApiVehicle>(
+    (b) => apiFetch<ApiVehicle>('/vehicles', jsonBody(b)),
+    [qk.vehicles],
+  );
 export const useUpsertFare = () =>
   useApiMutation<{ originStationId: string; destinationStationId: string; fareAmount: number; fareSource?: string }, ApiFare>(
     (f) => apiFetch<ApiFare>('/fares', jsonBody(f)),
