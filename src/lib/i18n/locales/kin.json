@@ -216,6 +216,7 @@
     "licenseExpires": "Uruhushya rurangira",
     "licenseNumber": "Nomero y'uruhushya",
     "roster": "Urutonde rw'abashoferi",
+    "rosterEmpty": "Nta bashoferi bahari — tumira umwe kugira ngo utangire.",
     "inviteDriver": "Tumira umushoferi",
     "inviteDriverSub": "Itegura umushoferi ikohereza ubutumire bwa Clerk kuri email. Yiyandikisha ubwa mbere akoresheje iyi email.",
     "sendInvite": "Ohereza ubutumire",

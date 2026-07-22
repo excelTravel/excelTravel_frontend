@@ -1,15 +1,17 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Star, Bus, Phone, PhoneCall, CalendarClock, Clock, ShieldCheck, Image as ImageIcon, UserPlus } from 'lucide-react';
+import { Star, Phone, CalendarClock, UserPlus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
-import { AssignDriverModal } from './AssignDriverModal';
+import { Async } from '@/components/ui/async';
+import { AssignDriverModal, type AssignTarget } from './AssignDriverModal';
 import { InviteDriverModal } from './InviteDriverModal';
 import { DriverScheduling } from './DriverScheduling';
-import { DRIVERS, type Driver } from './data';
+import { DRIVERS } from './data';
+import { useDrivers } from '@/lib/api/hooks';
 
 const DAY_START = 5;
 const DAY_END = 23;
@@ -19,7 +21,8 @@ const clampPct = (hour: number) => Math.max(0, Math.min(100, ((hour - DAY_START)
 
 export function DriversPanel() {
   const { t } = useTranslation();
-  const [assignTo, setAssignTo] = useState<Driver | null>(null);
+  const driversQ = useDrivers();
+  const [assignTo, setAssignTo] = useState<AssignTarget | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
@@ -97,71 +100,55 @@ export function DriversPanel() {
         <Button size="sm" onClick={() => setInviteOpen(true)}><UserPlus className="size-4" /> {t('drivers.inviteDriver')}</Button>
       </div>
 
-      {/* Driver cards */}
-      <Reveal className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {DRIVERS.map((d) => (
-          <RevealItem key={d.id}>
-            <MotionCard className="flex flex-col gap-4 p-5">
-              {/* Identity + rating */}
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-3">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                    {d.name.charAt(0)}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold leading-tight">{d.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">{d.license}</p>
+      {/* Driver cards — live roster from GET /drivers */}
+      <Async
+        query={driversQ}
+        isEmpty={(d) => d.length === 0}
+        skeleton={<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="shimmer h-56 rounded-2xl" />)}</div>}
+        empty={<GlassCard className="p-10 text-center text-sm text-muted-foreground">{t('drivers.rosterEmpty')}</GlassCard>}
+      >
+        {(drivers) => (
+          <Reveal className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {drivers.map((d) => (
+              <RevealItem key={d.id}>
+                <MotionCard className="flex flex-col gap-4 p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
+                        {d.name.charAt(0)}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold leading-tight">{d.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{d.licenseNumber ?? '—'}</p>
+                      </div>
+                    </div>
+                    {d.rating != null && (
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
+                        <Star className="size-3 fill-warning text-warning" /> {d.rating.toFixed(2)}
+                      </span>
+                    )}
                   </div>
-                </div>
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
-                  <Star className="size-3 fill-warning text-warning" /> {d.rating.toFixed(2)}
-                </span>
-              </div>
 
-              {/* Three labels: license active · assigned car · hours worked */}
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-success/15 px-2.5 py-0.5 text-xs font-medium text-success">
-                  <ShieldCheck className="size-3.5" /> {t('drivers.licenseActive')}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                  <Bus className="size-3.5 text-muted-foreground" /> {d.vehicle ?? t('drivers.noVehicle')}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-                  <Clock className="size-3.5 text-muted-foreground" /> {t('drivers.hoursLabel', { n: d.hoursWorked })}
-                </span>
-              </div>
+                  <div className="space-y-2 rounded-xl bg-secondary/40 p-3">
+                    <DriverRow icon={<CalendarClock className="size-3.5" />} label={t('drivers.licenseExpires')} value={d.licenseExpiry ? new Date(d.licenseExpiry).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'} />
+                    <DriverRow icon={<Phone className="size-3.5" />} label={t('drivers.contact')} value={d.phone} />
+                  </div>
 
-              {/* Details */}
-              <div className="space-y-2 rounded-xl bg-secondary/40 p-3">
-                <DriverRow icon={<CalendarClock className="size-3.5" />} label={t('drivers.licenseExpires')} value={d.licenseExpiry} />
-                <DriverRow icon={<Phone className="size-3.5" />} label={t('drivers.contact')} value={d.phone} />
-                <DriverRow icon={<PhoneCall className="size-3.5" />} label={t('drivers.emergency')} value={d.emergencyPhone} />
-              </div>
-
-              {/* Documents */}
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('drivers.documents')}</p>
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  <DocThumb label={t('drivers.docProfile')} />
-                  <DocThumb label={t('drivers.docLicense')} />
-                  <DocThumb label={t('drivers.docId')} />
-                </div>
-              </div>
-
-              {/* Status + actions */}
-              <div className="flex items-center gap-2 border-t border-border pt-3">
-                <StatusPill status={d.status}>{t(`drivers.state.${d.status}`)}</StatusPill>
-                <div className="ml-auto flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setAssignTo(d)}>{t('drivers.assign')}</Button>
-                  <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
-                    <Phone className="size-4" />
-                  </a>
-                </div>
-              </div>
-            </MotionCard>
-          </RevealItem>
-        ))}
-      </Reveal>
+                  <div className="flex items-center gap-2 border-t border-border pt-3">
+                    <StatusPill status={d.status}>{t(`drivers.state.${d.status}`, d.status)}</StatusPill>
+                    <div className="ml-auto flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setAssignTo({ id: d.id, name: d.name, license: d.licenseNumber })}>{t('drivers.assign')}</Button>
+                      <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                        <Phone className="size-4" />
+                      </a>
+                    </div>
+                  </div>
+                </MotionCard>
+              </RevealItem>
+            ))}
+          </Reveal>
+        )}
+      </Async>
     </div>
   );
 }
@@ -175,15 +162,3 @@ function DriverRow({ icon, label, value }: { icon: ReactNode; label: string; val
   );
 }
 
-// Placeholder document slot — profile photo / driving licence / ID card. These images aren't in the backend
-// schema yet (drivers store licence number + expiry only); wire to uploaded URLs when the fields are added.
-function DocThumb({ label }: { label: string }) {
-  return (
-    <div className="space-y-1">
-      <div className="grid aspect-[3/2] place-items-center rounded-lg border border-dashed border-border bg-secondary/40 text-muted-foreground">
-        <ImageIcon className="size-4" />
-      </div>
-      <p className="text-center text-[10px] text-muted-foreground">{label}</p>
-    </div>
-  );
-}

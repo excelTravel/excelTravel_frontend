@@ -216,6 +216,7 @@
     "licenseExpires": "License expires",
     "licenseNumber": "License number",
     "roster": "Driver roster",
+    "rosterEmpty": "No drivers yet — invite one to get started.",
     "inviteDriver": "Invite driver",
     "inviteDriverSub": "Pre-creates the driver and emails a Clerk invitation. They claim the account on first sign-in with this email.",
     "sendInvite": "Send invitation",
