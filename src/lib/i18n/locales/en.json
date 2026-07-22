@@ -431,7 +431,15 @@
     "freeze": "Freeze",
     "unfreeze": "Unfreeze",
     "frozen": "Frozen",
-    "delete": "Delete"
+    "delete": "Delete",
+    "empty": "No route schedules yet — add one to auto-generate trips.",
+    "generate": "Generate trips",
+    "generateTitle": "Generate trips from schedule",
+    "from": "From",
+    "to": "To",
+    "generated": "{{created}} trips created, {{skipped}} skipped.",
+    "rangeInvalid": "Pick a valid date range.",
+    "deleteConfirm": "Delete this schedule? Trips already generated stay."
   },
   "sched": {
     "routines": "Recurring routines",
@@ -450,8 +458,12 @@
       "daily": "Daily",
       "weekdays": "Weekdays",
       "weekends": "Weekends",
-      "weekly": "Weekly"
+      "weekly": "Weekly",
+      "monthly": "Monthly"
     },
+    "weekdays": "Days of week",
+    "dayOfMonth": "Day of month",
+    "routineInvalid": "Pick a route, valid times (HH:MM), and the days the schedule needs.",
     "dispatchBus": "Dispatch a bus",
     "paxCount": "{{n}} pax",
     "waitlist": "Agent & passenger waitlist",

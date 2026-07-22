@@ -431,7 +431,15 @@
     "freeze": "Hagarika",
     "unfreeze": "Ongera utangire",
     "frozen": "Yahagaritswe",
-    "delete": "Siba"
+    "delete": "Siba",
+    "empty": "Nta gahunda z'imihanda zihari — ongeraho imwe kugira ngo ingendo zikorwe.",
+    "generate": "Kora ingendo",
+    "generateTitle": "Kora ingendo uhereye ku gahunda",
+    "from": "Kuva",
+    "to": "Kugeza",
+    "generated": "Ingendo {{created}} zakozwe, {{skipped}} zasimbuwe.",
+    "rangeInvalid": "Hitamo igihe cyemewe.",
+    "deleteConfirm": "Siba iyi gahunda? Ingendo zamaze gukorwa zigumaho."
   },
   "sched": {
     "routines": "Ingendo zisubirwamo",
@@ -450,8 +458,12 @@
       "daily": "Buri munsi",
       "weekdays": "Iminsi y'akazi",
       "weekends": "Impera z'icyumweru",
-      "weekly": "Buri cyumweru"
+      "weekly": "Buri cyumweru",
+      "monthly": "Buri kwezi"
     },
+    "weekdays": "Iminsi y'icyumweru",
+    "dayOfMonth": "Umunsi w'ukwezi",
+    "routineInvalid": "Hitamo umuhanda, amasaha yemewe (HH:MM), n'iminsi gahunda ikeneye.",
     "dispatchBus": "Ohereza bisi",
     "paxCount": "abagenzi {{n}}",
     "waitlist": "Urutonde rw'abategereje (agent n'abagenzi)",
