@@ -12,7 +12,7 @@ type Channel = 'phone' | 'email';
 const RESEND_SECONDS = 60;
 
 // Reusable 6-digit OTP Input component
-function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { length?: number, value: string, onChange: (v: string) => void, error: boolean, busy: boolean, onComplete: () => void }) {
+function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { length?: number, value: string, onChange: (v: string) => void, error: boolean, busy: boolean, onComplete: (v: string) => void }) {
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (i: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +23,7 @@ function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { le
     const newVal = chars.join('').substring(0, length);
     onChange(newVal);
     if (i < length - 1) inputsRef.current[i + 1]?.focus();
-    if (newVal.length === length) onComplete();
+    if (newVal.length === length) onComplete(newVal);
   };
 
   const handleKeyDown = (i: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -42,7 +42,7 @@ function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { le
     } else if (e.key === 'ArrowRight' && i < length - 1) {
       inputsRef.current[i + 1]?.focus();
     } else if (e.key === 'Enter' && value.length === length) {
-      onComplete();
+      onComplete(value);
     }
   };
 
@@ -53,7 +53,7 @@ function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { le
       onChange(pasted);
       const nextIndex = Math.min(pasted.length, length - 1);
       inputsRef.current[nextIndex]?.focus();
-      if (pasted.length === length) onComplete();
+      if (pasted.length === length) onComplete(pasted);
     }
   };
 
@@ -118,7 +118,6 @@ export function LoginPage() {
     if (next.signup !== undefined) setSignup(next.signup);
   }
 
-  // Handle Code changes and reset error automatically when typing or deleting
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (errors.code) setErrors((prev) => ({ ...prev, code: '' }));
@@ -184,9 +183,9 @@ export function LoginPage() {
     }
   }
 
-  async function verify() {
+  async function verify(currentCode: string = code) {
     setErrors({});
-    if (code.length < 6) {
+    if (currentCode.length < 6) {
       setErrors({ code: "otp wrong, re-enter or request a new one" });
       return;
     }
@@ -194,8 +193,8 @@ export function LoginPage() {
     try {
       const payloadId = channel === 'email' ? email.trim().toLowerCase() : (phone.startsWith('+') ? phone.trim() : `+250${phone.trim()}`);
       const tokens = channel === 'phone' && signup
-        ? await authApi.verifyPhone({ phone: payloadId, code: code.trim() })
-        : await authApi.verifyOtp({ identifier: payloadId, code: code.trim() });
+        ? await authApi.verifyPhone({ phone: payloadId, code: currentCode.trim() })
+        : await authApi.verifyOtp({ identifier: payloadId, code: currentCode.trim() });
       setSession(tokens);
       navigate('/', { replace: true });
     } catch (e) {
@@ -213,41 +212,40 @@ export function LoginPage() {
       <img src="/story-real-bg.png" alt="Excel Tours Background" className="absolute inset-0 w-full h-full object-cover opacity-60" />
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80 backdrop-blur-sm mix-blend-multiply" />
       
-      {/* Top Right Controls */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-3 bg-background/30 backdrop-blur-md border border-border/20 rounded-full px-3 py-1.5 shadow-sm">
-        <div className="flex items-center gap-1" role="group" aria-label="Language">
-          {(['en', 'kin'] as const).map((l) => (
-            <button
-              key={l}
-              type="button"
-              onClick={() => void i18n.changeLanguage(l)}
-              aria-pressed={lang === l}
-              className={cn(
-                'rounded-full px-2.5 py-1 text-xs font-bold transition-colors',
-                lang === l ? 'bg-primary text-primary-foreground shadow-sm' : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary/20',
-              )}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <div className="w-px h-4 bg-border/50 mx-1" />
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={t('common.toggleTheme')}
-          className="text-primary-foreground/70 hover:text-primary-foreground transition-colors p-1"
-        >
-          {theme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
-      </div>
-
       <Reveal className="relative z-10 w-full max-w-[440px]">
         {/* Center Overlay Card */}
-        <div className="bg-background/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 shadow-2xl border border-border/50 text-foreground">
+        <div className="bg-background/95 backdrop-blur-2xl rounded-[32px] p-8 sm:p-10 shadow-2xl border border-border/50 text-foreground relative">
           
+          {/* Top Right Controls within overlay */}
+          <div className="absolute top-6 right-6 flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-secondary/50 rounded-full p-1 border border-border/50" role="group" aria-label="Language">
+              {(['en', 'kin'] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => void i18n.changeLanguage(l)}
+                  aria-pressed={lang === l}
+                  className={cn(
+                    'rounded-full px-2 py-0.5 text-[10px] font-bold transition-all',
+                    lang === l ? 'bg-primary text-primary-foreground shadow-sm scale-105' : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={toggle}
+              aria-label={t('common.toggleTheme')}
+              className="bg-secondary/50 rounded-full p-1.5 border border-border/50 text-muted-foreground hover:text-foreground transition-all hover:bg-secondary"
+            >
+              {theme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+            </button>
+          </div>
+
           {/* Logo & Header */}
-          <div className="flex flex-col items-center text-center mb-8">
+          <div className="flex flex-col items-center text-center mt-2 mb-8">
             <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0e76db] to-blue-600 text-white shadow-lg shadow-blue-500/30 mb-4">
               <Bus className="w-7 h-7" />
             </div>
@@ -285,13 +283,13 @@ export function LoginPage() {
                 <div className="flex gap-2 items-start">
                   <div className={cn("relative flex flex-1 items-center rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.phone ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
                     {/* Rwanda Flag & Prefix */}
-                    <div className="flex items-center gap-2 pl-4 pr-3 py-4 border-r border-border">
+                    <div className="flex items-center gap-2 pl-4 pr-3 py-4 border-r border-border shrink-0">
                       <img src="https://flagcdn.com/w20/rw.png" srcSet="https://flagcdn.com/w40/rw.png 2x" alt="Rwanda" className="w-5 rounded-[2px]" />
                       <span className="text-sm font-bold">+250</span>
                     </div>
                     <input 
                       id="a-phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder="788 000 000" autoComplete="tel" autoFocus
-                      className="w-full bg-transparent py-4 px-3 text-sm font-bold placeholder:text-muted-foreground focus:outline-none tracking-wide"
+                      className="w-full bg-transparent py-4 pl-3 pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none tracking-wide"
                     />
                   </div>
                   <button 
@@ -338,7 +336,7 @@ export function LoginPage() {
             <div className="pt-2">
               <button 
                 type="button" 
-                onClick={verify} 
+                onClick={() => verify(code)} 
                 disabled={busy || code.length < 6} 
                 className="flex w-full items-center justify-center rounded-2xl bg-[#0e76db] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0e76db]/20 transition-all hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none disabled:transform-none active:scale-[0.98]"
               >
