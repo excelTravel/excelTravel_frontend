@@ -317,7 +317,7 @@
     "noEmail": "No email",
     "noPax": "No passengers match.",
     "noAgents": "No agents yet — invite your first booking agent.",
-    "roles": { "company_admin": "Company admin", "manager": "Manager", "agent": "Agent" },
+    "roles": { "company_admin": "Company admin", "manager": "Manager", "agent": "Agent", "driver": "Driver" },
     "status": { "active": "Active", "inactive": "Inactive", "suspended": "Suspended" },
     "inviteUser": "Invite staff",
     "inviteUserSub": "Onboard a staff member by email — they claim the account on first sign-in.",

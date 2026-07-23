@@ -6,7 +6,7 @@ import { Field, Input } from '@/components/ui/form';
 import { useInviteUser, useInviteAgent } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 
-const ROLES = ['company_admin', 'manager', 'agent'] as const;
+const ROLES = ['company_admin', 'manager', 'agent', 'driver'] as const;
 type Role = (typeof ROLES)[number];
 
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
