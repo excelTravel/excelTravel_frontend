@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Bus, Mail, Phone, ArrowRight, User, AlertCircle, CheckCircle2, Moon, Sun } from 'lucide-react';
+import { Bus, Mail, Phone, User, AlertCircle, CheckCircle2, Moon, Sun } from 'lucide-react';
 import { Reveal } from '@/components/motion/Motion';
 import { authApi } from '@/lib/api/auth';
 import { useSession } from '@/lib/auth/session';
@@ -19,7 +19,7 @@ function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { le
     const val = e.target.value.replace(/\D/g, '');
     if (!val) return;
     const chars = value.split('');
-    chars[i] = val[val.length - 1];
+    chars[i] = val.slice(-1);
     const newVal = chars.join('').substring(0, length);
     onChange(newVal);
     if (i < length - 1) inputsRef.current[i + 1]?.focus();
@@ -325,7 +325,7 @@ export function LoginPage() {
                 </div>
                 <button 
                   type="button" 
-                  disabled={busy || cooldown > 0 || !email} 
+                  disabled={busy || cooldown > 0 || !email.includes('@') || !email.toLowerCase().includes('.com')} 
                   onClick={() => void requestCode()}
                   className="shrink-0 h-[56px] px-3 sm:px-4 rounded-2xl bg-[#0e76db]/10 border-2 border-[#0e76db]/20 text-[11px] sm:text-xs font-bold text-[#0e76db] transition-all hover:bg-[#0e76db]/20 hover:border-[#0e76db]/30 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                 >

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/form';
-import { useInviteUser, useInviteAgent } from '@/lib/api/hooks';
+import { useInviteUser, useInviteAgent, useInviteDriver } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 
 const ROLES = ['company_admin', 'manager', 'agent', 'driver'] as const;
@@ -11,21 +11,25 @@ type Role = (typeof ROLES)[number];
 
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-// Invite any staff role by email. Managers/admins → POST /users/invite; agents → POST /agents (so the
-// agents extension row exists). Both pre-create the row and fire a Clerk email invitation.
+// Invite any staff role by email. Each routes to the endpoint that builds the right rows: managers/admins →
+// /users/invite; agents → /agents (agents row); drivers → /drivers (driver row + licence). All pre-create
+// the account so the person can log in by email + OTP.
 export function InviteUserModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const [role, setRole] = useState<Role>('manager');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [licenseExpiry, setLicenseExpiry] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const inviteUser = useInviteUser();
   const inviteAgent = useInviteAgent();
-  const saving = inviteUser.isPending || inviteAgent.isPending;
+  const inviteDriver = useInviteDriver();
+  const saving = inviteUser.isPending || inviteAgent.isPending || inviteDriver.isPending;
 
   function reset() {
-    setName(''); setEmail(''); setPhone(''); setRole('manager'); setErr(null);
+    setName(''); setEmail(''); setPhone(''); setLicenseNumber(''); setLicenseExpiry(''); setRole('manager'); setErr(null);
   }
   function done() {
     reset();
@@ -38,10 +42,14 @@ export function InviteUserModal({ open, onClose }: { open: boolean; onClose: () 
       return;
     }
     const onError = (e: unknown) => setErr(e instanceof Error ? e.message : t('forms.checkFields', 'Something went wrong.'));
-    if (role === 'agent') {
-      inviteAgent.mutate({ email: email.trim(), phone: phone.trim(), name: name.trim() }, { onSuccess: done, onError });
+    const base = { email: email.trim(), phone: phone.trim(), name: name.trim() };
+    if (role === 'driver') {
+      if (!licenseNumber.trim() || !licenseExpiry) { setErr(t('forms.checkFields', 'Add the licence number and expiry.')); return; }
+      inviteDriver.mutate({ ...base, licenseNumber: licenseNumber.trim(), licenseExpiry: new Date(`${licenseExpiry}T00:00:00Z`).toISOString() }, { onSuccess: done, onError });
+    } else if (role === 'agent') {
+      inviteAgent.mutate(base, { onSuccess: done, onError });
     } else {
-      inviteUser.mutate({ email: email.trim(), phone: phone.trim(), name: name.trim(), role }, { onSuccess: done, onError });
+      inviteUser.mutate({ ...base, role }, { onSuccess: done, onError });
     }
   }
 
@@ -80,6 +88,16 @@ export function InviteUserModal({ open, onClose }: { open: boolean; onClose: () 
             ))}
           </div>
         </Field>
+        {role === 'driver' && (
+          <div className="grid grid-cols-2 gap-4">
+            <Field label={t('drivers.licenseNumber')} htmlFor="iu-license" required>
+              <Input id="iu-license" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} placeholder="RW-DL-000000" />
+            </Field>
+            <Field label={t('drivers.licenseExpires')} htmlFor="iu-expiry" required>
+              <Input id="iu-expiry" type="date" value={licenseExpiry} onChange={(e) => setLicenseExpiry(e.target.value)} />
+            </Field>
+          </div>
+        )}
       </div>
     </Modal>
   );

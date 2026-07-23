@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2, UserRound, SlidersHorizontal, Bus, Moon, Sun } from 'lucide-react';
+import { Bus, Moon, Sun } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/form';

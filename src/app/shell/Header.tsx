@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Moon, Sun, Menu } from 'lucide-react';
 import { useTheme } from '@/store/theme';
@@ -6,19 +6,16 @@ import { useUi } from '@/store/ui';
 import { useCurrentUser, getGreetingPeriod } from '@/lib/currentUser';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { DateRangePicker } from '@/components/date-range-picker';
-import { sectionTitleKey } from './nav';
 import { cn } from '@/lib/utils';
 
 // Sticky, blurred top bar so page content scrolls cleanly beneath it. Left side greets the manager and
 // names the section they're viewing; the date range sits centred; controls stay on the right.
 export function Header() {
-  const { pathname } = useLocation();
   const { theme, toggle } = useTheme();
   const openSidebar = useUi((s) => s.openSidebar);
   const { t, i18n } = useTranslation();
   const lang = i18n.language === 'kin' ? 'kin' : 'en';
   const user = useCurrentUser();
-  const section = t(sectionTitleKey(pathname));
 
   return (
     <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between gap-3 border-b border-border/60 bg-background/70 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
@@ -32,11 +29,8 @@ export function Header() {
           <Menu className="size-5" />
         </button>
         <div className="min-w-0">
-          <p className="truncate text-xs font-medium text-muted-foreground">
-            {t(`home.${getGreetingPeriod()}`, { name: user.firstName })}
-          </p>
           <h1 className="truncate text-xl font-bold tracking-tight text-[hsl(var(--navy))] dark:text-foreground sm:text-2xl">
-            {section}
+            {t(`home.${getGreetingPeriod()}`, { name: user.fullName || user.firstName })}
           </h1>
         </div>
       </div>
