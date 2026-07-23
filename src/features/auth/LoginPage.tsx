@@ -118,6 +118,16 @@ export function LoginPage() {
     if (next.signup !== undefined) setSignup(next.signup);
   }
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (/[^a-zA-Z\s]/.test(val)) {
+      setErrors((prev) => ({ ...prev, name: "Only letters are allowed" }));
+      return;
+    }
+    setName(val);
+    if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+  };
+
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (errors.code) setErrors((prev) => ({ ...prev, code: '' }));
@@ -129,13 +139,14 @@ export function LoginPage() {
       setErrors((prev) => ({ ...prev, phone: "Only numbers are allowed" }));
       return;
     }
-    if (val.length > 0 && val[0] !== '7') {
-      setErrors((prev) => ({ ...prev, phone: "Must start with 7" }));
-      setPhone(val);
+    if (val.length > 9) {
       return;
     }
-    if (val.length <= 9) {
-      setPhone(val);
+    setPhone(val);
+    
+    if (val.length > 0 && val[0] !== '7') {
+      setErrors((prev) => ({ ...prev, phone: "Must start with 7" }));
+    } else if (errors.phone) {
       setErrors((prev) => ({ ...prev, phone: '' }));
     }
   };
@@ -272,7 +283,7 @@ export function LoginPage() {
                     <div className={cn("relative group rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.name ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
                       <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#0e76db]" />
                       <input 
-                        id="a-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" autoComplete="name"
+                        id="a-name" value={name} onChange={handleNameChange} placeholder="Full Name" autoComplete="name"
                         className="w-full bg-transparent py-4 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none"
                       />
                     </div>
