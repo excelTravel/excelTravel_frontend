@@ -28,7 +28,7 @@ export function RoutineModal({ open, onClose }: { open: boolean; onClose: () => 
   const [err, setErr] = useState<string | null>(null);
 
   function toggleDay(d: number) {
-    setDays((prev) => { const n = new Set(prev); n.has(d) ? n.delete(d) : n.add(d); return n; });
+    setDays((prev) => { const n = new Set(prev); if (n.has(d)) n.delete(d); else n.add(d); return n; });
   }
   function done() {
     setRouteId(''); setDirection('outbound'); setFrequency('daily'); setDays(new Set()); setDayOfMonth(''); setTimes(''); setVehicleId(''); setDriverId(''); setErr(null);

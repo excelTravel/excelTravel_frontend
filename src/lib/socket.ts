@@ -18,7 +18,7 @@ function getSocket(): Socket {
       autoConnect: true,
       transports: ['websocket'],
       // Refresh the Clerk token on every (re)connect so a rotated token still authenticates.
-      auth: (cb) => { void getAuthToken().then((token) => cb({ token: token ?? '' })); },
+      auth: (cb) => cb({ token: getAuthToken() ?? '' }),
     });
   }
   return socket;

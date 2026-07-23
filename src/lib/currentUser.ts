@@ -1,4 +1,5 @@
-import { useMe, useCompanies } from './api/hooks';
+import { useCompanies } from './api/hooks';
+import { useSession } from './auth/session';
 
 export interface CurrentUser {
   firstName: string;
@@ -17,15 +18,14 @@ const ROLE_LABEL: Record<string, string> = {
   passenger: 'Passenger',
 };
 
-// The signed-in user from GET /api/v1/me; company name resolved from GET /companies. Both are cached
-// TanStack queries, so this is cheap to call from the header on every page.
+// The signed-in user from the auth session (set at login); company name resolved from GET /companies.
 export function useCurrentUser(): CurrentUser {
-  const me = useMe();
+  const user = useSession((s) => s.user);
   const companies = useCompanies();
-  const firstName = me.data?.name?.split(' ')[0] ?? '…';
-  const role = me.data ? ROLE_LABEL[me.data.role] ?? me.data.role : '';
-  const location = companies.data?.find((c) => c.id === me.data?.companyId)?.name ?? '';
-  return { firstName, fullName: me.data?.name ?? '', email: me.data?.email ?? '', role, location };
+  const firstName = user?.name?.split(' ')[0] ?? '…';
+  const role = user ? ROLE_LABEL[user.role] ?? user.role : '';
+  const location = companies.data?.find((c) => c.id === user?.companyId)?.name ?? '';
+  return { firstName, fullName: user?.name ?? '', email: user?.email ?? '', role, location };
 }
 
 // Time-of-day period key ('morning' | 'afternoon' | 'evening') — translated in the header via i18n.

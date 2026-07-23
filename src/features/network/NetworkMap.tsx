@@ -5,8 +5,8 @@ import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusPill } from '@/components/ui/badge';
 import { useLiveBuses } from '@/features/map/useLiveBuses';
+import { useStops } from '@/lib/api/hooks';
 import { AddStopModal } from './NetworkModals';
-import { STATIONS } from './network';
 import { cn } from '@/lib/utils';
 
 // MapLibre is heavy → code-split; shimmer shows while the chunk + tiles load.
@@ -17,6 +17,8 @@ const RwandaMap = lazy(() => import('@/features/map/RwandaMap').then((m) => ({ d
 export function NetworkMap() {
   const { t } = useTranslation();
   const buses = useLiveBuses();
+  const stopsQ = useStops();
+  const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station').map((s) => ({ id: s.id, name: s.name, lng: s.longitude, lat: s.latitude }));
   const [selected, setSelected] = useState<string | null>(null);
   const [pinMode, setPinMode] = useState(false);
   const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
@@ -53,7 +55,7 @@ export function NetworkMap() {
               buses={buses}
               selectedId={selected}
               onSelectBus={setSelected}
-              stops={STATIONS}
+              stops={stations}
               pinMode={pinMode}
               onPick={handlePick}
               loadingLabel={t('map.loading')}

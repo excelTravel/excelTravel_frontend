@@ -1,15 +1,26 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Bus, LogOut } from 'lucide-react';
 import { useUi } from '@/store/ui';
 import { cn } from '@/lib/utils';
 import { opsNav } from './nav';
+import { authApi } from '@/lib/api/auth';
+import { useSession, getRefreshToken } from '@/lib/auth/session';
 
 // Slim navy glass rail: static on desktop (≥lg), an off-canvas drawer on mobile controlled by the UI store
 // (open via the header menu, the edge handle, or a left-to-right swipe; closes on backdrop tap or nav).
 export function Sidebar() {
   const { t } = useTranslation();
   const { sidebarOpen, closeSidebar } = useUi();
+  const navigate = useNavigate();
+  const clear = useSession((s) => s.clear);
+
+  async function onLogout() {
+    const rt = getRefreshToken();
+    if (rt) await authApi.logout(rt).catch(() => undefined);
+    clear();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <aside
@@ -56,6 +67,7 @@ export function Sidebar() {
       <div className="border-t border-white/10 py-4">
         <button
           type="button"
+          onClick={onLogout}
           className="flex w-full flex-col items-center gap-1.5 text-[10px] font-bold text-destructive transition-opacity hover:opacity-80"
         >
           <LogOut className="size-4" aria-hidden />

@@ -1,9 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ClerkProvider } from '@clerk/clerk-react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { config } from './lib/config';
 import '@fontsource-variable/inter';
 import './lib/i18n';
 import './styles/index.css';
@@ -26,19 +24,10 @@ function Providers({ children }: { children: React.ReactNode }) {
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-// Clerk wraps everything when a key is set; without one, the app still boots (dev-auth on the backend).
 root.render(
   <React.StrictMode>
-    {config.clerkPublishableKey ? (
-      <ClerkProvider publishableKey={config.clerkPublishableKey} afterSignOutUrl="/login">
-        <Providers>
-          <App />
-        </Providers>
-      </ClerkProvider>
-    ) : (
-      <Providers>
-        <App />
-      </Providers>
-    )}
+    <Providers>
+      <App />
+    </Providers>
   </React.StrictMode>,
 );
