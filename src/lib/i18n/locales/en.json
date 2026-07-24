@@ -723,7 +723,9 @@
       "hold": "On hold",
       "cancelled": "Cancelled"
     },
-    "showing": "Showing {{shown}} of {{total}} entries"
+    "showing": "Showing {{shown}} of {{total}} entries",
+    "loadMore": "Load more ({{shown}} of {{total}})",
+    "loading": "Loading…"
   },
   "trip": {
     "breadcrumb": "Trip Management",

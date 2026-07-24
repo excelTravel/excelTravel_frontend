@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { apiFetch } from './client';
+import { useMutation, useQuery, useInfiniteQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { apiFetch, apiFetchPaged, type Page } from './client';
 
 // Types mirror the live backend responses (excelTravel_backend). The API returns bare arrays / objects
 // (no envelope). Regenerate from openapi.json once it's refreshed; hand-typed here until then.
@@ -405,6 +405,22 @@ export const useWaitlists = (status?: 'open' | 'dispatched' | 'denied') =>
   useQuery({ queryKey: [...qk.waitlist, status ?? 'open'], queryFn: () => apiFetch<ApiWaitlist[]>(`/waitlist${status ? `?status=${status}` : ''}`) });
 export const useIncidents = (tripId?: string) =>
   useQuery({ queryKey: [...qk.incidents, tripId ?? 'all'], queryFn: () => apiFetch<ApiIncident[]>(`/incidents${tripId ? `?tripId=${tripId}` : ''}`) });
+// Infinite (load-more) list for the high-volume bookings endpoint: fetches pages of `pageSize` and stops
+// when the accumulated rows reach the server's X-Total-Count.
+function useInfiniteList<T>(key: readonly unknown[], path: string, pageSize: number) {
+  return useInfiniteQuery({
+    queryKey: [...key, 'infinite', pageSize],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => apiFetchPaged<T>(`${path}${path.includes('?') ? '&' : '?'}limit=${pageSize}&offset=${pageParam}`),
+    getNextPageParam: (_last: Page<T>, all: Page<T>[]) => {
+      const loaded = all.reduce((n, p) => n + p.items.length, 0);
+      return loaded < (all[0]?.total ?? 0) ? loaded : undefined;
+    },
+  });
+}
+export const useBookingsInfinite = (pageSize = 25) => useInfiniteList<ApiBooking>(qk.bookings, '/bookings', pageSize);
+export const useTripsInfinite = (pageSize = 25) => useInfiniteList<ApiTrip>(qk.trips, '/trips', pageSize);
+
 export const useBookingsByTrip = (tripId?: string) =>
   useQuery({ queryKey: [...qk.bookings, tripId ?? 'all'], queryFn: () => apiFetch<ApiBooking[]>(`/bookings${tripId ? `?tripId=${tripId}` : ''}`) });
 

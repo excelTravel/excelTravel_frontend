@@ -722,7 +722,9 @@
       "hold": "Bitegereje",
       "cancelled": "Byahagaritswe"
     },
-    "showing": "Byerekana {{shown}} muri {{total}}"
+    "showing": "Byerekana {{shown}} muri {{total}}",
+    "loadMore": "Erekana byinshi ({{shown}} muri {{total}})",
+    "loading": "Birapakirwa…"
   },
   "trip": {
     "breadcrumb": "Imicungire y'ingendo",

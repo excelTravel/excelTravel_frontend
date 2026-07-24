@@ -69,3 +69,24 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}, retried 
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }
+
+// Like apiFetch, but for the paginated list endpoints: returns the page items plus the total row count
+// from the X-Total-Count header (falls back to the page length when the header is absent).
+export interface Page<T> {
+  items: T[];
+  total: number;
+}
+export async function apiFetchPaged<T>(path: string, retried = false): Promise<Page<T>> {
+  const token = getAccessToken();
+  const res = await fetch(`${config.apiBaseUrl}${path}`, {
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+  if (res.status === 401 && !retried && getRefreshToken()) {
+    const fresh = await refreshAccess();
+    if (fresh) return apiFetchPaged<T>(path, true);
+  }
+  if (!res.ok) throw new ApiFetchError(await normalizeError(res));
+  const items = (await res.json()) as T[];
+  const header = res.headers.get('X-Total-Count');
+  return { items, total: header ? Number(header) : items.length };
+}

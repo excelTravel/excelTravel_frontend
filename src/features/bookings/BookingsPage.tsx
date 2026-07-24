@@ -13,7 +13,7 @@ import { formatRWF, cn } from '@/lib/utils';
 import {
   useOverview,
   usePeakBooking,
-  useBookings,
+  useBookingsInfinite,
   useTrips,
   useRoutes,
   useUpdatePayment,
@@ -42,7 +42,9 @@ export function BookingsPage() {
   const { t } = useTranslation();
   const overviewQ = useOverview();
   const peakQ = usePeakBooking();
-  const bookingsQ = useBookings();
+  const bookingsQ = useBookingsInfinite();
+  const loadedBookings = bookingsQ.data?.pages.flatMap((p) => p.items) ?? [];
+  const totalBookings = bookingsQ.data?.pages[0]?.total ?? loadedBookings.length;
   const tripsQ = useTrips();
   const routesQ = useRoutes();
   const updatePayment = useUpdatePayment();
@@ -54,7 +56,7 @@ export function BookingsPage() {
   const rows: BookingRow[] = useMemo(() => {
     const tripById = new Map((tripsQ.data ?? []).map((tp) => [tp.id, tp]));
     const routeById = new Map((routesQ.data ?? []).map((r) => [r.id, r]));
-    return (bookingsQ.data ?? []).map((b: ApiBooking) => {
+    return (bookingsQ.data?.pages.flatMap((p) => p.items) ?? []).map((b: ApiBooking) => {
       const tp = tripById.get(b.tripId);
       const r = tp ? routeById.get(tp.routeId) : undefined;
       return {
@@ -202,8 +204,14 @@ export function BookingsPage() {
             <h3 className="text-base font-semibold">{t('bookings.bookingInfo')}</h3>
             <p className="text-sm text-muted-foreground">{t('bookings.bookingInfoSub')}</p>
           </div>
-          <Async query={bookingsQ} isEmpty={() => rows.length === 0} skeleton={<div className="shimmer m-5 h-72 rounded-xl" />}>
-            {() => (
+          {bookingsQ.isLoading ? (
+            <div className="shimmer m-5 h-72 rounded-xl" />
+          ) : bookingsQ.isError ? (
+            <div className="px-6 py-12 text-center text-sm text-destructive">{t('common.error', 'Could not load bookings.')}</div>
+          ) : rows.length === 0 ? (
+            <div className="px-6 py-12 text-center text-sm text-muted-foreground">{t('bookings.emptyTitle')}</div>
+          ) : (
+            <>
               <DataTable
                 rows={rows}
                 columns={cols}
@@ -212,8 +220,15 @@ export function BookingsPage() {
                 searchPlaceholder={t('bookings.search')}
                 empty={t('bookings.emptyTitle')}
               />
-            )}
-          </Async>
+              {bookingsQ.hasNextPage && (
+                <div className="flex justify-center border-t border-border p-4">
+                  <Button variant="outline" onClick={() => void bookingsQ.fetchNextPage()} disabled={bookingsQ.isFetchingNextPage}>
+                    {bookingsQ.isFetchingNextPage ? t('bookings.loading', 'Loading…') : t('bookings.loadMore', { shown: loadedBookings.length, total: totalBookings })}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </GlassCard>
       </RevealItem>
     </Reveal>
