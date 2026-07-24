@@ -162,7 +162,11 @@
     "emptySub": "Gerageza ishungura ritandukanye cyangwa ukore urugendo rushya.",
     "showing": "Byerekana {{shown}} muri {{total}}",
     "prev": "Urupapuro rubanza",
-    "next": "Urupapuro rukurikira"
+    "next": "Urupapuro rukurikira",
+    "colTripNo": "Nomero y'urugendo",
+    "colOrigin": "Aho ava",
+    "colDestination": "Aho ijya",
+    "colPassengers": "Abagenzi"
   },
   "vehicles": {
     "colVehicle": "Imodoka",

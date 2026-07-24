@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bus } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
-import { useRoutes, useVehicles, useDrivers, useCreateTrip, useUpdateTrip } from '@/lib/api/hooks';
+import { useRoutes, useVehicles, useDrivers, useCreateTrip } from '@/lib/api/hooks';
 
 // Create a trip → POST /trips (CreateTrip: routeId, vehicleId?, driverId?, direction, departureTime).
 export function NewTripModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -85,74 +84,6 @@ export function NewTripModal({ open, onClose }: { open: boolean; onClose: () => 
             <option value="return">{t('tripsList.mng.return')}</option>
           </Select>
         </Field>
-      </div>
-    </Modal>
-  );
-}
-
-export interface ManageTrip {
-  id: string;
-  from: string;
-  to: string;
-  departs: string;
-  bus: string;
-  driver: string;
-  published: boolean;
-}
-
-// Manage an existing trip: reassign its vehicle and/or driver → PATCH /trips/:id { vehicleId, driverId }.
-export function TripManageModal({ trip, open, onClose }: { trip: ManageTrip | null; open: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
-  const vehiclesQ = useVehicles();
-  const driversQ = useDrivers();
-  const update = useUpdateTrip();
-  const [vehicleId, setVehicleId] = useState('');
-  const [driverId, setDriverId] = useState('');
-  const [err, setErr] = useState<string | null>(null);
-  if (!trip) return null;
-
-  function save() {
-    setErr(null);
-    if (!vehicleId && !driverId) { onClose(); return; }
-    update.mutate(
-      { id: trip!.id, ...(vehicleId ? { vehicleId } : {}), ...(driverId ? { driverId } : {}) },
-      { onSuccess: () => { setVehicleId(''); setDriverId(''); onClose(); }, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
-    );
-  }
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="lg"
-      title={t('tripsList.mng.manageTitle')}
-      description={`${trip.from} → ${trip.to} · ${trip.departs}`}
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={update.isPending}>{t('forms.cancel')}</Button>
-          <Button onClick={save} disabled={update.isPending || (!vehicleId && !driverId)}>{update.isPending ? t('forms.saving') : t('forms.save')}</Button>
-        </>
-      }
-    >
-      <div className="space-y-5">
-        {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t('tripsList.mng.changeVehicle')} htmlFor="mt-bus" hint={`${t('accidents.currentBus')}: ${trip.bus || '—'}`}>
-            <Select id="mt-bus" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
-              <option value="">{t('forms.selectVehicle')}</option>
-              {(vehiclesQ.data ?? []).filter((v) => v.status === 'active').map((v) => <option key={v.id} value={v.id}>{v.plateNumber}</option>)}
-            </Select>
-          </Field>
-          <Field label={t('tripsList.mng.selectDriver')} htmlFor="mt-driver" hint={`${t('trip.assignedDriver')}: ${trip.driver || '—'}`}>
-            <Select id="mt-driver" value={driverId} onChange={(e) => setDriverId(e.target.value)}>
-              <option value="">{t('tripsList.mng.selectDriver')}</option>
-              {(driversQ.data ?? []).map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </Select>
-          </Field>
-        </div>
-        <p className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-xs text-muted-foreground">
-          <Bus className="size-3.5" /> {t('tripsList.mng.publishHint')}
-        </p>
       </div>
     </Modal>
   );

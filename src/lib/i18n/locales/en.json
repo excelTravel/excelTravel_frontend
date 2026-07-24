@@ -162,7 +162,11 @@
     "emptySub": "Try a different filter or create a new trip.",
     "showing": "Showing {{shown}} of {{total}} trips",
     "prev": "Previous page",
-    "next": "Next page"
+    "next": "Next page",
+    "colTripNo": "Trip No.",
+    "colOrigin": "Origin",
+    "colDestination": "Destination",
+    "colPassengers": "Passengers"
   },
   "vehicles": {
     "colVehicle": "Vehicle",

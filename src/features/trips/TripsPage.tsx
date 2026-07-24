@@ -10,67 +10,57 @@ import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { WaitlistBoard } from './WaitlistBoard';
-import { NewTripModal, TripManageModal, type ManageTrip } from './TripManagement';
+import { NewTripModal } from './TripManagement';
 import { useTripRows } from './useTripRows';
 import { type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
 
+// One row = one individual trip. Trip No. leads; the route is shown as its planned origin -> destination.
+// Clicking a row opens that trip's detail (where all the actions live) — there is no per-row Manage here.
 export function TripsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [newTripOpen, setNewTripOpen] = useState(false);
-  const [manageTrip, setManageTrip] = useState<ManageTrip | null>(null);
   const tripsQ = useTripRows();
   const allRows = tripsQ.data;
   const countBy = (g: TripGroup) => allRows.filter((r) => r.group === g).length;
 
-  // Trips history — every dispatched trip. Filter only on route / bus / driver (per the table rules).
   const cols: Column<TripRow>[] = [
     {
-      key: 'route', header: t('tripsList.colRoute'), sort: (r) => `${r.from} ${r.to}`, filter: (r) => `${r.from} → ${r.to}`,
-      cell: (r) => (
-        <div>
-          <div className="flex items-center gap-2 font-medium">{r.from} <ArrowRight className="size-3.5 text-muted-foreground" /> {r.to}</div>
-          <p className="text-xs text-muted-foreground">{r.kind}</p>
-        </div>
-      ),
+      key: 'tripNo', header: t('tripsList.colTripNo'), sort: (r) => r.tripNo ?? 0,
+      cell: (r) => <span className="font-semibold tabular-nums">#{r.tripNo ?? '—'}</span>, td: 'whitespace-nowrap',
     },
-    { key: 'date', header: t('tripsList.colDate'), sort: (r) => r.date, cell: (r) => r.date, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    { key: 'origin', header: t('tripsList.colOrigin'), filter: (r) => r.origin, sort: (r) => r.origin, cell: (r) => r.origin, td: 'whitespace-nowrap font-medium' },
+    {
+      key: 'destination', header: t('tripsList.colDestination'), filter: (r) => r.destination, sort: (r) => r.destination,
+      cell: (r) => <span className="flex items-center gap-1.5 font-medium"><ArrowRight className="size-3.5 text-muted-foreground" /> {r.destination}</span>, td: 'whitespace-nowrap',
+    },
+    { key: 'date', header: t('tripsList.colDate'), filter: (r) => r.date, sort: (r) => r.departureAt, cell: (r) => r.date, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
     { key: 'departs', header: t('tripsList.colDeparts'), sort: (r) => r.departs, cell: (r) => r.departs, td: 'whitespace-nowrap tabular-nums' },
     { key: 'arrives', header: t('tripsList.colArrives'), sort: (r) => r.arrives, cell: (r) => r.arrives, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
-    { key: 'bus', header: t('tripsList.colBus'), filter: (r) => r.bus, sort: (r) => r.bus, cell: (r) => r.bus, td: 'whitespace-nowrap text-muted-foreground' },
-    { key: 'driver', header: t('tripsList.colDriver'), filter: (r) => r.driver, sort: (r) => r.driver, cell: (r) => r.driver, td: 'whitespace-nowrap' },
     {
-      key: 'occupancy', header: t('tripsList.colOccupancy'), sort: (r) => (r.capacity ? r.booked / r.capacity : 0),
+      key: 'passengers', header: t('tripsList.colPassengers'), sort: (r) => (r.capacity ? r.booked / r.capacity : 0),
       cell: (r) => {
         const pct = r.capacity ? Math.round((r.booked / r.capacity) * 100) : 0;
         return (
           <div className="flex items-center gap-2">
-            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
+            <div className="h-1.5 w-14 overflow-hidden rounded-full bg-secondary">
               <div className={cn('h-full rounded-full', pct >= 100 ? 'bg-warning' : 'bg-teal')} style={{ width: `${pct}%` }} />
             </div>
-            <span className="tabular-nums text-xs text-muted-foreground">{r.booked}/{r.capacity}</span>
+            <span className="tabular-nums text-xs text-muted-foreground">{r.booked}/{r.capacity || '—'}</span>
           </div>
         );
       },
     },
-    { key: 'status', header: t('tripsList.colStatus'), sort: (r) => r.status, cell: (r) => <StatusPill status={r.status}>{t(`tripsList.status.${r.status}`)}</StatusPill> },
+    { key: 'bus', header: t('tripsList.colBus'), filter: (r) => r.bus, sort: (r) => r.bus, cell: (r) => r.bus, td: 'whitespace-nowrap text-muted-foreground' },
+    { key: 'driver', header: t('tripsList.colDriver'), filter: (r) => r.driver, sort: (r) => r.driver, cell: (r) => r.driver, td: 'whitespace-nowrap' },
+    { key: 'status', header: t('tripsList.colStatus'), sort: (r) => r.status, cell: (r) => <StatusPill status={r.status}>{t(`tripsList.status.${r.status}`, r.status)}</StatusPill> },
     { key: 'revenue', header: t('tripsList.colRevenue'), align: 'right', sort: (r) => r.revenue, cell: (r) => (r.revenue ? formatRWF(r.revenue) : '—'), td: 'whitespace-nowrap font-semibold tabular-nums' },
-    {
-      key: 'actions', header: '',
-      cell: (r) => (
-        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setManageTrip({ id: r.id, from: r.from, to: r.to, departs: r.departs, bus: r.bus, driver: r.driver, published: false }); }}>
-          {t('tripsList.manage')}
-        </Button>
-      ),
-      td: 'text-right',
-    },
   ];
 
   return (
     <Reveal className="space-y-6">
       <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
-      <TripManageModal trip={manageTrip} open={manageTrip !== null} onClose={() => setManageTrip(null)} />
 
       {/* KPI cards */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -83,7 +73,7 @@ export function TripsPage() {
       {/* Agent & passenger waitlist (route schedules now live under Routes) */}
       <RevealItem><WaitlistBoard /></RevealItem>
 
-      {/* Trips history */}
+      {/* Trips history — individual trips, upcoming first */}
       <RevealItem>
         <GlassCard className="overflow-hidden">
           <div className="border-b border-border p-5 pb-3">
@@ -97,7 +87,7 @@ export function TripsPage() {
                 columns={cols}
                 rowKey={(r) => r.id}
                 onRowClick={(r) => navigate(`/trips/${r.id}`)}
-                search={(r) => `${r.from} ${r.to} ${r.bus} ${r.driver}`}
+                search={(r) => `${r.tripNo} ${r.origin} ${r.destination} ${r.bus} ${r.driver}`}
                 searchPlaceholder={t('tripsList.search')}
                 empty={t('tripsList.emptyTitle')}
                 toolbarRight={<Button size="sm" onClick={() => setNewTripOpen(true)}><Plus className="size-4" /> {t('tripsList.newTrip')}</Button>}

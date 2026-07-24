@@ -189,7 +189,8 @@ function RouteTripsModal({ route, trips, onClose }: { route: ApiRoute | null; tr
               >
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-sm font-medium">
-                    <span className="tabular-nums">{drillTimeFmt.format(new Date(tr.departureTime))}</span>
+                    <span className="tabular-nums">#{tr.tripNo ?? '—'}</span>
+                    <span className="tabular-nums text-muted-foreground">{drillTimeFmt.format(new Date(tr.departureTime))}</span>
                     <span className="text-muted-foreground">{tr.vehiclePlate ?? '—'}</span>
                   </p>
                   <p className="text-xs text-muted-foreground">{t(`tripsList.status.${tr.direction === 'return' ? 'return' : 'outbound'}`, tr.direction)} · {tr.booked}/{tr.capacity ?? '—'}</p>

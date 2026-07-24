@@ -70,12 +70,14 @@ export interface ApiVehicle {
 
 export interface ApiTrip {
   id: string;
+  tripNo: number | null;
   companyId: string;
   routeId: string;
   vehicleId: string | null;
   driverId: string | null;
   direction: 'outbound' | 'return';
   departureTime: string;
+  arrivalTime: string | null;
   status: string;
   booked: number;
   capacity: number | null;
