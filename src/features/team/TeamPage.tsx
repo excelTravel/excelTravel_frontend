@@ -9,11 +9,11 @@ import { DataTable, type Column } from '@/components/ui/data-table';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useUsers, type ApiUser } from '@/lib/api/hooks';
+import { useUsers, usePassengers, type ApiUser, type ApiPassengerSummary } from '@/lib/api/hooks';
 import { InviteUserModal } from './TeamModals';
-import { PASSENGERS, type Passenger } from './team';
+import { formatRWF } from '@/lib/utils';
 
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—');
 
 // Deterministic stub login metrics — the backend users table doesn't track logins yet (Clerk owns
 // sessions). Stable per id so the table doesn't flicker. Flagged in docs/integration-map.md.
@@ -33,13 +33,14 @@ export function TeamPage() {
   const [tab, setTab] = useState<'staff' | 'passengers'>('staff');
   const [invite, setInvite] = useState(false);
   const usersQ = useUsers();
+  const passengersQ = usePassengers();
   const users = usersQ.data ?? [];
 
   // One fixed KPI row across sub-sections — no layout shift.
   const cards = [
     { label: t('team.kpiStaff'), value: users.length },
     { label: t('team.kpiAgents'), value: users.filter((u) => u.role === 'agent').length },
-    { label: t('team.kpiPassengers'), value: PASSENGERS.length },
+    { label: t('team.kpiPassengers'), value: passengersQ.data?.length ?? 0 },
   ];
 
   return (
@@ -65,7 +66,7 @@ export function TeamPage() {
       </RevealItem>
 
       <RevealItem>
-        {tab === 'staff' ? <StaffPanel query={usersQ} onInvite={() => setInvite(true)} /> : <PassengersPanel />}
+        {tab === 'staff' ? <StaffPanel query={usersQ} onInvite={() => setInvite(true)} /> : <PassengersPanel query={passengersQ} />}
       </RevealItem>
     </Reveal>
   );
@@ -113,15 +114,17 @@ function StaffPanel({ query, onInvite }: { query: ReturnType<typeof useUsers>; o
   );
 }
 
-function PassengersPanel() {
+// Passengers who have booked with this company (GET /passengers, derived from bookings). Booking count,
+// last booking and total spend are all real; there is no login history for passengers here.
+function PassengersPanel({ query }: { query: ReturnType<typeof usePassengers> }) {
   const { t } = useTranslation();
-  const cols: Column<Passenger>[] = [
+  const cols: Column<ApiPassengerSummary>[] = [
     {
       key: 'user', header: t('team.colUser'), sort: (p) => p.name,
       cell: (p) => (
         <div className="flex items-center gap-3">
           <span className="grid size-9 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">{p.name.charAt(0)}</span>
-          <div><p className="font-medium">{p.name}</p><p className="text-xs text-muted-foreground">{p.email ?? t('team.noEmail')}</p></div>
+          <p className="font-medium">{p.name}</p>
         </div>
       ),
     },
@@ -135,20 +138,23 @@ function PassengersPanel() {
         </span>
       ),
     },
-    { key: 'lastLogin', header: t('team.colLastLogin'), sort: (p) => p.lastLogin, cell: (p) => fmtDate(p.lastLogin), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
-    { key: 'logins', header: t('team.colLogins'), sort: (p) => p.logins, cell: (p) => p.logins, td: 'tabular-nums text-muted-foreground' },
-    { key: 'updated', header: t('team.colUpdated'), align: 'right', sort: (p) => p.updated, cell: (p) => fmtDate(p.updated), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    { key: 'spend', header: t('team.colSpend'), align: 'right', sort: (p) => p.totalSpend, cell: (p) => formatRWF(p.totalSpend), td: 'whitespace-nowrap font-semibold tabular-nums' },
+    { key: 'lastBooking', header: t('team.colLastBooking'), align: 'right', sort: (p) => p.lastBookingAt ?? '', cell: (p) => fmtDate(p.lastBookingAt), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
   ];
   return (
     <GlassCard className="overflow-hidden">
-      <DataTable
-        rows={PASSENGERS}
-        columns={cols}
-        rowKey={(p) => p.id}
-        search={(p) => `${p.name} ${p.phone} ${p.email ?? ''}`}
-        searchPlaceholder={t('team.searchPax')}
-        empty={t('team.noPax')}
-      />
+      <Async query={query} isEmpty={(d) => d.length === 0} skeleton={<div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="shimmer h-9 rounded" />)}</div>} empty={<div className="px-6 py-12 text-center text-sm text-muted-foreground">{t('team.noPax')}</div>}>
+        {(data) => (
+          <DataTable
+            rows={data}
+            columns={cols}
+            rowKey={(p) => p.phone}
+            search={(p) => `${p.name} ${p.phone}`}
+            searchPlaceholder={t('team.searchPax')}
+            empty={t('team.noPax')}
+          />
+        )}
+      </Async>
     </GlassCard>
   );
 }

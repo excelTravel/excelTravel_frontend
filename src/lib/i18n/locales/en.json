@@ -297,7 +297,11 @@
     }
   },
   "team": {
-    "tabs": { "staff": "Staff", "agents": "Agents", "passengers": "Passengers" },
+    "tabs": {
+      "staff": "Staff",
+      "agents": "Agents",
+      "passengers": "Passengers"
+    },
     "kpiStaff": "Staff members",
     "kpiActive": "Active staff",
     "kpiAgents": "Agents",
@@ -313,12 +317,26 @@
     "searchStaff": "Search staff",
     "searchPax": "Search passengers",
     "paxFilterLabel": "Filter passengers",
-    "paxFilter": { "all": "All passengers", "frequent": "Frequent (10+)", "occasional": "Occasional", "oneTime": "One-time" },
+    "paxFilter": {
+      "all": "All passengers",
+      "frequent": "Frequent (10+)",
+      "occasional": "Occasional",
+      "oneTime": "One-time"
+    },
     "noEmail": "No email",
     "noPax": "No passengers match.",
     "noAgents": "No agents yet — invite your first booking agent.",
-    "roles": { "company_admin": "Company admin", "manager": "Manager", "agent": "Agent", "driver": "Driver" },
-    "status": { "active": "Active", "inactive": "Inactive", "suspended": "Suspended" },
+    "roles": {
+      "company_admin": "Company admin",
+      "manager": "Manager",
+      "agent": "Agent",
+      "driver": "Driver"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
     "inviteUser": "Invite staff",
     "inviteUserSub": "Onboard a staff member by email — they claim the account on first sign-in.",
     "inviteAgent": "Invite agent",
@@ -334,7 +352,9 @@
     "assignStation": "Assign station",
     "assignStationSub": "Give {{name}} access to a station's bookings.",
     "assign": "Assign",
-    "removeStation": "Remove station"
+    "removeStation": "Remove station",
+    "colSpend": "Total spend",
+    "colLastBooking": "Last booking"
   },
   "notifs": {
     "title": "Notifications",
@@ -345,8 +365,16 @@
     "ago": "ago",
     "empty": "You're all caught up",
     "emptySub": "No notifications to show.",
-    "channel": { "sms": "SMS", "push": "Push", "email": "Email" },
-    "status": { "pending": "Queued", "sent": "Sent", "failed": "Failed" }
+    "channel": {
+      "sms": "SMS",
+      "push": "Push",
+      "email": "Email"
+    },
+    "status": {
+      "pending": "Queued",
+      "sent": "Sent",
+      "failed": "Failed"
+    }
   },
   "routesMgmt": {
     "totalRoutes": "Total routes",
@@ -370,7 +398,12 @@
     "importSkipped": "{{n}} rows skipped:"
   },
   "network": {
-    "tabs": { "map": "Map", "routes": "Routes", "stops": "Stops & stations", "fares": "Fares" },
+    "tabs": {
+      "map": "Map",
+      "routes": "Routes",
+      "stops": "Stops & stations",
+      "fares": "Fares"
+    },
     "addStopPin": "Add stop (pin on map)",
     "pinCancel": "Cancel pin",
     "pinPrompt": "Click anywhere on the map to drop the stop.",
@@ -381,7 +414,10 @@
     "faresByRoute": "Fares by route",
     "noRoutes": "No routes yet — add your first route.",
     "noStops": "No stops yet — add a station or stop.",
-    "fareMode": { "byRoute": "By route", "matrix": "Matrix" },
+    "fareMode": {
+      "byRoute": "By route",
+      "matrix": "Matrix"
+    },
     "endToEnd": "end to end",
     "notSet": "Not set",
     "perRouteNote": "Leg fares are read from the national RURA matrix — the single source of truth for all routes.",
@@ -595,7 +631,10 @@
     "updatePricing": "Update pricing system"
   },
   "bookings": {
-    "view": { "dashboard": "Dashboard", "desk": "Booking desk" },
+    "view": {
+      "dashboard": "Dashboard",
+      "desk": "Booking desk"
+    },
     "desk": {
       "title": "Sell a ticket",
       "sub": "Pick a trip and segment — the fare fills in automatically.",
@@ -699,7 +738,11 @@
     "colArrival": "Arrival",
     "colIn": "Carried in",
     "startBadge": "Start",
-    "via": { "app": "App", "agent": "Agent", "web": "Web" },
+    "via": {
+      "app": "App",
+      "agent": "Agent",
+      "web": "Web"
+    },
     "colBoarded": "Boarded",
     "colAlighted": "Alighted",
     "colOnboard": "On board",

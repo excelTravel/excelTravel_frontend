@@ -297,7 +297,11 @@
     }
   },
   "team": {
-    "tabs": { "staff": "Abakozi", "agents": "Aba agent", "passengers": "Abagenzi" },
+    "tabs": {
+      "staff": "Abakozi",
+      "agents": "Aba agent",
+      "passengers": "Abagenzi"
+    },
     "kpiStaff": "Abakozi",
     "kpiActive": "Abakozi bakora",
     "kpiAgents": "Aba agent",
@@ -312,13 +316,26 @@
     "searchStaff": "Shakisha abakozi",
     "searchPax": "Shakisha abagenzi",
     "paxFilterLabel": "Shungura abagenzi",
-    "paxFilter": { "all": "Abagenzi bose", "frequent": "Bakunze (10+)", "occasional": "Rimwe na rimwe", "oneTime": "Rimwe gusa" },
+    "paxFilter": {
+      "all": "Abagenzi bose",
+      "frequent": "Bakunze (10+)",
+      "occasional": "Rimwe na rimwe",
+      "oneTime": "Rimwe gusa"
+    },
     "noEmail": "Nta imeyili",
     "noPax": "Nta bagenzi bahuye.",
     "noAgents": "Nta ba agent barahari — tumira uwa mbere.",
     "colStatus": "Uko bimeze",
-    "roles": { "company_admin": "Umuyobozi w'ikigo", "manager": "Umuyobozi", "agent": "Agent" },
-    "status": { "active": "Arakora", "inactive": "Ntakora", "suspended": "Yahagaritswe" },
+    "roles": {
+      "company_admin": "Umuyobozi w'ikigo",
+      "manager": "Umuyobozi",
+      "agent": "Agent"
+    },
+    "status": {
+      "active": "Arakora",
+      "inactive": "Ntakora",
+      "suspended": "Yahagaritswe"
+    },
     "inviteUser": "Tumira umukozi",
     "inviteUserSub": "Andika umukozi ukoresheje imeyili — azabona konti ubwa mbere yinjiye.",
     "inviteAgent": "Tumira agent",
@@ -334,7 +351,9 @@
     "assignStation": "Mushyire kuri sitasiyo",
     "assignStationSub": "Ha {{name}} uburenganzira ku matike ya sitasiyo.",
     "assign": "Mushyireho",
-    "removeStation": "Kura sitasiyo"
+    "removeStation": "Kura sitasiyo",
+    "colSpend": "Amafaranga yose",
+    "colLastBooking": "Ubukwe bwa nyuma"
   },
   "notifs": {
     "title": "Imenyesha",
@@ -345,8 +364,16 @@
     "ago": "ashize",
     "empty": "Nta gishya",
     "emptySub": "Nta menyesha rihari.",
-    "channel": { "sms": "SMS", "push": "Push", "email": "Imeyili" },
-    "status": { "pending": "Ryategereje", "sent": "Ryoherejwe", "failed": "Ryanze" }
+    "channel": {
+      "sms": "SMS",
+      "push": "Push",
+      "email": "Imeyili"
+    },
+    "status": {
+      "pending": "Ryategereje",
+      "sent": "Ryoherejwe",
+      "failed": "Ryanze"
+    }
   },
   "routesMgmt": {
     "totalRoutes": "Imihanda yose",
@@ -370,7 +397,12 @@
     "importSkipped": "Imirongo {{n}} yasimbutse:"
   },
   "network": {
-    "tabs": { "map": "Ikarita", "routes": "Imihanda", "stops": "Sitasiyo n'aho bahagarara", "fares": "Ibiciro" },
+    "tabs": {
+      "map": "Ikarita",
+      "routes": "Imihanda",
+      "stops": "Sitasiyo n'aho bahagarara",
+      "fares": "Ibiciro"
+    },
     "addStopPin": "Ongeraho aho bahagarara (kanda ku ikarita)",
     "pinCancel": "Kuraho",
     "pinPrompt": "Kanda ahantu hose ku ikarita ushyireho aho bahagarara.",
@@ -381,7 +413,10 @@
     "faresByRoute": "Ibiciro ku muhanda",
     "noRoutes": "Nta mihanda irahari — ongeraho umuhanda wa mbere.",
     "noStops": "Nta sitasiyo irahari — ongeraho sitasiyo.",
-    "fareMode": { "byRoute": "Ku muhanda", "matrix": "Imbonerahamwe" },
+    "fareMode": {
+      "byRoute": "Ku muhanda",
+      "matrix": "Imbonerahamwe"
+    },
     "endToEnd": "kuva ku iherezo",
     "notSet": "Ntacyashyizweho",
     "perRouteNote": "Ibiciro by'ibice biva mu mbonerahamwe ya RURA — isoko rimwe ry'ibiciro ku mihanda yose.",
@@ -595,7 +630,10 @@
     "updatePricing": "Hindura sisitemu y'ibiciro"
   },
   "bookings": {
-    "view": { "dashboard": "Ikibaho", "desk": "Aho bagurira" },
+    "view": {
+      "dashboard": "Ikibaho",
+      "desk": "Aho bagurira"
+    },
     "desk": {
       "title": "Gurisha itike",
       "sub": "Hitamo urugendo n'igice — igiciro cyiyuzuza.",
@@ -699,7 +737,11 @@
     "colArrival": "Kugera",
     "colIn": "Bari muri bisi",
     "startBadge": "Intangiriro",
-    "via": { "app": "Porogaramu", "agent": "Agent", "web": "Urubuga" },
+    "via": {
+      "app": "Porogaramu",
+      "agent": "Agent",
+      "web": "Urubuga"
+    },
     "colBoarded": "Binjiye",
     "colAlighted": "Bavuye",
     "colOnboard": "Bari muri bisi",

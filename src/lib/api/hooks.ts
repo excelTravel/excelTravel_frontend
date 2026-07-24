@@ -184,6 +184,7 @@ export const qk = {
   bookings: ['bookings'] as const,
   notifications: ['notifications'] as const,
   packages: ['packages'] as const,
+  passengers: ['passengers'] as const,
   overview: ['analytics', 'overview'] as const,
   routeRevenue: ['analytics', 'routeRevenue'] as const,
   tracking: ['tracking'] as const,
@@ -208,6 +209,15 @@ export const useAgents = () => useQuery({ queryKey: qk.agents, queryFn: () => ap
 export const useBookings = () => useQuery({ queryKey: qk.bookings, queryFn: () => apiFetch<ApiBooking[]>('/bookings') });
 export const useNotifications = () => useQuery({ queryKey: qk.notifications, queryFn: () => apiFetch<ApiNotification[]>('/notifications') });
 export const usePackages = () => useQuery({ queryKey: qk.packages, queryFn: () => apiFetch<ApiPackage[]>('/packages') });
+export interface ApiPassengerSummary {
+  passengerId: string | null;
+  name: string;
+  phone: string;
+  bookings: number;
+  lastBookingAt: string | null;
+  totalSpend: number;
+}
+export const usePassengers = () => useQuery({ queryKey: qk.passengers, queryFn: () => apiFetch<ApiPassengerSummary[]>('/passengers') });
 
 // ---------------------------------------------------------------------------
 // New response shapes (mirror excelTravel_backend validation)
