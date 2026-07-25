@@ -11,7 +11,6 @@ import {
   Megaphone,
   MessageSquare,
   Radio,
-  Route as RouteIcon,
   Shuffle,
   Users,
 } from 'lucide-react';
@@ -25,7 +24,6 @@ import { Async } from '@/components/ui/async';
 import { MapPreview } from '@/features/map/MapPreview';
 import {
   useTrip,
-  useTrips,
   useRoutes,
   useVehicles,
   useTripManifest,
@@ -55,7 +53,6 @@ export function TripDetailPage() {
 
   const qc = useQueryClient();
   const tripQ = useTrip(id);
-  const tripsQ = useTrips();
   const routesQ = useRoutes();
   const vehiclesQ = useVehicles();
   const manifestQ = useTripManifest(id);
@@ -81,9 +78,6 @@ export function TripDetailPage() {
   const appRevenue = manifest.filter((m) => m.bookingSource === 'app').reduce((s, m) => s + m.fareAmount, 0);
   const agentRevenue = manifest.filter((m) => m.bookingSource === 'agent').reduce((s, m) => s + m.fareAmount, 0);
   const capacity = trip?.capacity ?? 0;
-
-  // Sibling trips on the same route (each direction/time is its own trip) — selectable, no map.
-  const siblings = (tripsQ.data ?? []).filter((s) => s.routeId === trip?.routeId && s.id !== trip?.id).slice(0, 8);
 
   function downloadManifest() {
     downloadCsv(
@@ -122,30 +116,6 @@ export function TripDetailPage() {
           )}
         </div>
       </RevealItem>
-
-      {/* Sibling trips on the same route today — selectable, no map */}
-      {siblings.length > 0 && (
-        <RevealItem>
-          <GlassCard className="p-4">
-            <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              <RouteIcon className="size-3.5" /> {t('trip.otherTrips')}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {siblings.map((s) => (
-                <Link
-                  key={s.id}
-                  to={`/trips/${s.id}`}
-                  className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm transition-colors hover:bg-secondary/50"
-                >
-                  <span className="tabular-nums">{fmtTime(s.departureTime)}</span>
-                  <span className="text-muted-foreground">{s.vehiclePlate ?? '—'}</span>
-                  <StatusPill status={s.status}>{t(`tripsList.status.${s.status}`)}</StatusPill>
-                </Link>
-              ))}
-            </div>
-          </GlassCard>
-        </RevealItem>
-      )}
 
       <RevealItem className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Left: map, manifest + trip log, occupancy logs */}

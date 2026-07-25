@@ -26,6 +26,7 @@ interface DataTableProps<T> {
   pageSize?: number;
   toolbarRight?: ReactNode; // extra actions (e.g. an Add button)
   empty?: ReactNode;
+  filtersInline?: boolean; // render filter selects directly in the toolbar instead of behind a toggle button
 }
 
 // One table component with search, per-column filtering (only on columns given a `filter`), sortable
@@ -40,6 +41,7 @@ export function DataTable<T>({
   pageSize = 10,
   toolbarRight,
   empty,
+  filtersInline = false,
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -116,30 +118,23 @@ export function DataTable<T>({
               />
             </div>
           )}
-          {filterCols.length > 0 && (
+          {!filtersInline && filterCols.length > 0 && (
             <Button variant={showFilters ? 'default' : 'outline'} size="sm" onClick={() => setShowFilters((v) => !v)}>
               <SlidersHorizontal className="size-4" /> {t('table.filter')}
             </Button>
           )}
+          {filtersInline && filterCols.map((c) => (
+            <FilterSelect key={c.key} label={c.header} value={filters[c.key] ?? ''} options={options[c.key] ?? []} allLabel={t('table.all')} onChange={(v) => setFilter(c.key, v)} />
+          ))}
         </div>
         {toolbarRight}
       </div>
 
-      {/* Filter row */}
-      {showFilters && filterCols.length > 0 && (
+      {/* Filter row (toggled — only when filtersInline is off) */}
+      {!filtersInline && showFilters && filterCols.length > 0 && (
         <div className="flex flex-wrap gap-3 border-t border-border bg-secondary/30 px-4 py-3">
           {filterCols.map((c) => (
-            <label key={c.key} className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              {c.header}
-              <select
-                value={filters[c.key] ?? ''}
-                onChange={(e) => setFilter(c.key, e.target.value)}
-                className="h-8 rounded-lg border border-border bg-card px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <option value="">{t('table.all')}</option>
-                {options[c.key]?.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </label>
+            <FilterSelect key={c.key} label={c.header} value={filters[c.key] ?? ''} options={options[c.key] ?? []} allLabel={t('table.all')} onChange={(v) => setFilter(c.key, v)} />
           ))}
         </div>
       )}
@@ -198,5 +193,21 @@ export function DataTable<T>({
         </div>
       </div>
     </div>
+  );
+}
+
+function FilterSelect({ label, value, options, allLabel, onChange }: { label: string; value: string; options: string[]; allLabel: string; onChange: (v: string) => void }) {
+  return (
+    <label className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+      {label}
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-9 rounded-lg border border-border bg-card px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <option value="">{allLabel}</option>
+        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </label>
   );
 }
