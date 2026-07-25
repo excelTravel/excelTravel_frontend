@@ -124,7 +124,7 @@ Incidents (approve/reject), Private bookings, Audit-log viewer, Notifications li
 The frontend now talks to the real backend. Foundation + first slices are wired and **verified in-browser**.
 
 - **Base URL**: `VITE_API_BASE_URL` must include `/api/v1` (hooks call resource paths like `/trips`). Live server: `http://13.140.133.61:3300/api/v1`. Local: `http://localhost:3000/api/v1`.
-- **Auth for local dev**: the backend supports `DEV_AUTH=true` (dev only) + an `X-Dev-User: <clerk_user_id>` header. The frontend sends it automatically when `VITE_DEV_USER` is set (see `.env.local`, git-ignored). Seeded company_admin id: `user_3GAhHKHfYTsv8FjymMdUpCSX3Ry`. For any hosted/prod run, leave `VITE_DEV_USER` empty and set `VITE_CLERK_PUBLISHABLE_KEY` so real Clerk login is used (`RequireAuth` already feeds the token into `apiFetch`).
+- **Auth for local dev**: the backend supports `DEV_AUTH=true` (dev only) + an `X-Dev-User: <user_id>` header. The frontend sends it automatically when `VITE_DEV_USER` is set (see `.env.local`, git-ignored). Seeded company_admin id: `user_3GAhHKHfYTsv8FjymMdUpCSX3Ry`. For any hosted/prod run, leave `VITE_DEV_USER` empty and sign in through the real in-house email/phone + OTP flow so `apiFetch` gets a live access token (`RequireAuth` gates the shell on `useSession`; see `src/lib/auth/session.ts` + `src/lib/api/client.ts`).
 - **CORS**: backend `CORS_ORIGINS=http://localhost:5173` — run the frontend on **5173** (`npm run dev`) to hit a local backend; other ports are blocked.
 - **Client**: `lib/api/hooks.ts` (typed TanStack Query hooks, hand-typed from live responses — bare arrays, no envelope), `lib/api/client.ts` (`apiFetch`), `components/ui/async.tsx` (`<Async>` loading/error/empty wrapper).
 - **Wired + verified** (live data, in-browser, 200s + zero console errors):
@@ -156,7 +156,7 @@ The frontend now talks to the real backend. Foundation + first slices are wired 
 8. **Driver document images** (profile/licence/ID) — drivers store licence number + expiry only; needs image-URL fields (Cloudinary).
 9. **Global parcel pricing config** — only per-package `PATCH /packages/{id}/fee` exists; a base-fee + weight-surcharge config endpoint is needed.
 10. **Regenerate `openapi.json`** — it's stale (missing drivers/maintenance/analytics/tracking/notifications/incidents/agents/audit/private-bookings). Needed before generating the typed client.
-11. **Passenger login metrics** — Users → **Passengers** tab shows *last login*, *login count* and *bookings-with-this-company*, all mocked. The `users` table doesn't track logins (Clerk owns auth sessions); needs either a `last_login`/`login_count` sync from Clerk webhooks or a login-events table. Bookings-per-passenger is derivable from `bookings` grouped by `passenger_id`.
+11. **Passenger login metrics** — Users → **Passengers** tab shows *last login*, *login count* and *bookings-with-this-company*, all mocked. The `users` table doesn't track logins (sessions are handled in-house via the OTP auth flow); needs either a `last_login`/`login_count` update on each successful OTP verification or a login-events table. Bookings-per-passenger is derivable from `bookings` grouped by `passenger_id`.
 12. **Map-pinned stop coordinates** — Network → Map lets you drop a stop by clicking the map; it fills `latitude`/`longitude` for `POST /stops` (which already accepts them), so this is UI-only — no backend change needed.
 
 > **Admin section removed** — Companies / Audit-log / Private-bookings were pulled from this ops build; they

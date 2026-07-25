@@ -15,8 +15,9 @@ import { formatRWF } from '@/lib/utils';
 
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—');
 
-// Deterministic stub login metrics — the backend users table doesn't track logins yet (Clerk owns
-// sessions). Stable per id so the table doesn't flicker. Flagged in docs/integration-map.md.
+// Deterministic stub login metrics — the backend users table doesn't track logins yet (sessions are
+// tracked in-house via the OTP auth flow). Stable per id so the table doesn't flicker. Flagged in
+// docs/integration-map.md.
 function loginMetrics(seed: string) {
   let h = 0;
   for (let i = 0; i < seed.length; i++) h = (Math.imul(h, 31) + seed.charCodeAt(i)) >>> 0;

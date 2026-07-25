@@ -1,5 +1,10 @@
 # excelTravel Frontend — build plan
 
+> **Historical plan — auth has since changed.** This doc reflects the original plan when Clerk was the
+> auth provider. The project later migrated to an in-house email/phone + OTP auth system (see the repo
+> `CLAUDE.md` for the current flow); the Clerk references below are left as-written for history rather
+> than rewritten.
+
 ## Context
 The backend is built + pushed: full multi-tenant bus-ops API (Clerk auth, RLS, live tracking + proximity
 alerts, trips/bookings, fleet, analytics, parcels, incidents, audit) described in a committed `openapi.json`.

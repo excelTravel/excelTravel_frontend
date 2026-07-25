@@ -3,9 +3,10 @@ import { io, type Socket } from 'socket.io-client';
 import { config } from './config';
 import { getAuthToken } from './api/client';
 
-// Shared Socket.io connection to the backend. The server authenticates the Clerk token in the handshake and
-// authorizes trip rooms per request; we join a room to receive that trip's bus:location / bus:alert /
-// trip:status events. One connection is shared across the app and lazily established on first use.
+// Shared Socket.io connection to the backend. The server authenticates our access token (from getAuthToken(),
+// see lib/api/session) in the handshake and authorizes trip rooms per request; we join a room to receive that
+// trip's bus:location / bus:alert / trip:status events. One connection is shared across the app and lazily
+// established on first use.
 
 // The socket server is attached at the API origin (strip the /api/v1 suffix the REST client uses).
 const SOCKET_URL = config.apiBaseUrl.replace(/\/api\/v1\/?$/, '');
@@ -17,7 +18,7 @@ function getSocket(): Socket {
     socket = io(SOCKET_URL, {
       autoConnect: true,
       transports: ['websocket'],
-      // Refresh the Clerk token on every (re)connect so a rotated token still authenticates.
+      // Refresh the access token on every (re)connect so a rotated token still authenticates.
       auth: (cb) => cb({ token: getAuthToken() ?? '' }),
     });
   }

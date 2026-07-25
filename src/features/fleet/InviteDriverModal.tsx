@@ -7,7 +7,7 @@ import { useInviteDriver } from '@/lib/api/hooks';
 
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
-// Invite a driver by email → POST /drivers (pre-creates the driver row + Clerk email invitation). The
+// Invite a driver by email → POST /drivers (pre-creates the driver row + email invitation). The
 // driver claims the row on first sign-in with that email.
 export function InviteDriverModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();

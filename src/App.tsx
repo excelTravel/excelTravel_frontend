@@ -22,7 +22,7 @@ const RouteManagementPage = lazy(() => import('./features/routes/RouteManagement
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 const TeamPage = lazy(() => import('./features/team/TeamPage').then((m) => ({ default: m.TeamPage })));
 
-// Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
+// Ops-manager routes under the app shell. Login is always enforced (in-house OTP auth; see lib/config).
 export function App() {
   return (
     <Routes>

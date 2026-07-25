@@ -11,11 +11,13 @@ manager, agent, driver, passenger). It talks to the `excelTravel_backend` API. N
 Overview: navy base + **teal** signature accent, frosted cards, RWF currency, EN/KIN, Rwanda live map.
 
 ## Stack (locked)
-- **React 18 + TypeScript + Vite** (SPA behind Clerk auth — no SSR, self-hostable as static files, zero billing).
+- **React 18 + TypeScript + Vite** (SPA behind in-house OTP auth — no SSR, self-hostable as static files, zero billing).
 - **Tailwind CSS + shadcn/ui** (Radix). Icons: **lucide-react**.
 - **TanStack Query** for server state; **Zustand** for light UI state.
 - **React Router** for routing.
-- **@clerk/clerk-react** for auth (token attached to API calls; matches backend).
+- **In-house email/phone + OTP auth** (`src/lib/auth/session.ts` zustand store + `src/lib/api/client.ts`): short-lived
+  access token kept in memory and attached as a bearer token on API calls; an opaque refresh token persists in
+  `localStorage` so `bootstrapSession()` can silently restore a session on reload via `POST /auth/refresh`.
 - **react-i18next** (EN + KIN); **date-fns** (Africa/Kigali timezone), RWF/number locale formatting.
 - **React Hook Form + Zod** for forms + input validation; **DOMPurify** for any rich text.
 - **MapLibre GL + free OSM tiles** (zero billing) for live tracking maps. Map feature lives in
@@ -35,7 +37,7 @@ Overview: navy base + **teal** signature accent, frosted cards, RWF currency, EN
 - Base URL from `VITE_API_BASE_URL` (dev: `http://localhost:3000`). All API under `/api/v1`.
 - **Types are generated from `../excelTravel_backend/openapi.json`** (`npm run openapi:types` →
   `src/lib/api/types.ts`). This is build-time only; **runtime calls go directly to the backend over HTTP.**
-- Auth: Clerk bearer token in `Authorization`. Local dev can use the backend's dev-auth (no token) — see backend `.env`.
+- Auth: our own access token (from `src/lib/auth/session.ts`) as a bearer token in `Authorization`. Local dev can use the backend's dev-auth (no token) — see backend `.env`.
 - Realtime socket events: `bus:location`, `bus:alert`, `trip:status` (join a trip room to receive them).
 - The backend enforces RLS/RBAC — the frontend only hides/disables what a role can't use (never the security boundary).
 
@@ -84,13 +86,13 @@ origin-bus check) + detail + per-trip Manage [x] Booking desk (Bookings → Desk
 [x] Fleet console (Vehicles / Drivers roster+fairness / Maintenance=coming-soon / Accidents)
 [x] Network — **Map** (live+scheduled buses, pin-to-add-stop) / Routes / Stops / Fares (per-route + matrix)
 [x] Users (Staff / Agents / Passengers-with-metrics) [x] Analytics [x] Parcels [x] Notifications [x] Settings
-Auth: [x] Login/Continue with Google (Clerk) · Remaining: [ ] Passenger portal [ ] Driver portal (mobile-first)
+Auth: [x] Login (email/phone + OTP) · Remaining: [ ] Passenger portal [ ] Driver portal (mobile-first)
 Removed from ops build: standalone Live Map (now Network→Map), Admin/Companies/Audit/Private-bookings
 (→ future system-admin surface). Plates are formatted `RAA-000-A`.
 
 **All screens render from local stub data**, aligned to the backend contracts (shapes/enums verified against
 `../excelTravel_backend`), full EN/KIN i18n + dark mode + code-split routes. **Not wired to the API yet** —
-next big step is: regenerate `openapi.json` → typed client → TanStack Query hooks → Clerk token → live socket.
+next big step is: regenerate `openapi.json` → typed client → TanStack Query hooks → OTP session token → live socket.
 Mock-ahead features + backend gaps are tracked in `docs/integration-map.md`.
 
 ## Status
