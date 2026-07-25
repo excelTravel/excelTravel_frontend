@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { useTrips, useRouteRevenue, usePeakTravel, usePeakBooking } from '@/lib/api/hooks';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
 const HOURS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22];
 const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
@@ -24,8 +25,13 @@ const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)
 
 export function AnalyticsPage() {
   const { t } = useTranslation();
-  const tripsQ = useTrips();
-  const routeRevQ = useRouteRevenue();
+  const { range } = useDateRange();
+  const rangeQuery = rangeToQuery(range);
+  // Both feed the route-performance table (trip count/occupancy from trips, revenue from route-revenue),
+  // so both need the same range or the table's columns would disagree. peak-travel/peak-booking keep their
+  // own separate 90-day-default `since` semantics — not this range concept, left untouched.
+  const tripsQ = useTrips(rangeQuery);
+  const routeRevQ = useRouteRevenue(rangeQuery);
   const peakTravelQ = usePeakTravel();
   const peakBookingQ = usePeakBooking();
 

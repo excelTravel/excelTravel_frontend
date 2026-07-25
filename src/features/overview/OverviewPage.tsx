@@ -8,6 +8,7 @@ import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { MapPreview } from '@/features/map/MapPreview';
 import { formatRWF } from '@/lib/utils';
 import { useOverview, useNotifications, type ApiNotification } from '@/lib/api/hooks';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
 const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}K` : String(n));
 
@@ -25,17 +26,21 @@ function ago(iso: string): string {
 
 export function OverviewPage() {
   const { t } = useTranslation();
-  const overviewQ = useOverview();
+  const { preset, range, label } = useDateRange();
+  const overviewQ = useOverview(rangeToQuery(range));
   const notificationsQ = useNotifications();
   const o = overviewQ.data;
+  // dailyRevenue/ticketsToday follow the picker's range (default: today); revenueMtd/busesActive don't
+  // (fixed month-to-date / live-now concepts) — so only the former get the active-range subtext.
+  const rangeSub = preset !== 'all' && preset !== 'today' ? label : undefined;
 
   return (
     <Reveal className="space-y-6">
       {/* KPI row — live from GET /analytics/overview */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard hero loading={overviewQ.isLoading} label={t('overview.dailyRevenue')} value={o ? K(o.dailyRevenue) : '—'} unit="RWF" />
+        <KpiCard hero loading={overviewQ.isLoading} label={t('overview.dailyRevenue')} value={o ? K(o.dailyRevenue) : '—'} unit="RWF" sub={rangeSub} />
         <KpiCard loading={overviewQ.isLoading} label={t('overview.revenueMtd')} value={o ? K(o.revenueMtd) : '—'} unit="RWF" />
-        <KpiCard loading={overviewQ.isLoading} label={t('overview.ticketsToday')} value={o ? String(o.ticketsToday) : '—'} />
+        <KpiCard loading={overviewQ.isLoading} label={t('overview.ticketsToday')} value={o ? String(o.ticketsToday) : '—'} sub={rangeSub} />
         <KpiCard loading={overviewQ.isLoading} label={t('overview.busesActive')} value={o ? String(o.busesActive) : '—'} />
       </RevealItem>
 

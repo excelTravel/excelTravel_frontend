@@ -1,4 +1,4 @@
-import { useTrips, useRoutes } from '@/lib/api/hooks';
+import { useTrips, useRoutes, type RangeQuery } from '@/lib/api/hooks';
 import type { TripRow, TripGroup } from './trips';
 
 // Backend trip status → the UI's coarse group.
@@ -16,8 +16,8 @@ const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hou
 
 // Joins live /trips with /routes for each trip's planned origin/destination (the route endpoints, swapped
 // for a return trip). Passengers, bus, driver and revenue come straight off the enriched /trips payload.
-export function useTripRows() {
-  const trips = useTrips();
+export function useTripRows(range?: RangeQuery) {
+  const trips = useTrips(range);
   const routes = useRoutes();
 
   const routeById = new Map((routes.data ?? []).map((r) => [r.id, r]));

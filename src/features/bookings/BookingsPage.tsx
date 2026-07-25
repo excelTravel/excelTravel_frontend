@@ -20,6 +20,7 @@ import {
   useCancelBooking,
   type ApiBooking,
 } from '@/lib/api/hooks';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
 const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}K` : String(n));
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -42,7 +43,8 @@ export function BookingsPage() {
   const { t } = useTranslation();
   const overviewQ = useOverview();
   const peakQ = usePeakBooking();
-  const bookingsQ = useBookingsInfinite();
+  const { range } = useDateRange();
+  const bookingsQ = useBookingsInfinite(25, rangeToQuery(range));
   const loadedBookings = bookingsQ.data?.pages.flatMap((p) => p.items) ?? [];
   const totalBookings = bookingsQ.data?.pages[0]?.total ?? loadedBookings.length;
   const tripsQ = useTrips();

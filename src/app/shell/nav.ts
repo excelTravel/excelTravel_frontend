@@ -9,10 +9,10 @@ export interface NavItem {
 // Ops-manager navigation (we start here). Role-based variants layer on later.
 export const opsNav: NavItem[] = [
   { to: '/', labelKey: 'nav.overview', icon: LayoutDashboard },
-  { to: '/trips', labelKey: 'nav.trips', icon: Route },
-  { to: '/routes', labelKey: 'nav.routes', icon: Waypoints },
   { to: '/fleet', labelKey: 'nav.fleet', icon: Bus },
+  { to: '/routes', labelKey: 'nav.routes', icon: Waypoints },
   { to: '/network', labelKey: 'nav.liveMap', icon: Map },
+  { to: '/trips', labelKey: 'nav.trips', icon: Route },
   { to: '/bookings', labelKey: 'nav.bookings', icon: Ticket },
   { to: '/parcels', labelKey: 'nav.parcels', icon: Package },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },

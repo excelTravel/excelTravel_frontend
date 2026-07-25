@@ -21,12 +21,14 @@ import { usePackages } from '@/lib/api/hooks';
 import { ParcelJourneyModal, type ParcelLite } from './ParcelJourneyModal';
 import { UpdatePricingModal } from './UpdatePricingModal';
 import { cn } from '@/lib/utils';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
 export function ParcelsPage() {
   const { t } = useTranslation();
   const [journey, setJourney] = useState<ParcelLite | null>(null);
   const [pricingOpen, setPricingOpen] = useState(false);
-  const packagesQ = usePackages();
+  const { range } = useDateRange();
+  const packagesQ = usePackages(rangeToQuery(range));
   // /packages custody chain. from/to/weight/note aren't in the list payload yet → degrade to —.
   const manifest = (packagesQ.data ?? []).map((p) => ({
     wb: p.trackingCode,

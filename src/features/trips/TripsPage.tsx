@@ -10,10 +10,12 @@ import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { WaitlistBoard } from './WaitlistBoard';
+import { SchedulesTable } from './SchedulesTable';
 import { NewTripModal } from './TripManagement';
 import { useTripRows } from './useTripRows';
 import { type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
 // One row = one individual trip. Trip No. leads; the route is shown as its planned origin -> destination.
 // Clicking a row opens that trip's detail (where all the actions live) — there is no per-row Manage here.
@@ -21,7 +23,8 @@ export function TripsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [newTripOpen, setNewTripOpen] = useState(false);
-  const tripsQ = useTripRows();
+  const { range } = useDateRange();
+  const tripsQ = useTripRows(rangeToQuery(range));
   const allRows = tripsQ.data;
   const countBy = (g: TripGroup) => allRows.filter((r) => r.group === g).length;
 
@@ -70,8 +73,11 @@ export function TripsPage() {
         <KpiCard label={t('tripsList.kpiCompleted')} value={String(countBy('completed'))} />
       </RevealItem>
 
-      {/* Agent & passenger waitlist (route schedules now live under Routes) */}
+      {/* Agent & passenger waitlist */}
       <RevealItem><WaitlistBoard /></RevealItem>
+
+      {/* Route schedules — the recurring template each route runs on */}
+      <RevealItem><SchedulesTable /></RevealItem>
 
       {/* Trips history — individual trips, upcoming first */}
       <RevealItem>

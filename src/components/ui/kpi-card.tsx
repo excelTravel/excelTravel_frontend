@@ -18,9 +18,10 @@ export interface KpiCardProps {
   hero?: boolean; // dark navy emphasized card
   tone?: 'default' | 'danger'; // red-tinted card (e.g. maintenance alerts)
   loading?: boolean;
+  sub?: string; // small muted line under the value, e.g. the active date-range label
 }
 
-export function KpiCard({ label, value, unit, delta, badge, hero, tone = 'default', loading }: KpiCardProps) {
+export function KpiCard({ label, value, unit, delta, badge, hero, tone = 'default', loading, sub }: KpiCardProps) {
   const { t } = useTranslation();
 
   const surface = hero
@@ -72,6 +73,9 @@ export function KpiCard({ label, value, unit, delta, badge, hero, tone = 'defaul
             <span className={cn('text-xs', hero ? 'text-white/60' : 'text-muted-foreground')}>{delta.comparison}</span>
           )}
         </div>
+      )}
+      {sub && !delta && (
+        <p className={cn('mt-2 text-xs', hero ? 'text-white/60' : 'text-muted-foreground')}>{sub}</p>
       )}
     </div>
   );
