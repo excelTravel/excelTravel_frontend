@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useInfiniteQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueries, useInfiniteQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { apiFetch, apiFetchPaged, type Page } from './client';
 
 // Types mirror the live backend responses (excelTravel_backend). The API returns bare arrays / objects
@@ -107,6 +107,8 @@ export interface ApiUser {
   role: 'super_admin' | 'company_admin' | 'manager' | 'agent';
   status: 'active' | 'inactive' | 'suspended';
   companyId: string;
+  lastLoginAt: string | null;
+  loginCount: number;
 }
 
 export interface ApiCompany {
@@ -118,6 +120,9 @@ export interface ApiCompany {
   logoUrl: string | null;
   commissionRate: number;
   status: 'active' | 'inactive';
+  parcelBaseFeeRwf: number | null;
+  parcelSurchargePerKgRwf: number | null;
+  driverWeeklyHourCap: number | null;
   createdAt: string;
 }
 
@@ -130,6 +135,9 @@ export interface ApiDriver {
   licenseExpiry: string | null;
   rating: number | null;
   status: string;
+  photoUrl: string | null;
+  licenseImageUrl: string | null;
+  idImageUrl: string | null;
 }
 
 export interface ApiAgent {
@@ -137,6 +145,7 @@ export interface ApiAgent {
   name: string;
   email: string;
   phone: string;
+  photoUrl: string | null;
   stationIds: string[];
 }
 
@@ -162,13 +171,30 @@ export interface ApiNotification {
   createdAt: string;
 }
 
+export interface ApiPackageEvent {
+  id: string;
+  event: string;
+  actorUserId: string | null;
+  stopId: string | null;
+  photoUrl: string | null;
+  notes: string | null;
+  createdAt: string;
+}
 export interface ApiPackage {
   id: string;
-  trackingCode: string;
+  companyId: string;
   senderName: string;
+  senderPhone: string;
   recipientName: string;
-  status: string;
+  recipientPhone: string;
+  fromStopId: string;
+  toStopId: string;
+  description: string;
   fee: number | null;
+  paymentStatus: string;
+  status: string;
+  createdAt: string;
+  events?: ApiPackageEvent[];
 }
 
 // Stable query keys so mutations can invalidate precisely later.
@@ -193,7 +219,22 @@ export const qk = {
   tripTemplates: ['tripTemplates'] as const,
   waitlist: ['waitlist'] as const,
   incidents: ['incidents'] as const,
+  driverShifts: ['driverShifts'] as const,
 };
+
+// Header date-range picker's selected bounds, as accepted by the `from`/`to`-aware list/analytics
+// endpoints (see src/store/dateRange.ts `rangeToQuery`). Appended to the query string only when both
+// bounds are present, and folded into the query key so each range gets its own cache entry.
+export interface RangeQuery {
+  from?: string;
+  to?: string;
+}
+
+function withRange(path: string, range?: RangeQuery): string {
+  if (!range?.from || !range?.to) return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
+}
 
 export const useMe = () => useQuery({ queryKey: qk.me, queryFn: () => apiFetch<Me>('/me') });
 export const useRoutes = () => useQuery({ queryKey: qk.routes, queryFn: () => apiFetch<ApiRoute[]>('/routes') });
@@ -203,14 +244,17 @@ export const useRoute = (routeId?: string) =>
 export const useStops = () => useQuery({ queryKey: qk.stops, queryFn: () => apiFetch<ApiStop[]>('/stops') });
 export const useFares = () => useQuery({ queryKey: qk.fares, queryFn: () => apiFetch<ApiFare[]>('/fares') });
 export const useVehicles = () => useQuery({ queryKey: qk.vehicles, queryFn: () => apiFetch<ApiVehicle[]>('/vehicles') });
-export const useTrips = () => useQuery({ queryKey: qk.trips, queryFn: () => apiFetch<ApiTrip[]>('/trips') });
+export const useTrips = (range?: RangeQuery) =>
+  useQuery({ queryKey: [...qk.trips, range?.from, range?.to], queryFn: () => apiFetch<ApiTrip[]>(withRange('/trips', range)) });
 export const useUsers = () => useQuery({ queryKey: qk.users, queryFn: () => apiFetch<ApiUser[]>('/users') });
 export const useCompanies = () => useQuery({ queryKey: qk.companies, queryFn: () => apiFetch<ApiCompany[]>('/companies') });
 export const useDrivers = () => useQuery({ queryKey: qk.drivers, queryFn: () => apiFetch<ApiDriver[]>('/drivers') });
 export const useAgents = () => useQuery({ queryKey: qk.agents, queryFn: () => apiFetch<ApiAgent[]>('/agents') });
-export const useBookings = () => useQuery({ queryKey: qk.bookings, queryFn: () => apiFetch<ApiBooking[]>('/bookings') });
+export const useBookings = (range?: RangeQuery) =>
+  useQuery({ queryKey: [...qk.bookings, range?.from, range?.to], queryFn: () => apiFetch<ApiBooking[]>(withRange('/bookings', range)) });
 export const useNotifications = () => useQuery({ queryKey: qk.notifications, queryFn: () => apiFetch<ApiNotification[]>('/notifications') });
-export const usePackages = () => useQuery({ queryKey: qk.packages, queryFn: () => apiFetch<ApiPackage[]>('/packages') });
+export const usePackages = (range?: RangeQuery) =>
+  useQuery({ queryKey: [...qk.packages, range?.from, range?.to], queryFn: () => apiFetch<ApiPackage[]>(withRange('/packages', range)) });
 export interface ApiPassengerSummary {
   passengerId: string | null;
   name: string;
@@ -353,6 +397,10 @@ export interface ApiWaitlist {
   joiners: ApiWaitlistJoiner[];
 }
 
+// Coarse incident type (backend migration 016) so ops can see which kind of incident happens most,
+// per route/bus. Existing rows predating the migration backfill to 'other'.
+export type ApiIncidentCategory = 'mechanical' | 'collision' | 'medical' | 'road_hazard' | 'weather' | 'other';
+
 export interface ApiIncident {
   id: string;
   tripId: string;
@@ -360,6 +408,7 @@ export interface ApiIncident {
   reportedBy: string | null;
   imageUrl: string | null;
   description: string;
+  category: ApiIncidentCategory;
   status: string;
   oldVehicleId: string | null;
   newVehicleId: string | null;
@@ -396,12 +445,31 @@ export interface ApiPeakTravel {
   passengerCount: number;
 }
 
-export const useOverview = () => useQuery({ queryKey: qk.overview, queryFn: () => apiFetch<ApiOverview>('/analytics/overview') });
+export const useOverview = (range?: RangeQuery) =>
+  useQuery({ queryKey: [...qk.overview, range?.from, range?.to], queryFn: () => apiFetch<ApiOverview>(withRange('/analytics/overview', range)) });
 export const usePeakBooking = () => useQuery({ queryKey: ['analytics', 'peakBooking'], queryFn: () => apiFetch<ApiPeakBooking[]>('/analytics/peak-booking') });
 export const usePeakTravel = () => useQuery({ queryKey: ['analytics', 'peakTravel'], queryFn: () => apiFetch<ApiPeakTravel[]>('/analytics/peak-travel') });
-export const useRouteRevenue = () => useQuery({ queryKey: qk.routeRevenue, queryFn: () => apiFetch<ApiRouteRevenue[]>('/analytics/routes/revenue') });
+export const useRouteRevenue = (range?: RangeQuery) =>
+  useQuery({ queryKey: [...qk.routeRevenue, range?.from, range?.to], queryFn: () => apiFetch<ApiRouteRevenue[]>(withRange('/analytics/routes/revenue', range)) });
 // Company-wide live vehicle positions; polled for near-live movement on the fleet map.
 export const useTracking = () => useQuery({ queryKey: qk.tracking, queryFn: () => apiFetch<ApiLocation[]>('/tracking'), refetchInterval: 10_000 });
+
+export interface ApiMaintenanceLog {
+  id: string;
+  vehicleId: string;
+  companyId: string;
+  serviceType: string;
+  description: string | null;
+  cost: number | null;
+  odometerKm: number | null;
+  performedBy: string | null;
+  performedAt: string;
+  nextServiceDate: string | null;
+  nextServiceKm: number | null;
+  createdAt: string;
+}
+export const useMaintenanceLogs = (vehicleId?: string) =>
+  useQuery({ queryKey: ['maintenance', vehicleId ?? 'all'], queryFn: () => apiFetch<ApiMaintenanceLog[]>(`/maintenance${vehicleId ? `?vehicleId=${vehicleId}` : ''}`) });
 export const useTripTemplates = () => useQuery({ queryKey: qk.tripTemplates, queryFn: () => apiFetch<ApiTripTemplate[]>('/trip-templates') });
 export const useWaitlists = (status?: 'open' | 'dispatched' | 'denied') =>
   useQuery({ queryKey: [...qk.waitlist, status ?? 'open'], queryFn: () => apiFetch<ApiWaitlist[]>(`/waitlist${status ? `?status=${status}` : ''}`) });
@@ -409,19 +477,20 @@ export const useIncidents = (tripId?: string) =>
   useQuery({ queryKey: [...qk.incidents, tripId ?? 'all'], queryFn: () => apiFetch<ApiIncident[]>(`/incidents${tripId ? `?tripId=${tripId}` : ''}`) });
 // Infinite (load-more) list for the high-volume bookings endpoint: fetches pages of `pageSize` and stops
 // when the accumulated rows reach the server's X-Total-Count.
-function useInfiniteList<T>(key: readonly unknown[], path: string, pageSize: number) {
+function useInfiniteList<T>(key: readonly unknown[], path: string, pageSize: number, range?: RangeQuery) {
+  const base = withRange(path, range);
   return useInfiniteQuery({
-    queryKey: [...key, 'infinite', pageSize],
+    queryKey: [...key, 'infinite', pageSize, range?.from, range?.to],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => apiFetchPaged<T>(`${path}${path.includes('?') ? '&' : '?'}limit=${pageSize}&offset=${pageParam}`),
+    queryFn: ({ pageParam }) => apiFetchPaged<T>(`${base}${base.includes('?') ? '&' : '?'}limit=${pageSize}&offset=${pageParam}`),
     getNextPageParam: (_last: Page<T>, all: Page<T>[]) => {
       const loaded = all.reduce((n, p) => n + p.items.length, 0);
       return loaded < (all[0]?.total ?? 0) ? loaded : undefined;
     },
   });
 }
-export const useBookingsInfinite = (pageSize = 25) => useInfiniteList<ApiBooking>(qk.bookings, '/bookings', pageSize);
-export const useTripsInfinite = (pageSize = 25) => useInfiniteList<ApiTrip>(qk.trips, '/trips', pageSize);
+export const useBookingsInfinite = (pageSize = 25, range?: RangeQuery) => useInfiniteList<ApiBooking>(qk.bookings, '/bookings', pageSize, range);
+export const useTripsInfinite = (pageSize = 25, range?: RangeQuery) => useInfiniteList<ApiTrip>(qk.trips, '/trips', pageSize, range);
 
 export const useBookingsByTrip = (tripId?: string) =>
   useQuery({ queryKey: [...qk.bookings, tripId ?? 'all'], queryFn: () => apiFetch<ApiBooking[]>(`/bookings${tripId ? `?tripId=${tripId}` : ''}`) });
@@ -440,6 +509,18 @@ export const useTrip = (tripId?: string) =>
   useQuery({ queryKey: [...qk.trips, tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiTrip>(`/trips/${tripId}`) });
 export const useTripManifest = (tripId?: string) =>
   useQuery({ queryKey: ['manifest', tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiManifestEntry[]>(`/trips/${tripId}/manifest`) });
+
+// Parallel manifest fetch for a whole route's trips at once (no route-level manifest aggregate endpoint
+// exists) — used for Route Details' auto-calculated passenger counts and booking-source split. Each
+// trip's manifest is cached under the same ['manifest', tripId] key as useTripManifest, so opening a
+// trip's own detail page afterward is instant.
+export const useTripManifests = (tripIds: string[]) =>
+  useQueries({
+    queries: tripIds.map((id) => ({
+      queryKey: ['manifest', id],
+      queryFn: () => apiFetch<ApiManifestEntry[]>(`/trips/${id}/manifest`),
+    })),
+  });
 export const useTripFreeSeats = (tripId?: string) =>
   useQuery({ queryKey: ['freeSeats', tripId], enabled: Boolean(tripId), queryFn: () => apiFetch<ApiSeatMapLeg[]>(`/trips/${tripId}/free-seats`) });
 export const useTripLog = (tripId?: string) =>
@@ -521,7 +602,7 @@ export const useDispatchWaitlist = () =>
 export const useDenyWaitlist = () =>
   useApiMutation<{ id: string; reason: string }, ApiWaitlist>(({ id, ...b }) => apiFetch<ApiWaitlist>(`/waitlist/${id}/deny`, jsonBody(b)), [qk.waitlist]);
 
-// Staff invitations — each pre-creates the row and fires a Clerk email invite. Managers/admins use
+// Staff invitations — each pre-creates the row and fires an email invite. Managers/admins use
 // /users/invite; agents and drivers use their own endpoints so the extension row is created too.
 export const useInviteUser = () =>
   useApiMutation<{ email: string; phone: string; name: string; role: 'company_admin' | 'manager' | 'agent' }, ApiUser>(

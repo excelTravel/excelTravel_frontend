@@ -829,7 +829,7 @@ export interface paths {
         put?: never;
         /**
          * Invite a staff user by email (admin)
-         * @description Pre-creates a manager/agent/company_admin by email + role + company. They claim the row on first Clerk sign-in with that email — no second email entry.
+         * @description Pre-creates a manager/agent/company_admin by email + role + company. They claim the row on first OTP sign-in with that email — no second email entry.
          */
         post: {
             parameters: {
@@ -1234,12 +1234,14 @@ export interface paths {
         };
         /**
          * List trips (scoped by RLS; filter by date/station)
-         * @description Lists the caller company's trips, newest departure first. Optional ?date= and ?station=; an agent with no station is scoped to trips serving their assigned stations.
+         * @description Lists the caller company's trips, newest departure first. Optional ?date= (single day) or ?from=&to= (range, takes precedence over date), and ?station=; an agent with no station is scoped to trips serving their assigned stations.
          */
         get: {
             parameters: {
                 query?: {
                     date?: string;
+                    from?: string;
+                    to?: string;
                     station?: string;
                 };
                 header?: never;
@@ -1546,6 +1548,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trips/{id}/log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trip log — life story derived from real timestamps
+         * @description Ordered events for a trip: published, first seat booked, driver started, each stop arrival, driver ended. Derived from trip/booking/stop timestamps (no separate log table).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Trip log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripLogEntryResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trips/{id}/status": {
         parameters: {
             query?: never;
@@ -1598,6 +1641,94 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/trips/{id}/message-driver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send an in-app message to the trip's assigned driver */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DispatchMessage"];
+                };
+            };
+            responses: {
+                /** @description Sent */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            sent: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{id}/broadcast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Broadcast an in-app message to every confirmed passenger on the trip */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DispatchMessage"];
+                };
+            };
+            responses: {
+                /** @description Broadcast */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            notified: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/bookings": {
         parameters: {
             query?: never;
@@ -1607,12 +1738,14 @@ export interface paths {
         };
         /**
          * List bookings (scoped by RLS; filter by tripId)
-         * @description Lists bookings visible to the caller (own bookings for passengers, company bookings for staff). Filter with ?tripId=.
+         * @description Lists bookings visible to the caller (own bookings for passengers, company bookings for staff). Filter with ?tripId=. Optional ?from=&to= (range, filters on created_at) in addition to existing filter.
          */
         get: {
             parameters: {
                 query?: {
                     tripId?: string;
+                    from?: string;
+                    to?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1979,6 +2112,9 @@ export interface components {
             logoUrl: string | null;
             commissionRate: number;
             status: string;
+            parcelBaseFeeRwf: number | null;
+            parcelSurchargePerKgRwf: number | null;
+            driverWeeklyHourCap: number | null;
             createdAt: string;
         };
         CreateCompany: {
@@ -1990,6 +2126,9 @@ export interface components {
             /** Format: uri */
             logoUrl?: string;
             commissionRate?: number;
+            parcelBaseFeeRwf?: number;
+            parcelSurchargePerKgRwf?: number;
+            driverWeeklyHourCap?: number;
         };
         UpdateCompany: {
             name?: string;
@@ -2000,6 +2139,9 @@ export interface components {
             /** Format: uri */
             logoUrl?: string;
             commissionRate?: number;
+            parcelBaseFeeRwf?: number;
+            parcelSurchargePerKgRwf?: number;
+            driverWeeklyHourCap?: number;
         };
         StopResponse: {
             /** Format: uuid */
@@ -2070,6 +2212,8 @@ export interface components {
             status: string;
             /** Format: uuid */
             companyId: string | null;
+            lastLoginAt: string | null;
+            loginCount: number;
         };
         UpdateUser: {
             /** @enum {string} */
@@ -2190,6 +2334,7 @@ export interface components {
         TripResponse: {
             /** Format: uuid */
             id: string;
+            tripNo: number | null;
             /** Format: uuid */
             companyId: string;
             /** Format: uuid */
@@ -2200,6 +2345,7 @@ export interface components {
             driverId: string | null;
             direction: string;
             departureTime: string;
+            arrivalTime: string | null;
             status: string;
             booked: number;
             capacity: number | null;
@@ -2262,8 +2408,16 @@ export interface components {
             boardStopOrder: number;
             alightStopName: string;
             alightStopOrder: number;
+            bookingSource: string;
+            fareAmount: number;
             boardedAt: string | null;
             alightedAt: string | null;
+        };
+        TripLogEntryResponse: {
+            /** @enum {string} */
+            type: "published" | "first_booking" | "departed" | "stop_arrival" | "completed";
+            at: string;
+            stopName: string | null;
         };
         UpdateTrip: {
             /** Format: uuid */
@@ -2279,6 +2433,9 @@ export interface components {
             /** @enum {string} */
             status: "scheduled" | "delayed" | "boarding" | "departed" | "in_transit" | "arriving" | "completed" | "cancelled";
             delayReason?: string;
+        };
+        DispatchMessage: {
+            message: string;
         };
         BookingResponse: {
             /** Format: uuid */
@@ -2311,7 +2468,7 @@ export interface components {
             /** @enum {string} */
             paymentMethod?: "cash" | "mobile_money";
             /** @enum {string} */
-            bookingSource?: "tapgo" | "agent" | "app" | "walk_in";
+            bookingSource?: "agent" | "app";
         };
         CancelBooking: {
             reason?: string;

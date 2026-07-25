@@ -7,24 +7,28 @@ import { SegmentedDonut } from '@/components/ui/segmented-donut';
 import { CountUp } from '@/components/ui/count-up';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useVehicles, type ApiVehicle } from '@/lib/api/hooks';
+import { useVehicles, useMaintenanceLogs, type ApiVehicle } from '@/lib/api/hooks';
 import { VehicleCard } from './VehicleCard';
 import { VehicleDetailModal } from './VehicleDetailModal';
 import { AddVehicleModal } from './AddVehicleModal';
 import { type Vehicle, type VehicleStatus } from './data';
 
-// Map a live /vehicles row onto the Vehicle shape the card renders. Driver / current-trip / maintenance /
-// next-service aren't in the vehicles endpoint yet, so they degrade to unassigned / idle / — (see integration-map).
-function toVehicle(v: ApiVehicle): Vehicle {
+const nextServiceFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+// Map a live /vehicles row onto the Vehicle shape the card renders. Driver / current-trip aren't in the
+// vehicles endpoint yet, so they still degrade to unassigned / idle (see integration-map). nextServiceDate
+// is real — the most recent maintenance log's next_service_date for this vehicle, if any.
+function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
+  const status = (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus;
   return {
     plate: v.plateNumber,
     model: v.model ?? '—',
     capacity: v.capacity,
     year: v.year ?? 0,
-    status: (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus,
+    status,
     driver: null,
     driverPhone: null,
-    nextServiceDate: '—',
+    nextServiceDate: status === 'maintenance' ? 'In service' : status === 'retired' ? '—' : nextServiceDate ? nextServiceFmt.format(new Date(nextServiceDate)) : '—',
     currentTrip: null,
     nextTrip: null,
     maintenanceSince: null,
@@ -40,8 +44,15 @@ const STATUS_COLOR: Record<VehicleStatus, string> = {
 export function VehiclesPanel() {
   const { t } = useTranslation();
   const vehiclesQ = useVehicles();
+  const maintenanceQ = useMaintenanceLogs();
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+
+  // Logs come back newest-first, so the first one seen per vehicle is its most recent next-service date.
+  const nextServiceByVehicle = new Map<string, string | null>();
+  for (const log of maintenanceQ.data ?? []) {
+    if (!nextServiceByVehicle.has(log.vehicleId)) nextServiceByVehicle.set(log.vehicleId, log.nextServiceDate);
+  }
 
   return (
     <div className="space-y-4">
@@ -57,7 +68,7 @@ export function VehiclesPanel() {
 
       <Async query={vehiclesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /></div>}>
         {(apiVehicles) => {
-          const vehicles = apiVehicles.map(toVehicle);
+          const vehicles = apiVehicles.map((v) => toVehicle(v, nextServiceByVehicle.get(v.id) ?? null));
           const counts = { active: 0, maintenance: 0, retired: 0 } as Record<VehicleStatus, number>;
           for (const v of vehicles) counts[v.status] += 1;
           const total = vehicles.length;
