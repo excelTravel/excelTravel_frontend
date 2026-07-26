@@ -496,6 +496,11 @@ export interface ApiMaintenanceLog {
 }
 export const useMaintenanceLogs = (vehicleId?: string) =>
   useQuery({ queryKey: ['maintenance', vehicleId ?? 'all'], queryFn: () => apiFetch<ApiMaintenanceLog[]>(`/maintenance${vehicleId ? `?vehicleId=${vehicleId}` : ''}`) });
+export const useCreateMaintenance = () =>
+  useApiMutation<
+    { vehicleId: string; serviceType: string; performedAt: string; description?: string; cost?: number; odometerKm?: number; performedBy?: string; nextServiceDate?: string; nextServiceKm?: number; photoUrl?: string },
+    ApiMaintenanceLog
+  >((b) => apiFetch<ApiMaintenanceLog>('/maintenance', jsonBody(b)), [['maintenance']]);
 export const useTripTemplates = () => useQuery({ queryKey: qk.tripTemplates, queryFn: () => apiFetch<ApiTripTemplate[]>('/trip-templates') });
 export const useWaitlists = (status?: 'open' | 'dispatched' | 'denied') =>
   useQuery({ queryKey: [...qk.waitlist, status ?? 'open'], queryFn: () => apiFetch<ApiWaitlist[]>(`/waitlist${status ? `?status=${status}` : ''}`) });

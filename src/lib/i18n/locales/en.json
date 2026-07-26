@@ -260,9 +260,27 @@
     }
   },
   "maintenance": {
-    "badge": "In development",
-    "comingSoon": "Maintenance is coming soon",
-    "comingSoonSub": "Service logging, schedules and cost tracking will live here. We've set it aside for now — tell us if you'd like it prioritized."
+    "title": "Maintenance log",
+    "totalLogs": "Logs recorded",
+    "dueSoon": "Due soon",
+    "overdue": "Overdue",
+    "totalCost": "Total cost",
+    "search": "Search maintenance logs",
+    "empty": "No maintenance logged yet.",
+    "logMaintenance": "Log maintenance",
+    "logMaintenanceSub": "Record a service or repair against a vehicle.",
+    "serviceType": "Service type",
+    "serviceTypePlaceholder": "Oil change, brake service…",
+    "performedAt": "Date performed",
+    "cost": "Cost",
+    "nextServiceDate": "Next service date",
+    "nextServiceKm": "Next service (km)",
+    "photoHint": "PNG, JPG or WebP.",
+    "urgency": {
+      "success": "Serviced",
+      "warning": "Due soon",
+      "danger": "Overdue"
+    }
   },
   "login": {
     "headline": "Run your intercity buses in real time.",
@@ -997,7 +1015,8 @@
     "emergencyPlaceholder": "Describe the emergency and any instructions…",
     "pricingSub": "Set the base delivery fee and per-kg surcharge.",
     "rwf": "RWF",
-    "perKg": "RWF per kg"
+    "perKg": "RWF per kg",
+    "description": "Description"
   },
   "table": {
     "search": "Search",
