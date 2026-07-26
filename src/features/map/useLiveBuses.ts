@@ -1,13 +1,18 @@
 import { useMemo } from 'react';
+import { useTracking, useVehicles, useTrips, useRoutes, useDrivers, useMaintenanceLogs } from '@/lib/api/hooks';
+import { maintenanceStatus, licenseStatus, type UrgencyStatus } from '@/lib/fleetStatus';
 
-// Live bus positions for the map. STUB for now: seeded along real Rwanda corridors. The shape matches the
-// backend `bus:location` socket payload, so swapping this hook for a socket subscription is a drop-in later.
+// Live bus positions for the map, from the /tracking snapshot (all current company vehicle locations),
+// polled for near-live movement. Each position is enriched with its vehicle plate, driver, current
+// passenger count, and locked route. The per-trip socket (useTripLive) drives the individual trip detail;
+// this fleet view is the company snapshot.
 
 export type BusStatus = 'in_transit' | 'delayed' | 'arriving';
 
 export interface LiveBus {
-  id: string;
-  code: string;
+  id: string; // vehicleId
+  code: string; // plate number
+  driverName: string | null;
   routeName: string;
   from: string;
   to: string;
@@ -15,6 +20,10 @@ export interface LiveBus {
   eta: string;
   lng: number;
   lat: number;
+  passengers: number;
+  capacity: number | null;
+  maintenance: UrgencyStatus;
+  license: UrgencyStatus;
 }
 
 type Coord = [number, number];
@@ -29,9 +38,6 @@ const HUB: Record<Hub, Coord> = {
   nyagatare: [30.3272, -1.2929],
 };
 
-const lerp = (a: Coord, b: Coord, t: number): Coord => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 // Corridors drawn on the map (Kigali is the national hub).
 export const RWANDA_ROUTES: { id: string; coords: Coord[] }[] = [
   { id: 'kgl-mus', coords: [HUB.kigali, HUB.musanze] },
@@ -40,26 +46,58 @@ export const RWANDA_ROUTES: { id: string; coords: Coord[] }[] = [
   { id: 'kgl-nyg', coords: [HUB.kigali, HUB.nyagatare] },
 ];
 
+const LIVE_TRIP = new Set(['boarding', 'departed', 'in_transit', 'arriving']);
+function busStatus(tripStatus: string | undefined): BusStatus {
+  if (tripStatus === 'arriving') return 'arriving';
+  if (tripStatus === 'delayed') return 'delayed';
+  return 'in_transit';
+}
+
 export function useLiveBuses(): LiveBus[] {
+  const tracking = useTracking();
+  const vehicles = useVehicles();
+  const trips = useTrips();
+  const routes = useRoutes();
+  const drivers = useDrivers();
+  const maintenance = useMaintenanceLogs();
+
   return useMemo(() => {
-    const build = (
-      id: string,
-      code: string,
-      from: Hub,
-      to: Hub,
-      status: BusStatus,
-      eta: string,
-      t: number,
-    ): LiveBus => {
-      const [lng, lat] = lerp(HUB[from], HUB[to], t);
-      return { id, code, routeName: `${cap(from)} → ${cap(to)}`, from: cap(from), to: cap(to), status, eta, lng, lat };
-    };
-    return [
-      build('b1', 'RAB-402', 'kigali', 'musanze', 'in_transit', '14:30', 0.55),
-      build('b2', 'RAC-112', 'kigali', 'rubavu', 'delayed', '15:15', 0.35),
-      build('b3', 'RAD-88', 'kigali', 'huye', 'arriving', '14:05', 0.9),
-      build('b4', 'RAE-27', 'kigali', 'nyagatare', 'in_transit', '15:40', 0.4),
-      build('b5', 'RAF-51', 'musanze', 'kigali', 'in_transit', '14:50', 0.25),
-    ];
-  }, []);
+    const vehicleById = new Map((vehicles.data ?? []).map((v) => [v.id, v]));
+    const routeById = new Map((routes.data ?? []).map((r) => [r.id, r]));
+    const driverById = new Map((drivers.data ?? []).map((d) => [d.id, d]));
+    // The live trip currently running on each vehicle (for the route + status label + driver + passengers).
+    const tripByVehicle = new Map(
+      (trips.data ?? []).filter((tp) => tp.vehicleId && LIVE_TRIP.has(tp.status)).map((tp) => [tp.vehicleId!, tp]),
+    );
+    // Most recent nextServiceDate per vehicle (logs come back newest-first from the backend).
+    const nextServiceByVehicle = new Map<string, string | null>();
+    for (const log of maintenance.data ?? []) {
+      if (!nextServiceByVehicle.has(log.vehicleId)) nextServiceByVehicle.set(log.vehicleId, log.nextServiceDate);
+    }
+
+    return (tracking.data ?? []).map((loc) => {
+      const vehicle = vehicleById.get(loc.vehicleId);
+      const trip = tripByVehicle.get(loc.vehicleId);
+      const route = routeById.get(trip?.routeId ?? vehicle?.routeId ?? '');
+      const from = route?.origin ?? '—';
+      const to = route?.destination ?? '—';
+      const driver = trip?.driverId ? driverById.get(trip.driverId) : (loc.driverId ? driverById.get(loc.driverId) : undefined);
+      return {
+        id: loc.vehicleId,
+        code: vehicle?.plateNumber ?? loc.vehicleId,
+        driverName: trip?.driverName ?? driver?.name ?? null,
+        routeName: route ? `${from} → ${to}` : '—',
+        from,
+        to,
+        status: busStatus(trip?.status),
+        eta: loc.speed != null ? `${Math.round(loc.speed)} km/h` : '',
+        lng: loc.longitude,
+        lat: loc.latitude,
+        passengers: trip?.booked ?? 0,
+        capacity: trip?.capacity ?? vehicle?.capacity ?? null,
+        maintenance: maintenanceStatus(nextServiceByVehicle.get(loc.vehicleId) ?? null),
+        license: licenseStatus(driver?.licenseExpiry ?? null),
+      };
+    });
+  }, [tracking.data, vehicles.data, trips.data, routes.data, drivers.data, maintenance.data]);
 }

@@ -1,50 +1,88 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowRightLeft,
   CheckCheck,
   CheckCircle2,
   ChevronRight,
-  Filter,
-  MoreVertical,
+  PackagePlus,
+  Route as RouteIcon,
   Package,
-  Tag,
   Truck,
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useDateRange } from '@/store/dateRange';
+import { Select } from '@/components/ui/form';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { cn } from '@/lib/utils';
+import { Async } from '@/components/ui/async';
+import { useCompanies, usePackages, useStops } from '@/lib/api/hooks';
+import { useSession } from '@/lib/auth/session';
+import { ParcelJourneyModal } from './ParcelJourneyModal';
+import { RegisterParcelModal } from './RegisterParcelModal';
+import { UpdatePricingModal } from './UpdatePricingModal';
+import { cn, formatRWF } from '@/lib/utils';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
-// Stub data (Rwanda). Wired later to /packages (custody chain) + ops pricing (setFee).
-const manifest = [
-  { wb: 'WB-99210', note: 'Exp 08:30 · Trip #402', sender: 'K. Mugabo', receiver: 'J. Mutoni', from: 'Kigali', to: 'Musanze', weight: '12.5 kg', status: 'in_transit' },
-  { wb: 'WB-99214', note: 'Late scan', sender: 'P. Habimana', receiver: 'S. Karekezi', from: 'Kigali', to: 'Rubavu', weight: '4.2 kg', status: 'at_hub' },
-  { wb: 'WB-99220', note: 'Exp 10:45 · Trip #408', sender: 'M. Umutoni', receiver: 'C. Ngabo', from: 'Kigali', to: 'Huye', weight: '25.0 kg', status: 'pending' },
-];
+const COMPANY_EDIT_ROLES = new Set(['super_admin', 'company_admin', 'manager']);
+const STATUS_FILTERS = ['all', 'registered', 'in_transit', 'arrived', 'collected', 'cancelled'] as const;
 
 export function ParcelsPage() {
   const { t } = useTranslation();
-  const preset = useDateRange((s) => s.preset);
-  const compare = t(`range.compare.${preset}`);
+  const sessionUser = useSession((s) => s.user);
+  const canEditPricing = COMPANY_EDIT_ROLES.has(sessionUser?.role ?? '');
+
+  const [journeyId, setJourneyId] = useState<string | null>(null);
+  const [pricingOpen, setPricingOpen] = useState(false);
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<(typeof STATUS_FILTERS)[number]>('all');
+  const { range } = useDateRange();
+  const packagesQ = usePackages(rangeToQuery(range));
+  const stopsQ = useStops();
+  const companiesQ = useCompanies();
+  const stopName = (id: string) => stopsQ.data?.find((s) => s.id === id)?.name ?? '—';
+  const myCompany = companiesQ.data?.find((c) => c.id === sessionUser?.companyId);
+
+  const pkgs = packagesQ.data ?? [];
+  const manifest = pkgs
+    .filter((p) => statusFilter === 'all' || p.status === statusFilter)
+    .map((p) => ({
+      id: p.id,
+      sender: p.senderName,
+      receiver: p.recipientName,
+      from: stopName(p.fromStopId),
+      to: stopName(p.toStopId),
+      description: p.description,
+      status: p.status,
+    }));
+
+  // Live aggregates from the /packages custody chain.
+  const countBy = (s: string): number => pkgs.filter((p) => p.status === s).length;
+  const revenue = pkgs.reduce((sum, p) => sum + (p.fee ?? 0), 0);
+  const registered = countBy('registered');
+  const inTransit = countBy('in_transit');
+  const arrived = countBy('arrived');
+  const collected = countBy('collected');
 
   const steps = [
-    { icon: CheckCircle2, label: t('parcels.booking'), meta: t('parcels.flowNew', { n: 248 }), done: true },
-    { icon: Package, label: t('parcels.sorting'), meta: t('parcels.flowSorting', { n: 85 }), done: true },
-    { icon: Truck, label: t('parcels.inTransitStep'), meta: t('parcels.flowTrucks', { n: 12 }), done: true },
-    { icon: CheckCheck, label: t('parcels.delivered'), meta: t('parcels.flowToday', { n: 0 }), done: false },
+    { icon: CheckCircle2, label: t('parcels.booking'), meta: t('parcels.flowNew', { n: registered }), done: registered > 0 },
+    { icon: Package, label: t('parcels.sorting'), meta: t('parcels.flowSorting', { n: arrived }), done: arrived > 0 },
+    { icon: Truck, label: t('parcels.inTransitStep'), meta: t('parcels.flowTrucks', { n: inTransit }), done: inTransit > 0 },
+    { icon: CheckCheck, label: t('parcels.delivered'), meta: t('parcels.flowToday', { n: collected }), done: collected > 0 },
   ];
 
   return (
     <Reveal className="space-y-6">
+      <ParcelJourneyModal packageId={journeyId} open={journeyId !== null} onClose={() => setJourneyId(null)} />
+      <RegisterParcelModal open={registerOpen} onClose={() => setRegisterOpen(false)} />
+      <UpdatePricingModal open={pricingOpen} onClose={() => setPricingOpen(false)} company={myCompany ?? null} />
       {/* KPI row */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard label={t('parcels.mostRoutes')} value="10" unit={t('parcels.parcels')} badge={{ text: 'KGL — MUS', tone: 'teal' }} />
-        <KpiCard label={t('parcels.revenueDaily')} value="4,250K" unit="RWF" delta={{ value: '+12.5%', direction: 'up', comparison: compare }} />
-        <KpiCard label={t('parcels.inTransit')} value="1,245" />
-        <KpiCard label={t('parcels.delayed')} value="18" tone="danger" badge={{ text: t('parcels.criticalAlerts'), tone: 'danger' }} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.parcels')} value={String(pkgs.length)} unit={t('parcels.parcels')} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.revenueDaily')} value={revenue >= 1000 ? `${Math.round(revenue / 1000)}K` : String(revenue)} unit="RWF" />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.inTransit')} value={String(inTransit)} />
+        <KpiCard loading={packagesQ.isLoading} label={t('parcels.delivered')} value={String(collected)} />
       </RevealItem>
 
       {/* Live logistics flow */}
@@ -84,38 +122,33 @@ export function ParcelsPage() {
               </span>
             </h3>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="size-4" /> {t('parcels.filter')}
-              </Button>
-              <Button size="sm">
-                <Tag className="size-4" /> {t('parcels.bulkLabels')}
+              <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as (typeof STATUS_FILTERS)[number])} className="h-9 w-auto">
+                {STATUS_FILTERS.map((s) => <option key={s} value={s}>{s === 'all' ? t('parcels.allStatuses') : s.replace(/_/g, ' ')}</option>)}
+              </Select>
+              <Button size="sm" onClick={() => setRegisterOpen(true)}>
+                <PackagePlus className="size-4" /> {t('parcels.registerParcel')}
               </Button>
             </div>
           </div>
+          <Async query={packagesQ} isEmpty={() => manifest.length === 0} skeleton={<div className="space-y-2 p-5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer h-8 rounded" />)}</div>} empty={<div className="grid place-items-center gap-2 px-6 py-16 text-center"><Package className="size-8 text-muted-foreground" /><p className="text-sm text-muted-foreground">{t('parcels.empty')}</p></div>}>
+          {() => (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="w-10 px-4 py-3">
-                    <input type="checkbox" className="size-4 rounded border-border accent-[hsl(var(--primary))]" aria-label="Select all" />
-                  </th>
-                  <th className="px-4 py-3 font-medium">{t('parcels.colWaybill')}</th>
+                  <th className="px-4 py-3 font-medium">{t('parcels.colId')}</th>
                   <th className="px-4 py-3 font-medium">{t('parcels.colSenderReceiver')}</th>
                   <th className="px-4 py-3 font-medium">{t('parcels.colRoute')}</th>
-                  <th className="px-4 py-3 font-medium">{t('parcels.colWeight')}</th>
+                  <th className="px-4 py-3 font-medium">{t('parcels.colDescription')}</th>
                   <th className="px-4 py-3 font-medium">{t('parcels.colStatus')}</th>
                   <th className="px-4 py-3 font-medium">{t('parcels.colAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {manifest.map((p) => (
-                  <tr key={p.wb} className="transition-colors hover:bg-secondary/40">
-                    <td className="px-4 py-3">
-                      <input type="checkbox" className="size-4 rounded border-border accent-[hsl(var(--primary))]" aria-label={`Select ${p.wb}`} />
-                    </td>
+                  <tr key={p.id} className="transition-colors hover:bg-secondary/40">
                     <td className="whitespace-nowrap px-4 py-3">
-                      <p className="font-semibold">{p.wb}</p>
-                      <p className="text-xs text-muted-foreground">{p.note}</p>
+                      <p className="font-mono text-xs font-semibold">{p.id.slice(0, 8)}</p>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3">
                       <p className="font-medium">{p.sender}</p>
@@ -126,13 +159,17 @@ export function ParcelsPage() {
                         {p.from} <ArrowRightLeft className="size-3.5" /> {p.to}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">{p.weight}</td>
+                    <td className="max-w-[16rem] truncate px-4 py-3 text-muted-foreground">{p.description}</td>
                     <td className="px-4 py-3">
                       <StatusPill status={p.status} />
                     </td>
                     <td className="px-4 py-3">
-                      <button type="button" aria-label="More" className="text-muted-foreground hover:text-foreground">
-                        <MoreVertical className="size-4" />
+                      <button
+                        type="button"
+                        onClick={() => setJourneyId(p.id)}
+                        className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                      >
+                        <RouteIcon className="size-3.5" /> {t('parcels.viewJourney')}
                       </button>
                     </td>
                   </tr>
@@ -140,9 +177,8 @@ export function ParcelsPage() {
               </tbody>
             </table>
           </div>
-          <div className="p-5">
-            <p className="text-sm text-muted-foreground">{t('parcels.showing', { shown: 25, total: '1,245' })}</p>
-          </div>
+          )}
+          </Async>
         </GlassCard>
 
         <GlassCard className="p-6">
@@ -153,30 +189,31 @@ export function ParcelsPage() {
             </span>
           </div>
           <div className="mt-4 space-y-3">
-            <button
-              type="button"
-              className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left transition-colors hover:bg-secondary"
-            >
+            <div className="flex w-full items-center justify-between rounded-xl bg-secondary/50 p-4 text-left">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                   {t('parcels.baseFee')}
                 </p>
                 <p className="text-xl font-bold tabular-nums">
-                  1,200 <span className="text-sm font-normal text-muted-foreground">RWF</span>
+                  {myCompany?.parcelBaseFeeRwf !== null && myCompany?.parcelBaseFeeRwf !== undefined ? formatRWF(myCompany.parcelBaseFeeRwf) : t('parcels.feeNotSet')}
                 </p>
               </div>
               <ChevronRight className="size-4 text-muted-foreground" />
-            </button>
+            </div>
             <div className="rounded-xl bg-secondary/50 p-4">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {t('parcels.wtSurcharge')}
               </p>
               <p className="text-xl font-bold tabular-nums">
-                500 <span className="text-sm font-normal text-muted-foreground">/kg</span>
+                {myCompany?.parcelSurchargePerKgRwf !== null && myCompany?.parcelSurchargePerKgRwf !== undefined
+                  ? <>{formatRWF(myCompany.parcelSurchargePerKgRwf)} <span className="text-sm font-normal text-muted-foreground">/kg</span></>
+                  : t('parcels.feeNotSet')}
               </p>
             </div>
           </div>
-          <Button className="mt-4 w-full">{t('parcels.updatePricing')}</Button>
+          {canEditPricing && (
+            <Button className="mt-4 w-full" disabled={!myCompany} onClick={() => setPricingOpen(true)}>{t('parcels.updatePricing')}</Button>
+          )}
         </GlassCard>
       </RevealItem>
     </Reveal>

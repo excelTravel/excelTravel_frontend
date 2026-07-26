@@ -16,22 +16,30 @@ const TripDetailPage = lazy(() => import('./features/trips/TripDetailPage').then
 const BookingsPage = lazy(() => import('./features/bookings/BookingsPage').then((m) => ({ default: m.BookingsPage })));
 const ParcelsPage = lazy(() => import('./features/parcels/ParcelsPage').then((m) => ({ default: m.ParcelsPage })));
 const AnalyticsPage = lazy(() => import('./features/analytics/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })));
-const LiveMapPage = lazy(() => import('./features/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })));
+const SettingsPage = lazy(() => import('./features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const NetworkPage = lazy(() => import('./features/network/NetworkPage').then((m) => ({ default: m.NetworkPage })));
+const RouteManagementPage = lazy(() => import('./features/routes/RouteManagementPage').then((m) => ({ default: m.RouteManagementPage })));
+const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+const TeamPage = lazy(() => import('./features/team/TeamPage').then((m) => ({ default: m.TeamPage })));
 
-// Ops-manager routes under the app shell. When a Clerk key is set, the shell is gated behind login.
+// Ops-manager routes under the app shell. Login is always enforced (in-house OTP auth; see lib/config).
 export function App() {
   return (
     <Routes>
-      {authEnabled && <Route path="/login/*" element={<LoginPage />} />}
+      <Route path="/login" element={<LoginPage />} />
       <Route element={authEnabled ? <RequireAuth><AppShell /></RequireAuth> : <AppShell />}>
         <Route path="/" element={<OverviewPage />} />
-        <Route path="/map" element={<LiveMapPage />} />
         <Route path="/trips" element={<TripsPage />} />
         <Route path="/trips/:id" element={<TripDetailPage />} />
         <Route path="/fleet" element={<FleetPage />} />
+        <Route path="/network" element={<NetworkPage />} />
+        <Route path="/routes" element={<RouteManagementPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
+        <Route path="/users" element={<TeamPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<PlaceholderPage title="Not found" />} />
       </Route>
     </Routes>

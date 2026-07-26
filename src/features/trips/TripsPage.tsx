@@ -1,190 +1,105 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChevronLeft, ChevronRight, Filter, Plus, Search } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
+import { ArrowRight, Plus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { Async } from '@/components/ui/async';
+import { WaitlistBoard } from './WaitlistBoard';
+import { SchedulesTable } from './SchedulesTable';
+import { NewTripModal } from './TripManagement';
+import { useTripRows } from './useTripRows';
+import { type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
+import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
-// Stub trips (Rwanda). Wired later to /trips (list, filter by status) + /bookings (occupancy).
-type TripGroup = 'scheduled' | 'active' | 'completed' | 'cancelled';
-interface TripRow {
-  id: string;
-  from: string;
-  to: string;
-  kind: string;
-  departs: string;
-  bus: string;
-  driver: string;
-  booked: number;
-  capacity: number;
-  status: string;
-  group: TripGroup;
-  revenue: number;
-}
-
-const TRIPS: TripRow[] = [
-  { id: 'TRP-8492', from: 'Kigali', to: 'Musanze', kind: 'Express', departs: '08:30', bus: 'RAB-402', driver: 'S. Uwase', booked: 38, capacity: 40, status: 'in_transit', group: 'active', revenue: 1482000 },
-  { id: 'TRP-8495', from: 'Kigali', to: 'Rubavu', kind: 'Standard', departs: '09:00', bus: 'RAC-112', driver: 'P. Habimana', booked: 22, capacity: 30, status: 'delayed', group: 'active', revenue: 770000 },
-  { id: 'TRP-8502', from: 'Kigali', to: 'Huye', kind: 'Express', departs: '09:15', bus: 'RAD-88', driver: 'L. Ingabire', booked: 40, capacity: 40, status: 'in_transit', group: 'active', revenue: 1520000 },
-  { id: 'TRP-8510', from: 'Kigali', to: 'Nyagatare', kind: 'Standard', departs: '11:30', bus: 'RAE-27', driver: 'J. Mugabo', booked: 12, capacity: 33, status: 'scheduled', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8514', from: 'Musanze', to: 'Kigali', kind: 'Express', departs: '12:00', bus: 'RAF-51', driver: 'C. Umutoni', booked: 27, capacity: 40, status: 'boarding', group: 'scheduled', revenue: 0 },
-  { id: 'TRP-8478', from: 'Kigali', to: 'Rusizi', kind: 'Standard', departs: '06:00', bus: 'RAG-14', driver: 'E. Nkusi', booked: 33, capacity: 33, status: 'completed', group: 'completed', revenue: 1650000 },
-  { id: 'TRP-8480', from: 'Huye', to: 'Kigali', kind: 'Express', departs: '06:30', bus: 'RAH-09', driver: 'M. Uwase', booked: 39, capacity: 40, status: 'completed', group: 'completed', revenue: 1560000 },
-  { id: 'TRP-8471', from: 'Kigali', to: 'Nyamata', kind: 'Standard', departs: '05:45', bus: 'RAB-402', driver: 'S. Uwase', booked: 4, capacity: 30, status: 'cancelled', group: 'cancelled', revenue: 0 },
-];
-
-const TABS = ['all', 'scheduled', 'active', 'completed', 'cancelled'] as const;
-const countBy = (g: TripGroup) => TRIPS.filter((r) => r.group === g).length;
-const countTab = (k: (typeof TABS)[number]) => (k === 'all' ? TRIPS.length : countBy(k));
-
+// One row = one individual trip. Trip No. leads; the route is shown as its planned origin -> destination.
+// Clicking a row opens that trip's detail (where all the actions live) — there is no per-row Manage here.
 export function TripsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<TripGroup | 'all'>('all');
-  const rows = tab === 'all' ? TRIPS : TRIPS.filter((r) => r.group === tab);
+  const [newTripOpen, setNewTripOpen] = useState(false);
+  const { range } = useDateRange();
+  const tripsQ = useTripRows(rangeToQuery(range));
+  const allRows = tripsQ.data;
+  const countBy = (g: TripGroup) => allRows.filter((r) => r.group === g).length;
+
+  const cols: Column<TripRow>[] = [
+    {
+      key: 'tripNo', header: t('tripsList.colTripNo'), sort: (r) => r.tripNo ?? 0,
+      cell: (r) => <span className="font-semibold tabular-nums">#{r.tripNo ?? '—'}</span>, td: 'whitespace-nowrap',
+    },
+    { key: 'origin', header: t('tripsList.colOrigin'), filter: (r) => r.origin, sort: (r) => r.origin, cell: (r) => r.origin, td: 'whitespace-nowrap font-medium' },
+    {
+      key: 'destination', header: t('tripsList.colDestination'), filter: (r) => r.destination, sort: (r) => r.destination,
+      cell: (r) => <span className="flex items-center gap-1.5 font-medium"><ArrowRight className="size-3.5 text-muted-foreground" /> {r.destination}</span>, td: 'whitespace-nowrap',
+    },
+    { key: 'date', header: t('tripsList.colDate'), filter: (r) => r.date, sort: (r) => r.departureAt, cell: (r) => r.date, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    { key: 'departs', header: t('tripsList.colDeparts'), sort: (r) => r.departs, cell: (r) => r.departs, td: 'whitespace-nowrap tabular-nums' },
+    { key: 'arrives', header: t('tripsList.colArrives'), sort: (r) => r.arrives, cell: (r) => r.arrives, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    {
+      key: 'passengers', header: t('tripsList.colPassengers'), sort: (r) => (r.capacity ? r.booked / r.capacity : 0),
+      cell: (r) => {
+        const pct = r.capacity ? Math.round((r.booked / r.capacity) * 100) : 0;
+        return (
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-14 overflow-hidden rounded-full bg-secondary">
+              <div className={cn('h-full rounded-full', pct >= 100 ? 'bg-warning' : 'bg-teal')} style={{ width: `${pct}%` }} />
+            </div>
+            <span className="tabular-nums text-xs text-muted-foreground">{r.booked}/{r.capacity || '—'}</span>
+          </div>
+        );
+      },
+    },
+    { key: 'bus', header: t('tripsList.colBus'), filter: (r) => r.bus, sort: (r) => r.bus, cell: (r) => r.bus, td: 'whitespace-nowrap text-muted-foreground' },
+    { key: 'driver', header: t('tripsList.colDriver'), filter: (r) => r.driver, sort: (r) => r.driver, cell: (r) => r.driver, td: 'whitespace-nowrap' },
+    { key: 'status', header: t('tripsList.colStatus'), sort: (r) => r.status, cell: (r) => <StatusPill status={r.status}>{t(`tripsList.status.${r.status}`, r.status)}</StatusPill> },
+    { key: 'revenue', header: t('tripsList.colRevenue'), align: 'right', sort: (r) => r.revenue, cell: (r) => (r.revenue ? formatRWF(r.revenue) : '—'), td: 'whitespace-nowrap font-semibold tabular-nums' },
+  ];
 
   return (
     <Reveal className="space-y-6">
-      <RevealItem>
-        <PageHeader
-          title={t('tripsList.title')}
-          subtitle={t('tripsList.subtitle')}
-          actions={
-            <>
-              <Button variant="outline" size="sm">
-                <Filter className="size-4" /> {t('tripsList.filter')}
-              </Button>
-              <Button size="sm">
-                <Plus className="size-4" /> {t('tripsList.newTrip')}
-              </Button>
-            </>
-          }
-        />
-      </RevealItem>
+      <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
 
+      {/* KPI cards */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard label={t('tripsList.kpiTotal')} value={allRows.length.toLocaleString()} />
         <KpiCard label={t('tripsList.kpiScheduled')} value={String(countBy('scheduled'))} />
         <KpiCard label={t('tripsList.kpiActive')} value={String(countBy('active'))} badge={{ text: t('tripsList.live'), tone: 'teal' }} />
         <KpiCard label={t('tripsList.kpiCompleted')} value={String(countBy('completed'))} />
-        <KpiCard label={t('tripsList.kpiCancelled')} value={String(countBy('cancelled'))} tone="danger" />
       </RevealItem>
 
+      {/* Agent & passenger waitlist */}
+      <RevealItem><WaitlistBoard /></RevealItem>
+
+      {/* Route schedules — the recurring template each route runs on */}
+      <RevealItem><SchedulesTable /></RevealItem>
+
+      {/* Trips history — individual trips, upcoming first */}
       <RevealItem>
         <GlassCard className="overflow-hidden">
-          {/* Filter tabs + search */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4">
-            <div role="tablist" aria-label={t('tripsList.title')} className="inline-flex flex-wrap gap-1 rounded-xl bg-secondary/60 p-1">
-              {TABS.map((tb) => (
-                <button
-                  key={tb}
-                  role="tab"
-                  aria-selected={tab === tb}
-                  onClick={() => setTab(tb)}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
-                    tab === tb ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  {t(`tripsList.tabs.${tb}`)}
-                  <span className="rounded-full bg-secondary px-1.5 text-xs tabular-nums text-muted-foreground">
-                    {countTab(tb)}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder={t('tripsList.search')}
-                aria-label={t('tripsList.search')}
-                className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-56"
+          <div className="border-b border-border p-5 pb-3">
+            <h3 className="text-base font-semibold">{t('tripsList.historyTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('tripsList.historySub')}</p>
+          </div>
+          <Async query={tripsQ} skeleton={<div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="shimmer h-9 rounded" />)}</div>}>
+            {(data) => (
+              <DataTable
+                rows={data}
+                columns={cols}
+                rowKey={(r) => r.id}
+                onRowClick={(r) => navigate(`/trips/${r.id}`)}
+                search={(r) => `${r.tripNo} ${r.origin} ${r.destination} ${r.bus} ${r.driver}`}
+                searchPlaceholder={t('tripsList.search')}
+                empty={t('tripsList.emptyTitle')}
+                toolbarRight={<Button size="sm" onClick={() => setNewTripOpen(true)}><Plus className="size-4" /> {t('tripsList.newTrip')}</Button>}
               />
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-y border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colRoute')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colDeparts')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colBus')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colDriver')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colOccupancy')}</th>
-                  <th className="px-4 py-3 font-medium">{t('tripsList.colStatus')}</th>
-                  <th className="px-4 py-3 text-right font-medium">{t('tripsList.colRevenue')}</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {rows.map((r) => {
-                  const pct = Math.round((r.booked / r.capacity) * 100);
-                  return (
-                    <tr
-                      key={r.id}
-                      onClick={() => navigate(`/trips/${r.id}`)}
-                      className="cursor-pointer transition-colors hover:bg-secondary/40"
-                    >
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <div className="flex items-center gap-2 font-medium">
-                          {r.from} <ArrowRight className="size-3.5 text-muted-foreground" /> {r.to}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{r.id} · {r.kind}</p>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 tabular-nums">{r.departs}</td>
-                      <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{r.bus}</td>
-                      <td className="whitespace-nowrap px-4 py-3">{r.driver}</td>
-                      <td className="whitespace-nowrap px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-secondary">
-                            <div
-                              className={cn('h-full rounded-full', pct >= 100 ? 'bg-warning' : 'bg-teal')}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span className="tabular-nums text-xs text-muted-foreground">{r.booked}/{r.capacity}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusPill status={r.status}>{t(`tripsList.status.${r.status}`)}</StatusPill>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums">
-                        {r.revenue ? formatRWF(r.revenue) : '—'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <ChevronRight className="size-4 text-muted-foreground" />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {rows.length === 0 && (
-              <div className="p-10 text-center">
-                <p className="text-sm font-medium">{t('tripsList.emptyTitle')}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{t('tripsList.emptySub')}</p>
-              </div>
             )}
-          </div>
-
-          <div className="flex items-center justify-between p-4">
-            <p className="text-sm text-muted-foreground">{t('tripsList.showing', { shown: rows.length, total: TRIPS.length })}</p>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" className="size-8" aria-label={t('tripsList.prev')}>
-                <ChevronLeft className="size-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="size-8" aria-label={t('tripsList.next')}>
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
-          </div>
+          </Async>
         </GlassCard>
       </RevealItem>
     </Reveal>

@@ -58,7 +58,8 @@ export const useDateRange = create<DateRangeState>((set) => ({
   setCustom: (from, to) => set({ preset: 'custom', range: { from, to }, label: `${format(from, 'MMM d')} – ${format(to, 'MMM d, yyyy')}` }),
 }));
 
-// Backend analytics take a `since` timestamptz; convert the selected range's start (undefined = all time).
-export function rangeToSince(range: DateRange): string | undefined {
-  return range.from?.toISOString();
+// Backend list/analytics endpoints take `from`/`to` ISO datetime query params; convert the selected
+// range's bounds (both undefined = all time, matching the current unbounded behavior).
+export function rangeToQuery(range: DateRange): { from?: string; to?: string } {
+  return { from: range.from?.toISOString(), to: range.to?.toISOString() };
 }

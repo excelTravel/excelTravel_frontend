@@ -12,7 +12,7 @@ _Snapshot as of the Fleet-redesign pass. Source of truth = backend route files +
 ## Screens the frontend has today
 
 Overview · Live Map (tracking) · Trips (list + detail) · Fleet (vehicles / drivers / maintenance) ·
-Bookings · Parcels (packages) · Analytics · Login (Clerk). Shell: notification bell (badge only),
+Bookings · Parcels (packages) · Analytics · Login (OTP). Shell: notification bell (badge only),
 theme, EN/KIN i18n, global date range. **All screens render from local stub data — none are wired to
 the API yet.**
 

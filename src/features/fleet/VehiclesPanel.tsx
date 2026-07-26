@@ -1,109 +1,127 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Bus, Wrench } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
-import { StatusPill } from '@/components/ui/badge';
-import { RadialGauge } from '@/components/ui/radial-gauge';
+import { Button } from '@/components/ui/button';
+import { SegmentedDonut } from '@/components/ui/segmented-donut';
 import { CountUp } from '@/components/ui/count-up';
+import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
+import { useVehicles, useMaintenanceLogs, type ApiVehicle } from '@/lib/api/hooks';
 import { VehicleCard } from './VehicleCard';
-import { VEHICLES, DRIVERS, JOBS, FLEET_SUMMARY } from './data';
+import { VehicleDetailModal } from './VehicleDetailModal';
+import { AddVehicleModal } from './AddVehicleModal';
+import { type Vehicle, type VehicleStatus } from './data';
 
-const COMPOSITION = [
-  { key: 'active', count: FLEET_SUMMARY.active, color: 'hsl(var(--teal))' },
-  { key: 'maintenance', count: FLEET_SUMMARY.maintenance, color: 'hsl(var(--warning))' },
-  { key: 'retired', count: FLEET_SUMMARY.retired, color: 'hsl(var(--muted-foreground))' },
-] as const;
+const nextServiceFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+// Map a live /vehicles row onto the Vehicle shape the card renders. Driver / current-trip aren't in the
+// vehicles endpoint yet, so they still degrade to unassigned / idle (see integration-map). nextServiceDate
+// is real — the most recent maintenance log's next_service_date for this vehicle, if any.
+function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
+  const status = (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus;
+  return {
+    id: v.id,
+    plate: v.plateNumber,
+    model: v.model ?? '—',
+    capacity: v.capacity,
+    year: v.year ?? 0,
+    status,
+    driver: null,
+    driverPhone: null,
+    nextServiceDate: status === 'maintenance' ? 'In service' : status === 'retired' ? '—' : nextServiceDate ? nextServiceFmt.format(new Date(nextServiceDate)) : '—',
+    currentTrip: null,
+    nextTrip: null,
+    maintenanceSince: null,
+    photoUrl: v.photoUrl,
+  };
+}
+
+const STATUS_COLOR: Record<VehicleStatus, string> = {
+  active: 'hsl(var(--teal))',
+  maintenance: 'hsl(var(--warning))',
+  retired: 'hsl(var(--muted-foreground))',
+};
 
 export function VehiclesPanel() {
   const { t } = useTranslation();
-  const reduce = useReducedMotion();
-  const onDuty = DRIVERS.filter((d) => d.status === 'on_trip');
-  const attention = JOBS.filter((j) => j.urgency !== 'logged');
+  const vehiclesQ = useVehicles();
+  const maintenanceQ = useMaintenanceLogs();
+  const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+
+  // Logs come back newest-first, so the first one seen per vehicle is its most recent next-service date.
+  const nextServiceByVehicle = new Map<string, string | null>();
+  for (const log of maintenanceQ.data ?? []) {
+    if (!nextServiceByVehicle.has(log.vehicleId)) nextServiceByVehicle.set(log.vehicleId, log.nextServiceDate);
+  }
 
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
-      {/* Gallery */}
-      <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
-        {VEHICLES.map((v) => (
-          <RevealItem key={v.plate}>
-            <VehicleCard vehicle={v} />
-          </RevealItem>
-        ))}
-      </Reveal>
+    <div className="space-y-4">
+      <VehicleDetailModal vehicle={selected} open={selected !== null} onClose={() => setSelected(null)} />
+      <AddVehicleModal open={addOpen} onClose={() => setAddOpen(false)} />
 
-      {/* Side rails: fleet snapshot + drivers on the road + maintenance attention */}
-      <aside className="space-y-6">
-        <GlassCard className="p-5">
-          <div className="flex items-center gap-4">
-            <RadialGauge value={FLEET_SUMMARY.utilization} label={t('fleet.utilShort')} size={112} />
-            <div>
-              <p className="text-3xl font-bold tabular-nums leading-none">
-                <CountUp value={FLEET_SUMMARY.total} />
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">{t('fleet.vehiclesTracked')}</p>
+      {/* Toolbar above the cards */}
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="size-4" /> {t('fleet.addVehicle')}
+        </Button>
+      </div>
+
+      <Async query={vehiclesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /></div>}>
+        {(apiVehicles) => {
+          const vehicles = apiVehicles.map((v) => toVehicle(v, nextServiceByVehicle.get(v.id) ?? null));
+          const counts = { active: 0, maintenance: 0, retired: 0 } as Record<VehicleStatus, number>;
+          for (const v of vehicles) counts[v.status] += 1;
+          const total = vehicles.length;
+          const utilization = total ? Math.round((counts.active / total) * 100) : 0;
+          const composition: { key: VehicleStatus; count: number; color: string }[] = [
+            { key: 'active', count: counts.active, color: STATUS_COLOR.active },
+            { key: 'maintenance', count: counts.maintenance, color: STATUS_COLOR.maintenance },
+            { key: 'retired', count: counts.retired, color: STATUS_COLOR.retired },
+          ];
+          return (
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
+              <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
+                {vehicles.map((v) => (
+                  <RevealItem key={v.id}>
+                    <VehicleCard vehicle={v} onOpenDetails={() => setSelected(v)} />
+                  </RevealItem>
+                ))}
+              </Reveal>
+
+              {/* Side rail: live 3-colour fleet composition ring */}
+              <aside className="space-y-6">
+                <GlassCard className="p-5">
+                  <div className="flex items-center gap-4">
+                    <SegmentedDonut size={116} segments={composition.map((s) => ({ value: s.count, color: s.color }))}>
+                      <span className="text-2xl font-bold tabular-nums leading-none">
+                        <CountUp value={utilization} format={(n) => `${Math.round(n)}%`} />
+                      </span>
+                      <span className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">{t('fleet.utilShort')}</span>
+                    </SegmentedDonut>
+                    <div>
+                      <p className="text-3xl font-bold tabular-nums leading-none"><CountUp value={total} /></p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t('fleet.vehiclesTracked')}</p>
+                    </div>
+                  </div>
+                  <div className="mt-5 space-y-2">
+                    {composition.map((s) => (
+                      <div key={s.key} className="flex items-center justify-between rounded-lg px-2 py-1.5 text-sm odd:bg-secondary/40">
+                        <span className="flex items-center gap-2">
+                          <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                          {t(`vehicles.status.${s.key}`)}
+                        </span>
+                        <span className="font-semibold tabular-nums"><CountUp value={s.count} /></span>
+                      </div>
+                    ))}
+                  </div>
+                </GlassCard>
+              </aside>
             </div>
-          </div>
-          <div className="mt-4 flex h-2.5 overflow-hidden rounded-full bg-secondary">
-            {COMPOSITION.map((s, i) => (
-              <motion.div
-                key={s.key}
-                initial={{ width: reduce ? `${(s.count / FLEET_SUMMARY.total) * 100}%` : 0 }}
-                animate={{ width: `${(s.count / FLEET_SUMMARY.total) * 100}%` }}
-                transition={{ duration: 0.9, delay: 0.1 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                style={{ background: s.color }}
-              />
-            ))}
-          </div>
-          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
-            {COMPOSITION.map((s) => (
-              <span key={s.key} className="inline-flex items-center gap-1.5 text-xs">
-                <span className="size-2.5 rounded-full" style={{ background: s.color }} />
-                <span className="font-semibold tabular-nums">{s.count}</span>
-                <span className="text-muted-foreground">{t(`vehicles.status.${s.key}`)}</span>
-              </span>
-            ))}
-          </div>
-        </GlassCard>
-
-        <GlassCard className="p-5">
-          <h3 className="text-sm font-semibold">{t('fleet.onDuty')}</h3>
-          <ul className="mt-3 space-y-3">
-            {onDuty.map((d) => (
-              <li key={d.id} className="flex items-center gap-3">
-                <span className="grid size-8 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {d.name.charAt(0)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium leading-tight">{d.name}</p>
-                  <p className="text-xs text-muted-foreground">{d.vehicle}</p>
-                </div>
-                <StatusPill status="on_trip">{t('drivers.state.on_trip')}</StatusPill>
-              </li>
-            ))}
-          </ul>
-        </GlassCard>
-
-        <GlassCard className="p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold">
-            <Wrench className="size-4" /> {t('fleet.needsAttention')}
-          </h3>
-          <ul className="mt-3 space-y-3">
-            {attention.map((j) => (
-              <li key={j.id} className="flex items-center gap-3">
-                <span className="grid size-8 place-items-center rounded-lg bg-secondary text-muted-foreground">
-                  <Bus className="size-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium leading-tight">{j.vehicle} · {j.serviceType}</p>
-                  <p className="text-xs text-muted-foreground">{j.when}</p>
-                </div>
-                <StatusPill status={j.urgency}>{t(`maintenance.urgency.${j.urgency}`)}</StatusPill>
-              </li>
-            ))}
-          </ul>
-        </GlassCard>
-      </aside>
+          );
+        }}
+      </Async>
     </div>
   );
 }

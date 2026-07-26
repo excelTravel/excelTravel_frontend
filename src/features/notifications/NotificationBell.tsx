@@ -1,23 +1,29 @@
-import { Bell, CheckCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Bell } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useNotifications } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 
-interface Notice {
-  id: string;
-  title: string;
-  time: string;
-  tone: 'info' | 'warning' | 'danger';
+function tone(trigger: string): 'info' | 'warning' | 'danger' {
+  if (trigger === 'cancellation' || trigger === 'waitlist_deny') return 'danger';
+  if (trigger === 'delay') return 'warning';
+  return 'info';
+}
+function ago(iso: string): string {
+  const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (m < 60) return `${m}m`;
+  if (m < 1440) return `${Math.round(m / 60)}h`;
+  return `${Math.round(m / 1440)}d`;
 }
 
-// Stub feed until wired to GET /api/v1/notifications (+ socket bus:alert). Shape matches the endpoint.
-const stub: Notice[] = [
-  { id: '1', title: 'Bus RAB123A is 5 km from Nyabugogo', time: '2m', tone: 'info' },
-  { id: '2', title: 'Trip Kigali → Musanze delayed 15 min', time: '18m', tone: 'warning' },
-  { id: '3', title: 'Incident on Trip #4821 — bus transfer requested', time: '1h', tone: 'danger' },
-];
-
+// Live feed from GET /api/v1/notifications (socket bus:alert will push into the same cache later).
 export function NotificationBell() {
-  const unread = stub.length;
+  const { t } = useTranslation();
+  const { data, isLoading } = useNotifications();
+  const items = data ?? [];
+  const unread = items.filter((n) => n.readAt === null).length;
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -36,32 +42,34 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <p className="text-sm font-semibold">Notifications</p>
-          <button type="button" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-            <CheckCheck className="size-3.5" /> Mark all read
-          </button>
+          <p className="text-sm font-semibold">{t('notifs.title', 'Notifications')}</p>
         </div>
         <ul className="max-h-80 divide-y divide-border overflow-y-auto">
-          {stub.map((n) => (
-            <li key={n.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-secondary/50">
-              <span
-                className={cn(
-                  'mt-1.5 size-2 shrink-0 rounded-full',
-                  n.tone === 'danger' ? 'bg-destructive' : n.tone === 'warning' ? 'bg-warning' : 'bg-primary',
-                )}
-                aria-hidden
-              />
-              <div className="min-w-0">
-                <p className="text-sm leading-snug">{n.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{n.time} ago</p>
-              </div>
-            </li>
-          ))}
+          {isLoading && <li className="px-4 py-6"><div className="shimmer h-10 rounded-lg" /></li>}
+          {!isLoading && items.length === 0 && (
+            <li className="px-4 py-8 text-center text-sm text-muted-foreground">{t('common.empty', 'Nothing here yet.')}</li>
+          )}
+          {items.slice(0, 8).map((n) => {
+            const tn = tone(n.triggerType);
+            const isRead = n.readAt !== null;
+            return (
+              <li key={n.id} className={cn('flex gap-3 px-4 py-3 transition-colors hover:bg-secondary/50', !isRead && 'bg-primary/[0.03]')}>
+                <span
+                  className={cn('mt-1.5 size-2 shrink-0 rounded-full', isRead ? 'bg-transparent' : tn === 'danger' ? 'bg-destructive' : tn === 'warning' ? 'bg-warning' : 'bg-primary')}
+                  aria-hidden
+                />
+                <div className="min-w-0">
+                  <p className={cn('text-sm leading-snug', !isRead && 'font-semibold')}>{n.message ?? n.triggerType}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{ago(n.createdAt)} ago</p>
+                </div>
+              </li>
+            );
+          })}
         </ul>
         <div className="border-t border-border px-4 py-2 text-center">
-          <button type="button" className="text-xs font-medium text-primary hover:underline">
-            View all
-          </button>
+          <Link to="/notifications" className="text-xs font-medium text-primary hover:underline">
+            {t('notifs.viewAll')}
+          </Link>
         </div>
       </PopoverContent>
     </Popover>

@@ -56,6 +56,14 @@ const statusTone: Record<string, BadgeProps['tone']> = {
   overdue: 'danger',
   due_soon: 'warning',
   logged: 'neutral',
+  // Incident (accident) review states
+  approved: 'success',
+  rejected: 'danger',
+  // Staff / user account states
+  inactive: 'neutral',
+  company_admin: 'info',
+  manager: 'teal',
+  agent: 'neutral',
 };
 
 export function StatusPill({
