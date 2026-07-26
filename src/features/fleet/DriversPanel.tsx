@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { startOfDay, endOfDay } from 'date-fns';
 import { Star, Phone, CalendarClock, UserPlus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
@@ -9,9 +10,9 @@ import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { AssignDriverModal, type AssignTarget } from './AssignDriverModal';
 import { InviteDriverModal } from './InviteDriverModal';
+import { EditDriverModal } from './EditDriverModal';
 import { DriverScheduling } from './DriverScheduling';
-import { DRIVERS } from './data';
-import { useDrivers } from '@/lib/api/hooks';
+import { useDrivers, useTrips, useRoutes, type ApiDriver } from '@/lib/api/hooks';
 
 const DAY_START = 5;
 const DAY_END = 23;
@@ -19,20 +20,48 @@ const SPAN = DAY_END - DAY_START;
 const TICKS = [6, 9, 12, 15, 18, 21];
 const clampPct = (hour: number) => Math.max(0, Math.min(100, ((hour - DAY_START) / SPAN) * 100));
 
+// Trip bars are laid out on an Africa/Kigali day, regardless of the viewing browser's local timezone.
+const kigaliHM = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Africa/Kigali' });
+function kigaliHour(iso: string): number {
+  const parts = kigaliHM.formatToParts(new Date(iso));
+  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
+  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0);
+  return h + m / 60;
+}
+
 export function DriversPanel() {
   const { t } = useTranslation();
   const driversQ = useDrivers();
+  const today = new Date();
+  const tripsQ = useTrips({ from: startOfDay(today).toISOString(), to: endOfDay(today).toISOString() });
+  const routesQ = useRoutes();
   const [assignTo, setAssignTo] = useState<AssignTarget | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [editDriver, setEditDriver] = useState<ApiDriver | null>(null);
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowPct = clampPct(nowHour);
   const nowVisible = nowHour >= DAY_START && nowHour <= DAY_END;
 
+  const drivers = driversQ.data ?? [];
+  const trips = tripsQ.data ?? [];
+  const routeName = (routeId: string) => {
+    const r = routesQ.data?.find((x) => x.id === routeId);
+    return r ? `${r.origin} → ${r.destination}` : '—';
+  };
+  const tripsByDriver = new Map<string, typeof trips>();
+  for (const trip of trips) {
+    if (!trip.driverId) continue;
+    const list = tripsByDriver.get(trip.driverId) ?? [];
+    list.push(trip);
+    tripsByDriver.set(trip.driverId, list);
+  }
+
   return (
     <div className="space-y-6">
       <AssignDriverModal driver={assignTo} open={assignTo !== null} onClose={() => setAssignTo(null)} />
       <InviteDriverModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <EditDriverModal driver={editDriver} open={editDriver !== null} onClose={() => setEditDriver(null)} />
       {/* Trip schedule board (derived from assigned trips) */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between">
@@ -56,38 +85,50 @@ export function DriversPanel() {
               </span>
             </div>
           )}
-          {DRIVERS.map((d) => (
-            <div key={d.id} className="flex items-center gap-3">
-              <div className="flex w-44 shrink-0 items-center gap-2">
-                <span className="grid size-8 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {d.name.charAt(0)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium leading-tight">{d.name}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">{d.vehicle ?? t('drivers.noVehicle')}</p>
+          {driversQ.isLoading ? (
+            <div className="shimmer h-24 rounded-lg" />
+          ) : (
+            drivers.map((d) => {
+              const dayTrips = tripsByDriver.get(d.id) ?? [];
+              return (
+                <div key={d.id} className="flex items-center gap-3">
+                  <div className="flex w-44 shrink-0 items-center gap-2">
+                    <span className="grid size-8 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                      {d.name.charAt(0)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium leading-tight">{d.name}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{dayTrips[0]?.vehiclePlate ?? t('drivers.noVehicle')}</p>
+                    </div>
+                  </div>
+                  <div className="relative h-8 flex-1 rounded-lg bg-secondary/60">
+                    {dayTrips.length === 0 ? (
+                      <span className="absolute inset-0 grid place-items-center text-[11px] text-muted-foreground">{t('drivers.noTrips')}</span>
+                    ) : (
+                      dayTrips.map((trip) => {
+                        const start = kigaliHour(trip.departureTime);
+                        const end = trip.arrivalTime ? kigaliHour(trip.arrivalTime) : start + 1;
+                        const label = routeName(trip.routeId);
+                        return (
+                          <motion.div
+                            key={trip.id}
+                            initial={{ scaleX: 0, opacity: 0 }}
+                            animate={{ scaleX: 1, opacity: 1 }}
+                            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            style={{ left: `${clampPct(start)}%`, width: `${Math.max(clampPct(end) - clampPct(start), 3)}%`, transformOrigin: 'left' }}
+                            className="absolute inset-y-1 grid place-items-center overflow-hidden rounded-md bg-[hsl(var(--teal))]/85 px-2 text-[11px] font-semibold text-white"
+                            title={`${label} · ${kigaliHM.format(new Date(trip.departureTime))}${trip.arrivalTime ? `–${kigaliHM.format(new Date(trip.arrivalTime))}` : ''}`}
+                          >
+                            {label}
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="relative h-8 flex-1 rounded-lg bg-secondary/60">
-                {d.trips.length === 0 ? (
-                  <span className="absolute inset-0 grid place-items-center text-[11px] text-muted-foreground">{t('drivers.noTrips')}</span>
-                ) : (
-                  d.trips.map((trip) => (
-                    <motion.div
-                      key={trip.code}
-                      initial={{ scaleX: 0, opacity: 0 }}
-                      animate={{ scaleX: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      style={{ left: `${clampPct(trip.start)}%`, width: `${clampPct(trip.end) - clampPct(trip.start)}%`, transformOrigin: 'left' }}
-                      className="absolute inset-y-1 grid place-items-center overflow-hidden rounded-md bg-[hsl(var(--teal))]/85 px-2 text-[11px] font-semibold text-white"
-                      title={`${trip.code} · ${trip.from}→${trip.to} · ${trip.start}:00–${trip.end}:00`}
-                    >
-                      {trip.from}→{trip.to}
-                    </motion.div>
-                  ))
-                )}
-              </div>
-            </div>
-          ))}
+              );
+            })
+          )}
         </div>
       </GlassCard>
 
@@ -137,6 +178,7 @@ export function DriversPanel() {
                   <div className="flex items-center gap-2 border-t border-border pt-3">
                     <StatusPill status={d.status}>{t(`drivers.state.${d.status}`, d.status)}</StatusPill>
                     <div className="ml-auto flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => setEditDriver(d)}>{t('forms.edit')}</Button>
                       <Button variant="outline" size="sm" onClick={() => setAssignTo({ id: d.id, name: d.name, license: d.licenseNumber })}>{t('drivers.assign')}</Button>
                       <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                         <Phone className="size-4" />

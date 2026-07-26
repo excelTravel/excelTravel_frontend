@@ -27,9 +27,13 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
         {/* Identity + status */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-              <Bus className="size-5" />
-            </span>
+            {vehicle.photoUrl ? (
+              <img src={vehicle.photoUrl} alt="" className="size-11 rounded-xl object-cover" />
+            ) : (
+              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Bus className="size-5" />
+              </span>
+            )}
             <div>
               <p className="text-lg font-bold leading-tight tracking-tight">{vehicle.plate}</p>
               <p className="text-xs text-muted-foreground">{vehicle.model}{vehicle.year ? ` · ${vehicle.year}` : ''}</p>

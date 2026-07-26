@@ -21,6 +21,7 @@ const nextServiceFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month:
 function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
   const status = (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus;
   return {
+    id: v.id,
     plate: v.plateNumber,
     model: v.model ?? '—',
     capacity: v.capacity,
@@ -32,6 +33,7 @@ function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
     currentTrip: null,
     nextTrip: null,
     maintenanceSince: null,
+    photoUrl: v.photoUrl,
   };
 }
 
@@ -82,7 +84,7 @@ export function VehiclesPanel() {
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
               <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
                 {vehicles.map((v) => (
-                  <RevealItem key={v.plate}>
+                  <RevealItem key={v.id}>
                     <VehicleCard vehicle={v} onOpenDetails={() => setSelected(v)} />
                   </RevealItem>
                 ))}

@@ -5,11 +5,11 @@ import { Bus, Users, Wrench, TriangleAlert } from 'lucide-react';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
+import { useVehicles, useDrivers } from '@/lib/api/hooks';
 import { VehiclesPanel } from './VehiclesPanel';
 import { DriversPanel } from './DriversPanel';
 import { MaintenancePanel } from './MaintenancePanel';
 import { AccidentsPanel } from './AccidentsPanel';
-import { FLEET_SUMMARY } from './data';
 
 const TABS = [
   { key: 'vehicles', icon: Bus },
@@ -24,21 +24,25 @@ type FleetTab = (typeof TABS)[number]['key'];
 export function FleetPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FleetTab>('vehicles');
-  const s = FLEET_SUMMARY;
+  const vehiclesQ = useVehicles();
+  const driversQ = useDrivers();
+  const loading = vehiclesQ.isLoading || driversQ.isLoading;
+  const vehicles = vehiclesQ.data ?? [];
+  const drivers = driversQ.data ?? [];
 
   // One fixed set of cards across every sub-section — prevents layout shift when switching tabs.
   const cards = [
-    { label: t('fleet.totalFleet'), value: s.total },
-    { label: t('fleet.activeNow'), value: s.active },
-    { label: t('fleet.totalDrivers'), value: s.totalDrivers },
-    { label: t('fleet.openMaintenance'), value: s.maintenance },
+    { label: t('fleet.totalFleet'), value: vehicles.length },
+    { label: t('fleet.activeNow'), value: vehicles.filter((v) => v.status === 'active').length },
+    { label: t('fleet.totalDrivers'), value: drivers.length },
+    { label: t('fleet.openMaintenance'), value: vehicles.filter((v) => v.status === 'maintenance').length },
   ];
 
   return (
     <Reveal className="space-y-6">
       <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         {cards.map((c) => (
-          <KpiCard key={c.label} label={c.label} value={c.value.toLocaleString()} />
+          <KpiCard key={c.label} loading={loading} label={c.label} value={c.value.toLocaleString()} />
         ))}
       </RevealItem>
 
