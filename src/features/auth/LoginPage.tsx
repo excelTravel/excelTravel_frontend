@@ -208,7 +208,7 @@ export function LoginPage() {
         : await authApi.verifyOtp({ identifier: payloadId, code: currentCode.trim() });
       setSession(tokens);
       navigate('/', { replace: true });
-    } catch (e) {
+    } catch {
       setErrors({ code: "otp wrong, re-enter or request a new one" });
     } finally {
       setBusy(false);
