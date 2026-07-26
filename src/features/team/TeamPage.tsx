@@ -9,25 +9,11 @@ import { DataTable, type Column } from '@/components/ui/data-table';
 import { SectionTabs } from '@/components/ui/section-tabs';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useUsers, usePassengers, type ApiUser, type ApiPassengerSummary } from '@/lib/api/hooks';
-import { InviteUserModal } from './TeamModals';
+import { useUsers, useAgents, usePassengers, type ApiUser, type ApiPassengerSummary } from '@/lib/api/hooks';
+import { InviteUserModal, EditUserModal } from './TeamModals';
 import { formatRWF } from '@/lib/utils';
 
 const fmtDate = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—');
-
-// Deterministic stub login metrics — the backend users table doesn't track logins yet (sessions are
-// tracked in-house via the OTP auth flow). Stable per id so the table doesn't flicker. Flagged in
-// docs/integration-map.md.
-function loginMetrics(seed: string) {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (Math.imul(h, 31) + seed.charCodeAt(i)) >>> 0;
-  const day = 86_400_000;
-  return {
-    logins: 8 + (h % 320),
-    lastLogin: new Date(Date.now() - (h % 6) * day).toISOString(),
-    updated: new Date(Date.now() - (h % 40) * day).toISOString(),
-  };
-}
 
 export function TeamPage() {
   const { t } = useTranslation();
@@ -77,6 +63,9 @@ export function TeamPage() {
 // returns agents by role, so staff + agents live in one list.
 function StaffPanel({ query, onInvite }: { query: ReturnType<typeof useUsers>; onInvite: () => void }) {
   const { t } = useTranslation();
+  const [editUser, setEditUser] = useState<ApiUser | null>(null);
+  const agentsQ = useAgents();
+  const editAgent = editUser?.role === 'agent' ? (agentsQ.data?.find((a) => a.userId === editUser.id) ?? null) : null;
   const cols: Column<ApiUser>[] = [
     {
       key: 'user', header: t('team.colUser'), sort: (u) => u.name,
@@ -93,18 +82,20 @@ function StaffPanel({ query, onInvite }: { query: ReturnType<typeof useUsers>; o
       cell: (u) => <Badge tone={u.role === 'company_admin' ? 'info' : u.role === 'manager' ? 'teal' : 'neutral'}>{t(`team.roles.${u.role}`)}</Badge>,
     },
     { key: 'status', header: t('team.colStatus'), cell: (u) => <StatusPill status={u.status}>{t(`team.status.${u.status}`)}</StatusPill> },
-    { key: 'logins', header: t('team.colLogins'), sort: (u) => loginMetrics(u.id).logins, cell: (u) => loginMetrics(u.id).logins, td: 'tabular-nums text-muted-foreground' },
-    { key: 'lastLogin', header: t('team.colLastLogin'), sort: (u) => loginMetrics(u.id).lastLogin, cell: (u) => fmtDate(loginMetrics(u.id).lastLogin), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
-    { key: 'updated', header: t('team.colUpdated'), align: 'right', sort: (u) => loginMetrics(u.id).updated, cell: (u) => fmtDate(loginMetrics(u.id).updated), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    { key: 'logins', header: t('team.colLogins'), sort: (u) => u.loginCount, cell: (u) => u.loginCount, td: 'tabular-nums text-muted-foreground' },
+    { key: 'lastLogin', header: t('team.colLastLogin'), sort: (u) => u.lastLoginAt ?? '', cell: (u) => fmtDate(u.lastLoginAt), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
+    { key: 'updated', header: t('team.colUpdated'), align: 'right', sort: (u) => u.updatedAt, cell: (u) => fmtDate(u.updatedAt), td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
   ];
   return (
     <GlassCard className="overflow-hidden">
+      <EditUserModal user={editUser} agent={editAgent} open={editUser !== null} onClose={() => setEditUser(null)} />
       <Async query={query} skeleton={<div className="space-y-2 p-5">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="shimmer h-9 rounded" />)}</div>}>
         {(data) => (
           <DataTable
             rows={data}
             columns={cols}
             rowKey={(u) => u.id}
+            onRowClick={(u) => setEditUser(u)}
             search={(u) => `${u.name} ${u.email} ${u.phone}`}
             searchPlaceholder={t('team.searchStaff')}
             toolbarRight={<Button size="sm" onClick={onInvite}><Plus className="size-4" /> {t('team.inviteUser')}</Button>}

@@ -22,7 +22,7 @@ export function NotificationBell() {
   const { t } = useTranslation();
   const { data, isLoading } = useNotifications();
   const items = data ?? [];
-  const unread = items.length;
+  const unread = items.filter((n) => n.readAt === null).length;
 
   return (
     <Popover>
@@ -51,14 +51,15 @@ export function NotificationBell() {
           )}
           {items.slice(0, 8).map((n) => {
             const tn = tone(n.triggerType);
+            const isRead = n.readAt !== null;
             return (
-              <li key={n.id} className="flex gap-3 px-4 py-3 transition-colors hover:bg-secondary/50">
+              <li key={n.id} className={cn('flex gap-3 px-4 py-3 transition-colors hover:bg-secondary/50', !isRead && 'bg-primary/[0.03]')}>
                 <span
-                  className={cn('mt-1.5 size-2 shrink-0 rounded-full', tn === 'danger' ? 'bg-destructive' : tn === 'warning' ? 'bg-warning' : 'bg-primary')}
+                  className={cn('mt-1.5 size-2 shrink-0 rounded-full', isRead ? 'bg-transparent' : tn === 'danger' ? 'bg-destructive' : tn === 'warning' ? 'bg-warning' : 'bg-primary')}
                   aria-hidden
                 />
                 <div className="min-w-0">
-                  <p className="text-sm leading-snug">{n.message ?? n.triggerType}</p>
+                  <p className={cn('text-sm leading-snug', !isRead && 'font-semibold')}>{n.message ?? n.triggerType}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{ago(n.createdAt)} ago</p>
                 </div>
               </li>

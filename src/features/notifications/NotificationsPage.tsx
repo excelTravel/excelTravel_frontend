@@ -6,10 +6,10 @@ import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useNotifications, type ApiNotification } from '@/lib/api/hooks';
+import { useNotifications, useMarkNotificationRead, type ApiNotification } from '@/lib/api/hooks';
 import { cn } from '@/lib/utils';
 
-// Aligned to GET /api/v1/notifications (triggerType, channel, message, status, createdAt).
+// Aligned to GET /api/v1/notifications (triggerType, type, message, status, readAt, createdAt).
 type Channel = 'sms' | 'push' | 'email';
 interface Notif {
   id: string;
@@ -17,6 +17,7 @@ interface Notif {
   channel: Channel;
   message: string;
   status: 'pending' | 'sent' | 'failed';
+  read: boolean;
   time: string;
 }
 
@@ -33,19 +34,19 @@ function ago(iso: string): string {
 
 function toNotif(n: ApiNotification): Notif {
   const status = n.status === 'sent' || n.status === 'delivered' ? 'sent' : n.status === 'failed' ? 'failed' : 'pending';
-  const channel = (['sms', 'push', 'email'].includes(n.channel) ? n.channel : 'push') as Channel;
-  return { id: n.id, trigger: n.triggerType, channel, message: n.message ?? '', status, time: ago(n.createdAt) };
+  const channel = (['sms', 'push', 'email'].includes(n.type) ? n.type : 'push') as Channel;
+  return { id: n.id, trigger: n.triggerType, channel, message: n.message ?? '', status, read: n.readAt !== null, time: ago(n.createdAt) };
 }
 
 export function NotificationsPage() {
   const { t } = useTranslation();
-  const [read, setRead] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const notifsQ = useNotifications();
+  const markRead = useMarkNotificationRead();
 
   const all = (notifsQ.data ?? []).map(toNotif);
-  const rows = filter === 'unread' ? all.filter((n) => !read.has(n.id)) : all;
-  const unread = all.filter((n) => !read.has(n.id)).length;
+  const rows = filter === 'unread' ? all.filter((n) => !n.read) : all;
+  const unread = all.filter((n) => !n.read).length;
 
   return (
     <Reveal className="mx-auto max-w-3xl space-y-6">
@@ -65,7 +66,12 @@ export function NotificationsPage() {
               </button>
             ))}
           </div>
-          <Button variant="outline" size="sm" onClick={() => setRead(new Set(all.map((n) => n.id)))} disabled={unread === 0}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => all.filter((n) => !n.read).forEach((n) => markRead.mutate({ id: n.id, read: true }))}
+            disabled={unread === 0 || markRead.isPending}
+          >
             <CheckCheck className="size-4" /> {t('notifs.markAll')}
           </Button>
         </div>
@@ -78,12 +84,12 @@ export function NotificationsPage() {
           {rows.map((n) => {
             const TIcon = TRIGGER_ICON[n.trigger] ?? Bell;
             const CIcon = CHANNEL_ICON[n.channel] ?? Smartphone;
-            const isRead = read.has(n.id);
+            const isRead = n.read;
             return (
               <button
                 key={n.id}
                 type="button"
-                onClick={() => setRead((prev) => new Set(prev).add(n.id))}
+                onClick={() => !isRead && markRead.mutate({ id: n.id, read: true })}
                 className={cn('flex w-full items-start gap-3 px-5 py-4 text-left transition-colors hover:bg-secondary/40', !isRead && 'bg-primary/[0.03]')}
               >
                 <span className={cn('mt-0.5 grid size-9 shrink-0 place-items-center rounded-lg', n.trigger === 'cancellation' ? 'bg-destructive/10 text-destructive' : n.trigger === 'delay' ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary')}>
