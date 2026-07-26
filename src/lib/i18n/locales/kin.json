@@ -260,9 +260,27 @@
     }
   },
   "maintenance": {
-    "badge": "Biracyubakwa",
-    "comingSoon": "Gusana biraza vuba",
-    "comingSoonSub": "Kwandika gusana, gahunda n'ibiciro bizaba hano. Twabishyize ku ruhande kuri ubu — tubwire niba ushaka ko bikorwa mbere."
+    "title": "Urutonde rwo gusana",
+    "totalLogs": "Inyandiko zanditswe",
+    "dueSoon": "Bizasanwa vuba",
+    "overdue": "Byarengeje igihe",
+    "totalCost": "Amafaranga yose",
+    "search": "Shakisha mu nyandiko zo gusana",
+    "empty": "Nta gusana kwanditswe.",
+    "logMaintenance": "Andika igikorwa cyo gusana",
+    "logMaintenanceSub": "Andika igikorwa cyo gusana cyangwa gukosora ku modoka.",
+    "serviceType": "Ubwoko bw'igikorwa",
+    "serviceTypePlaceholder": "Guhindura amavuta, gusana ibireke…",
+    "performedAt": "Itariki byakoreweho",
+    "cost": "Igiciro",
+    "nextServiceDate": "Itariki y'isanwa rikurikira",
+    "nextServiceKm": "Isanwa rikurikira (km)",
+    "photoHint": "PNG, JPG cyangwa WebP.",
+    "urgency": {
+      "success": "Yasanwe",
+      "warning": "Bizasanwa vuba",
+      "danger": "Byarengeje igihe"
+    }
   },
   "login": {
     "headline": "Genzura bisi zawe ako kanya.",

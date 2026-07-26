@@ -6,6 +6,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useUi } from '@/store/ui';
 import { PageSkeleton } from '@/app/pages/PageSkeleton';
+import { useLiveNotifications } from '@/lib/socket';
 
 // App layout: navy rail + blurred top bar over the glass gradient ground. On mobile the rail is a drawer,
 // openable by the header menu, the left-edge handle, or a left-to-right swipe.
@@ -13,6 +14,7 @@ export function AppShell() {
   const { t } = useTranslation();
   const { sidebarOpen, openSidebar, closeSidebar } = useUi();
   const touch = useRef<{ x: number; y: number } | null>(null);
+  useLiveNotifications();
 
   function onTouchStart(e: TouchEvent) {
     const p = e.touches[0];

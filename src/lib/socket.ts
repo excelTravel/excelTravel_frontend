@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { io, type Socket } from 'socket.io-client';
+import { useQueryClient } from '@tanstack/react-query';
 import { config } from './config';
 import { getAuthToken } from './api/client';
+import { qk } from './api/hooks';
 
 // Shared Socket.io connection to the backend. The server authenticates our access token (from getAuthToken(),
 // see lib/api/session) in the handshake and authorizes trip rooms per request; we join a room to receive that
@@ -23,6 +25,22 @@ function getSocket(): Socket {
     });
   }
   return socket;
+}
+
+// Subscribes to `notification:changed`, pushed by the backend the instant a notification is created or
+// its read-state changes (see lib/socket.ts server-side: auto-joined user + company rooms, no explicit
+// join needed here). The push carries no payload to trust — it just triggers a real refetch, which goes
+// through the actual endpoint (RLS-correct) instead of splicing an unverified payload into the cache.
+export function useLiveNotifications(): void {
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const s = getSocket();
+    const onChanged = () => void queryClient.invalidateQueries({ queryKey: qk.notifications });
+    s.on('notification:changed', onChanged);
+    return () => {
+      s.off('notification:changed', onChanged);
+    };
+  }, [queryClient]);
 }
 
 export interface LiveLocation {
