@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bus, Moon, Sun } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
@@ -7,25 +7,95 @@ import { Field, Input } from '@/components/ui/form';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { useCurrentUser } from '@/lib/currentUser';
-import { useUpdateMe } from '@/lib/api/hooks';
+import { useCompanies, useMe, useUpdateCompany, useUpdateMe } from '@/lib/api/hooks';
+import { useSession } from '@/lib/auth/session';
 import { useTheme } from '@/store/theme';
 import { cn } from '@/lib/utils';
+import { CLOUDINARY_FOLDERS } from '@/lib/config';
+
+const COMPANY_EDIT_ROLES = new Set(['super_admin', 'company_admin', 'manager']);
 
 export function SettingsPage() {
   const { t, i18n } = useTranslation();
   const user = useCurrentUser();
+  const sessionUser = useSession((s) => s.user);
   const { theme, toggle } = useTheme();
   const lang = i18n.language === 'kin' ? 'kin' : 'en';
-  
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [logo, setLogo] = useState<string | null>(null);
-  const [name, setName] = useState(user.fullName);
-  const [company, setCompany] = useState('ExcelTravel');
-  const updateMe = useUpdateMe();
 
-  function save() {
-    if (!name.trim() || name.trim() === user.fullName) return;
-    updateMe.mutate({ name: name.trim() });
+  const me = useMe();
+  const companies = useCompanies();
+  const myCompany = companies.data?.find((c) => c.id === sessionUser?.companyId);
+  const canEditCompany = COMPANY_EDIT_ROLES.has(sessionUser?.role ?? '');
+
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [name, setName] = useState(user.fullName);
+  const [logo, setLogo] = useState<string | null>(null);
+  const [company, setCompany] = useState('');
+
+  // Sync local editable state from the server once it's loaded (and again after a save resolves).
+  useEffect(() => {
+    if (me.data) {
+      setAvatar(me.data.avatarUrl);
+      setName(me.data.name);
+    }
+  }, [me.data]);
+  useEffect(() => {
+    if (myCompany) {
+      setLogo(myCompany.logoUrl);
+      setCompany(myCompany.name);
+    }
+  }, [myCompany]);
+
+  const updateMe = useUpdateMe();
+  const updateCompany = useUpdateCompany();
+  const [saveState, setSaveState] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const nameDirty = me.data ? name.trim() !== me.data.name && name.trim().length > 0 : false;
+  const avatarDirty = me.data ? avatar !== me.data.avatarUrl : false;
+  const companyNameDirty = canEditCompany && myCompany ? company.trim() !== myCompany.name && company.trim().length > 0 : false;
+  const logoDirty = canEditCompany && myCompany ? logo !== myCompany.logoUrl : false;
+  const dirty = nameDirty || avatarDirty || companyNameDirty || logoDirty;
+  const saving = updateMe.isPending || updateCompany.isPending;
+
+  async function save() {
+    setSaveState('idle');
+    try {
+      const tasks: Promise<unknown>[] = [];
+      if (nameDirty || avatarDirty) {
+        tasks.push(
+          updateMe.mutateAsync({
+            ...(nameDirty ? { name: name.trim() } : {}),
+            ...(avatarDirty ? { avatarUrl: avatar } : {}),
+          }),
+        );
+      }
+      if (myCompany && (companyNameDirty || logoDirty)) {
+        tasks.push(
+          updateCompany.mutateAsync({
+            id: myCompany.id,
+            ...(companyNameDirty ? { name: company.trim() } : {}),
+            ...(logoDirty ? { logoUrl: logo } : {}),
+          }),
+        );
+      }
+      if (tasks.length === 0) return;
+      await Promise.all(tasks);
+      setSaveState('success');
+    } catch {
+      setSaveState('error');
+    }
+  }
+
+  function cancel() {
+    if (me.data) {
+      setName(me.data.name);
+      setAvatar(me.data.avatarUrl);
+    }
+    if (myCompany) {
+      setCompany(myCompany.name);
+      setLogo(myCompany.logoUrl);
+    }
+    setSaveState('idle');
   }
 
   return (
@@ -38,7 +108,7 @@ export function SettingsPage() {
           <GlassCard className="p-6">
             <SectionHead title={t('settings.profile')} desc={t('settings.profileSub')} />
             <div className="mt-5 space-y-5">
-              <ImageUpload value={avatar} onChange={setAvatar} shape="circle" hint={t('settings.avatarHint')} />
+              <ImageUpload value={avatar} onChange={setAvatar} shape="circle" hint={t('settings.avatarHint')} folder={CLOUDINARY_FOLDERS.profilePictures} />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={t('settings.displayName')} htmlFor="s-name">
                   <Input id="s-name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -94,9 +164,18 @@ export function SettingsPage() {
             <SectionHead title={t('settings.branding')} desc={t('settings.brandingSub')} />
             <div className="mt-5 grid gap-6 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
               <div className="space-y-5">
-                <ImageUpload value={logo} onChange={setLogo} shape="square" hint={t('settings.logoHint')} />
+                {canEditCompany && myCompany ? (
+                  <ImageUpload value={logo} onChange={setLogo} shape="square" hint={t('settings.logoHint')} folder={CLOUDINARY_FOLDERS.branding} />
+                ) : (
+                  <div className="flex items-center gap-5">
+                    <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-secondary/60">
+                      {logo ? <img src={logo} alt="" className="size-full object-cover" /> : <Bus className="size-7 text-muted-foreground" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{t('settings.noCompanyEditAccess')}</p>
+                  </div>
+                )}
                 <Field label={t('settings.companyName')} htmlFor="s-company">
-                  <Input id="s-company" value={company} onChange={(e) => setCompany(e.target.value)} />
+                  <Input id="s-company" value={company} onChange={(e) => setCompany(e.target.value)} disabled={!canEditCompany || !myCompany} />
                 </Field>
               </div>
               {/* Live ticket preview — how the logo looks on a boarding pass */}
@@ -127,11 +206,11 @@ export function SettingsPage() {
       {/* Sticky save bar */}
       <div className="fixed bottom-6 right-6 z-10 flex items-center justify-end gap-3 rounded-xl border border-border bg-card/85 p-3 shadow-2xl backdrop-blur">
         <span className="mr-auto px-2 text-xs font-medium" aria-live="polite">
-          {updateMe.isSuccess && <span className="text-success">{t('settings.saved')}</span>}
-          {updateMe.isError && <span className="text-destructive">{t('forms.checkFields')}</span>}
+          {saveState === 'success' && <span className="text-success">{t('settings.saved')}</span>}
+          {saveState === 'error' && <span className="text-destructive">{t('forms.checkFields')}</span>}
         </span>
-        <Button variant="outline" onClick={() => setName(user.fullName)} disabled={updateMe.isPending}>{t('forms.cancel')}</Button>
-        <Button onClick={save} disabled={updateMe.isPending || !name.trim() || name.trim() === user.fullName}>{updateMe.isPending ? t('forms.saving') : t('forms.save')}</Button>
+        <Button variant="outline" onClick={cancel} disabled={saving || !dirty}>{t('forms.cancel')}</Button>
+        <Button onClick={() => void save()} disabled={saving || !dirty}>{saving ? t('forms.saving') : t('forms.save')}</Button>
       </div>
     </Reveal>
   );

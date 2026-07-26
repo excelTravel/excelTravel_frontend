@@ -12,6 +12,7 @@ export interface Me {
   role: 'super_admin' | 'company_admin' | 'manager' | 'agent' | 'driver' | 'passenger';
   companyId: string | null;
   status: 'active' | 'inactive' | 'suspended';
+  avatarUrl: string | null;
 }
 
 export interface ApiRoute {
@@ -66,6 +67,7 @@ export interface ApiVehicle {
   year: number | null;
   status: 'active' | 'maintenance' | 'retired';
   currentKm: number;
+  photoUrl: string | null;
 }
 
 export interface ApiTrip {
@@ -109,6 +111,7 @@ export interface ApiUser {
   companyId: string;
   lastLoginAt: string | null;
   loginCount: number;
+  updatedAt: string;
 }
 
 export interface ApiCompany {
@@ -128,8 +131,10 @@ export interface ApiCompany {
 
 export interface ApiDriver {
   id: string;
+  userId: string;
+  companyId: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
   licenseNumber: string | null;
   licenseExpiry: string | null;
@@ -142,8 +147,10 @@ export interface ApiDriver {
 
 export interface ApiAgent {
   id: string;
+  userId: string;
+  companyId: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
   photoUrl: string | null;
   stationIds: string[];
@@ -165,10 +172,23 @@ export interface ApiBooking {
 export interface ApiNotification {
   id: string;
   triggerType: string;
-  channel: string;
+  type: string; // delivery channel: sms | push | email
   status: string;
   message: string | null;
+  readAt: string | null;
   createdAt: string;
+}
+
+export interface ApiDriverShift {
+  id: string;
+  driverId: string;
+  companyId: string;
+  dayOfWeek: number; // 0=Monday..6=Sunday
+  startTime: string; // "HH:MM"
+  endTime: string; // "HH:MM"
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ApiPackageEvent {
@@ -249,12 +269,17 @@ export const useTrips = (range?: RangeQuery) =>
 export const useUsers = () => useQuery({ queryKey: qk.users, queryFn: () => apiFetch<ApiUser[]>('/users') });
 export const useCompanies = () => useQuery({ queryKey: qk.companies, queryFn: () => apiFetch<ApiCompany[]>('/companies') });
 export const useDrivers = () => useQuery({ queryKey: qk.drivers, queryFn: () => apiFetch<ApiDriver[]>('/drivers') });
+export const useDriverShifts = () => useQuery({ queryKey: qk.driverShifts, queryFn: () => apiFetch<ApiDriverShift[]>('/driver-shifts') });
 export const useAgents = () => useQuery({ queryKey: qk.agents, queryFn: () => apiFetch<ApiAgent[]>('/agents') });
 export const useBookings = (range?: RangeQuery) =>
   useQuery({ queryKey: [...qk.bookings, range?.from, range?.to], queryFn: () => apiFetch<ApiBooking[]>(withRange('/bookings', range)) });
 export const useNotifications = () => useQuery({ queryKey: qk.notifications, queryFn: () => apiFetch<ApiNotification[]>('/notifications') });
+export const useMarkNotificationRead = () =>
+  useApiMutation<{ id: string; read: boolean }, ApiNotification>(({ id, ...b }) => apiFetch<ApiNotification>(`/notifications/${id}`, patchBody(b)), [qk.notifications]);
 export const usePackages = (range?: RangeQuery) =>
   useQuery({ queryKey: [...qk.packages, range?.from, range?.to], queryFn: () => apiFetch<ApiPackage[]>(withRange('/packages', range)) });
+export const usePackage = (id?: string) =>
+  useQuery({ queryKey: [...qk.packages, id], enabled: Boolean(id), queryFn: () => apiFetch<ApiPackage>(`/packages/${id}`) });
 export interface ApiPassengerSummary {
   passengerId: string | null;
   name: string;
@@ -466,6 +491,7 @@ export interface ApiMaintenanceLog {
   performedAt: string;
   nextServiceDate: string | null;
   nextServiceKm: number | null;
+  photoUrl: string | null;
   createdAt: string;
 }
 export const useMaintenanceLogs = (vehicleId?: string) =>
@@ -571,7 +597,16 @@ export const useUpdateTrip = () =>
   useApiMutation<{ id: string } & Record<string, unknown>, ApiTrip>(({ id, ...b }) => apiFetch<ApiTrip>(`/trips/${id}`, patchBody(b)), [qk.trips]);
 // Update the signed-in user's own profile (name/phone/email/language) → PATCH /me.
 export const useUpdateMe = () =>
-  useApiMutation<{ name?: string; phone?: string; email?: string | null; preferredLanguage?: string }, Me>((b) => apiFetch<Me>('/me', patchBody(b)), [qk.me]);
+  useApiMutation<{ name?: string; phone?: string; email?: string | null; avatarUrl?: string | null; preferredLanguage?: string }, Me>(
+    (b) => apiFetch<Me>('/me', patchBody(b)),
+    [qk.me],
+  );
+
+export const useUpdateCompany = () =>
+  useApiMutation<{ id: string } & Record<string, unknown>, ApiCompany>(
+    ({ id, ...b }) => apiFetch<ApiCompany>(`/companies/${id}`, patchBody(b)),
+    [qk.companies],
+  );
 // Dispatch controls — send an in-app message to the trip's driver, or broadcast to its passengers.
 export const useMessageDriver = () =>
   useApiMutation<{ id: string; message: string }, { sent: boolean }>(({ id, message }) => apiFetch<{ sent: boolean }>(`/trips/${id}/message-driver`, jsonBody({ message })), [qk.notifications]);
@@ -645,6 +680,50 @@ export const useCreateVehicle = () =>
     (b) => apiFetch<ApiVehicle>('/vehicles', jsonBody(b)),
     [qk.vehicles],
   );
+
+// Update/archive — vehicles, routes, stops (all archive endpoints are soft: blocked while in active use).
+export const useUpdateVehicle = () =>
+  useApiMutation<{ id: string } & Record<string, unknown>, ApiVehicle>(({ id, ...b }) => apiFetch<ApiVehicle>(`/vehicles/${id}`, patchBody(b)), [qk.vehicles]);
+export const useArchiveVehicle = () =>
+  useApiMutation<{ id: string }, ApiVehicle>(({ id }) => apiFetch<ApiVehicle>(`/vehicles/${id}`, { method: 'DELETE' }), [qk.vehicles]);
+
+export const useUpdateRoute = () =>
+  useApiMutation<{ id: string } & Record<string, unknown>, ApiRoute>(({ id, ...b }) => apiFetch<ApiRoute>(`/routes/${id}`, patchBody(b)), [qk.routes]);
+export const useArchiveRoute = () =>
+  useApiMutation<{ id: string }, ApiRoute>(({ id }) => apiFetch<ApiRoute>(`/routes/${id}`, { method: 'DELETE' }), [qk.routes]);
+
+export const useUpdateStop = () =>
+  useApiMutation<{ id: string } & Record<string, unknown>, ApiStop>(({ id, ...b }) => apiFetch<ApiStop>(`/stops/${id}`, patchBody(b)), [qk.stops]);
+export const useArchiveStop = () =>
+  useApiMutation<{ id: string }, ApiStop>(({ id }) => apiFetch<ApiStop>(`/stops/${id}`, { method: 'DELETE' }), [qk.stops]);
+
+// Update/deactivate — users, drivers (deactivation is soft; a driver can also be transferred to another company).
+export const useUpdateUser = () =>
+  useApiMutation<{ id: string; role?: string; status?: string }, ApiUser>(({ id, ...b }) => apiFetch<ApiUser>(`/users/${id}`, patchBody(b)), [qk.users]);
+export const useDeactivateUser = () =>
+  useApiMutation<{ id: string }, ApiUser>(({ id }) => apiFetch<ApiUser>(`/users/${id}`, { method: 'DELETE' }), [qk.users]);
+
+export const useUpdateDriver = () =>
+  useApiMutation<{ id: string; status?: string; rating?: number; licenseNumber?: string; licenseExpiry?: string }, ApiDriver>(
+    ({ id, ...b }) => apiFetch<ApiDriver>(`/drivers/${id}`, patchBody(b)),
+    [qk.drivers],
+  );
+export const useDeactivateDriver = () =>
+  useApiMutation<{ id: string }, ApiDriver>(({ id }) => apiFetch<ApiDriver>(`/drivers/${id}`, { method: 'DELETE' }), [qk.drivers]);
+export const useTransferDriver = () =>
+  useApiMutation<{ id: string; toCompanyId: string; endReason?: string; notes?: string }, ApiDriver>(
+    ({ id, ...b }) => apiFetch<ApiDriver>(`/drivers/${id}/transfer`, jsonBody(b)),
+    [qk.drivers],
+  );
+
+// Agents — no admin-side field edit (agents self-manage phone/photo via PATCH /agents/me); ops manages
+// employment via station assignment and deactivation.
+export const useAssignAgentStation = () =>
+  useApiMutation<{ id: string; stationId: string }, ApiAgent>(({ id, stationId }) => apiFetch<ApiAgent>(`/agents/${id}/stations`, jsonBody({ stationId })), [qk.agents]);
+export const useRemoveAgentStation = () =>
+  useApiMutation<{ id: string; stationId: string }, ApiAgent>(({ id, stationId }) => apiFetch<ApiAgent>(`/agents/${id}/stations/${stationId}`, { method: 'DELETE' }), [qk.agents]);
+export const useDeactivateAgent = () =>
+  useApiMutation<{ id: string }, ApiAgent>(({ id }) => apiFetch<ApiAgent>(`/agents/${id}`, { method: 'DELETE' }), [qk.agents]);
 export const useUpsertFare = () =>
   useApiMutation<{ originStationId: string; destinationStationId: string; fareAmount: number; fareSource?: string }, ApiFare>(
     (f) => apiFetch<ApiFare>('/fares', jsonBody(f)),
@@ -656,3 +735,41 @@ export const useImportFares = () =>
     form.append('file', file);
     return apiFetch<ApiFareImportResult>('/fares/import', { method: 'POST', body: form });
   }, [qk.fares]);
+
+// Packages (parcels) — full custody-chain lifecycle: register -> hand-to-driver -> deliver -> collect,
+// with cancel available at any non-terminal step and fee/pay handled separately.
+export const useRegisterPackage = () =>
+  useApiMutation<
+    { senderName: string; senderPhone: string; recipientName: string; recipientPhone: string; fromStopId: string; toStopId: string; description: string; fee?: number },
+    ApiPackage
+  >((b) => apiFetch<ApiPackage>('/packages', jsonBody(b)), [qk.packages]);
+export const useHandToDriver = () =>
+  useApiMutation<{ id: string; stopId?: string; photoUrl?: string; notes?: string }, ApiPackage>(
+    ({ id, ...b }) => apiFetch<ApiPackage>(`/packages/${id}/hand-to-driver`, jsonBody(b)),
+    [qk.packages],
+  );
+export const useDeliverPackage = () =>
+  useApiMutation<{ id: string; stopId?: string; photoUrl?: string; notes?: string }, ApiPackage>(
+    ({ id, ...b }) => apiFetch<ApiPackage>(`/packages/${id}/deliver`, jsonBody(b)),
+    [qk.packages],
+  );
+export const useCollectPackage = () =>
+  useApiMutation<{ id: string; stopId?: string; photoUrl?: string; notes?: string }, ApiPackage>(
+    ({ id, ...b }) => apiFetch<ApiPackage>(`/packages/${id}/collect`, jsonBody(b)),
+    [qk.packages],
+  );
+export const useCancelPackage = () =>
+  useApiMutation<{ id: string; notes?: string }, ApiPackage>(({ id, ...b }) => apiFetch<ApiPackage>(`/packages/${id}/cancel`, jsonBody(b)), [qk.packages]);
+export const useSetPackageFee = () =>
+  useApiMutation<{ id: string; fee: number }, ApiPackage>(({ id, fee }) => apiFetch<ApiPackage>(`/packages/${id}/fee`, patchBody({ fee })), [qk.packages]);
+export const useMarkPackagePaid = () =>
+  useApiMutation<{ id: string }, ApiPackage>(({ id }) => apiFetch<ApiPackage>(`/packages/${id}/pay`, { method: 'POST' }), [qk.packages]);
+
+// Driver weekly roster — upserts (PUT) a driver's shift for one day of the week, or clears it (DELETE).
+export const useSetDriverShift = () =>
+  useApiMutation<{ driverId: string; dayOfWeek: number; startTime: string; endTime: string }, ApiDriverShift>(
+    (b) => apiFetch<ApiDriverShift>('/driver-shifts', { method: 'PUT', body: JSON.stringify(b) }),
+    [qk.driverShifts],
+  );
+export const useDeleteDriverShift = () =>
+  useApiMutation<{ id: string }, { ok: boolean }>(({ id }) => apiFetch<{ ok: boolean }>(`/driver-shifts/${id}`, { method: 'DELETE' }), [qk.driverShifts]);
