@@ -1,10 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MapPin } from 'lucide-react';
+import { Archive, MapPin } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
-import { useStops, useUpsertFare, useCreateRoute, useCreateStop } from '@/lib/api/hooks';
+import {
+  useStops,
+  useUpsertFare,
+  useCreateRoute,
+  useCreateStop,
+  useUpdateRoute,
+  useArchiveRoute,
+  useUpdateStop,
+  useArchiveStop,
+  type ApiRoute,
+  type ApiStop,
+} from '@/lib/api/hooks';
 
 // POST /routes (CreateRoute).
 export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -118,7 +129,6 @@ export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: (
   );
 }
 
-// POST /fares (UpsertFare) — station-to-station, same both ways. Stubbed.
 // POST /fares (upsert_fare — canonical ordering + same-both-ways handled server-side). Live stations.
 export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
@@ -169,6 +179,176 @@ export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => 
         <Field label={t('network.fareAmount')} htmlFor="nf-amt" hint={t('network.fareHint')}>
           <Input id="nf-amt" type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="3500" />
         </Field>
+      </div>
+    </Modal>
+  );
+}
+
+// PATCH/DELETE /routes/{id} — DELETE is a soft archive, blocked while the route has an active trip.
+export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | null; open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
+  const update = useUpdateRoute();
+  const archive = useArchiveRoute();
+  const [name, setName] = useState('');
+  const [origin, setOrigin] = useState('');
+  const [dest, setDest] = useState('');
+  const [km, setKm] = useState('');
+  const [min, setMin] = useState('');
+  const [status, setStatus] = useState<'active' | 'inactive'>('active');
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (route) {
+      setName(route.name);
+      setOrigin(route.origin);
+      setDest(route.destination);
+      setKm(route.distanceKm != null ? String(route.distanceKm) : '');
+      setMin(route.estimatedDurationMin != null ? String(route.estimatedDurationMin) : '');
+      setStatus(route.status);
+      setConfirmArchive(false);
+      setErr(null);
+    }
+  }, [route]);
+
+  if (!route) return null;
+
+  function save() {
+    setErr(null);
+    update.mutate(
+      {
+        id: route!.id,
+        name: name.trim(),
+        origin: origin.trim(),
+        destination: dest.trim(),
+        status,
+        ...(km.trim() ? { distanceKm: Number(km) } : {}),
+        ...(min.trim() ? { estimatedDurationMin: Number(min) } : {}),
+      },
+      { onSuccess: onClose, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
+    );
+  }
+
+  function doArchive() {
+    setErr(null);
+    archive.mutate({ id: route!.id }, { onSuccess: onClose, onError: (e) => setErr(e instanceof Error ? e.message : t('network.archiveRouteFailed')) });
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('network.editRoute')}
+      description={`${route.origin} → ${route.destination}`}
+      footer={
+        confirmArchive ? (
+          <>
+            <Button variant="outline" onClick={() => setConfirmArchive(false)} disabled={archive.isPending}>{t('forms.cancel')}</Button>
+            <Button variant="destructive" onClick={doArchive} disabled={archive.isPending}>{archive.isPending ? t('forms.saving') : t('network.confirmArchive')}</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="destructive" onClick={() => setConfirmArchive(true)} disabled={update.isPending}><Archive className="size-4" /> {t('network.archive')}</Button>
+            <Button variant="outline" onClick={onClose} disabled={update.isPending}>{t('forms.cancel')}</Button>
+            <Button onClick={save} disabled={update.isPending}>{update.isPending ? t('forms.saving') : t('forms.save')}</Button>
+          </>
+        )
+      }
+    >
+      <div className="space-y-4">
+        {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
+        <Field label={t('network.routeName')} htmlFor="er-name" required><Input id="er-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('network.origin')} htmlFor="er-o"><Input id="er-o" value={origin} onChange={(e) => setOrigin(e.target.value)} /></Field>
+          <Field label={t('network.destination')} htmlFor="er-d"><Input id="er-d" value={dest} onChange={(e) => setDest(e.target.value)} /></Field>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('network.distance')} htmlFor="er-km"><Input id="er-km" type="number" value={km} onChange={(e) => setKm(e.target.value)} /></Field>
+          <Field label={t('network.duration')} htmlFor="er-min"><Input id="er-min" type="number" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
+        </div>
+        <Field label={t('forms.status')} htmlFor="er-status">
+          <Select id="er-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
+            <option value="active">{t('network.active')}</option>
+            <option value="inactive">{t('network.inactive')}</option>
+          </Select>
+        </Field>
+      </div>
+    </Modal>
+  );
+}
+
+// PATCH/DELETE /stops/{id} — DELETE is a soft archive, blocked while in active use or has child stops.
+export function EditStopModal({ stop, open, onClose }: { stop: ApiStop | null; open: boolean; onClose: () => void }) {
+  const { t } = useTranslation();
+  const update = useUpdateStop();
+  const archive = useArchiveStop();
+  const [name, setName] = useState('');
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (stop) {
+      setName(stop.name);
+      setLat(String(stop.latitude));
+      setLng(String(stop.longitude));
+      setPhone(stop.phone ?? '');
+      setAddress(stop.address ?? '');
+      setConfirmArchive(false);
+      setErr(null);
+    }
+  }, [stop]);
+
+  if (!stop) return null;
+
+  function save() {
+    setErr(null);
+    const latN = Number(lat), lngN = Number(lng);
+    if (!name.trim() || !Number.isFinite(latN) || !Number.isFinite(lngN)) { setErr(t('forms.checkFields')); return; }
+    update.mutate(
+      { id: stop!.id, name: name.trim(), latitude: latN, longitude: lngN, ...(phone.trim() ? { phone: phone.trim() } : {}), ...(address.trim() ? { address: address.trim() } : {}) },
+      { onSuccess: onClose, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
+    );
+  }
+
+  function doArchive() {
+    setErr(null);
+    archive.mutate({ id: stop!.id }, { onSuccess: onClose, onError: (e) => setErr(e instanceof Error ? e.message : t('network.archiveStopFailed')) });
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={t('network.editStop')}
+      description={t(`network.${stop.type}`)}
+      footer={
+        confirmArchive ? (
+          <>
+            <Button variant="outline" onClick={() => setConfirmArchive(false)} disabled={archive.isPending}>{t('forms.cancel')}</Button>
+            <Button variant="destructive" onClick={doArchive} disabled={archive.isPending}>{archive.isPending ? t('forms.saving') : t('network.confirmArchive')}</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="destructive" onClick={() => setConfirmArchive(true)} disabled={update.isPending}><Archive className="size-4" /> {t('network.archive')}</Button>
+            <Button variant="outline" onClick={onClose} disabled={update.isPending}>{t('forms.cancel')}</Button>
+            <Button onClick={save} disabled={update.isPending}>{update.isPending ? t('forms.saving') : t('forms.save')}</Button>
+          </>
+        )
+      }
+    >
+      <div className="space-y-4">
+        {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
+        <Field label={t('network.stopName')} htmlFor="es-name" required><Input id="es-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t('network.latitude')} htmlFor="es-lat"><Input id="es-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} /></Field>
+          <Field label={t('network.longitude')} htmlFor="es-lng"><Input id="es-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} /></Field>
+        </div>
+        <Field label={t('network.phone')} htmlFor="es-phone"><Input id="es-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>
+        <Field label={t('forms.address', 'Address')} htmlFor="es-address"><Input id="es-address" value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
       </div>
     </Modal>
   );

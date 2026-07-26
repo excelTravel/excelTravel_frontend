@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Plus, ArrowRight, Info, Coins, Upload, FileText, Bus, Snowflake, AlertTriangle } from 'lucide-react';
+import { ChevronRight, Plus, ArrowRight, Info, Coins, Upload, FileText, Bus, Snowflake, AlertTriangle, Pencil } from 'lucide-react';
 import { Sheet } from '@/components/ui/sheet';
 import { Modal } from '@/components/ui/modal';
 import { GlassCard } from '@/components/ui/card';
@@ -28,7 +28,7 @@ import {
   type ApiIncidentCategory,
   type ApiManifestEntry,
 } from '@/lib/api/hooks';
-import { AddRouteModal, AddStopModal, AddFareModal } from '@/features/network/NetworkModals';
+import { AddRouteModal, AddStopModal, AddFareModal, EditRouteModal, EditStopModal } from '@/features/network/NetworkModals';
 import { RouteFares } from '@/features/network/RouteFares';
 import { formatRWF, cn } from '@/lib/utils';
 import { useDateRange, rangeToQuery } from '@/store/dateRange';
@@ -52,6 +52,8 @@ export function RouteManagementPage() {
   const [addFare, setAddFare] = useState(false);
   const [uploadFares, setUploadFares] = useState(false);
   const [drillRoute, setDrillRoute] = useState<ApiRoute | null>(null);
+  const [editRoute, setEditRoute] = useState<ApiRoute | null>(null);
+  const [editStop, setEditStop] = useState<ApiStop | null>(null);
 
   const routes = routesQ.data ?? [];
   const stops = stopsQ.data ?? [];
@@ -164,6 +166,8 @@ export function RouteManagementPage() {
       <AddStopModal open={addStop} onClose={() => setAddStop(false)} />
       <AddFareModal open={addFare} onClose={() => setAddFare(false)} />
       <UploadFaresModal open={uploadFares} onClose={() => setUploadFares(false)} />
+      <EditRouteModal route={editRoute} open={editRoute !== null} onClose={() => setEditRoute(null)} />
+      <EditStopModal stop={editStop} open={editStop !== null} onClose={() => setEditStop(null)} />
       <RouteDetailsSheet
         route={drillRoute}
         trips={trips}
@@ -171,6 +175,10 @@ export function RouteManagementPage() {
         manifestByTripId={manifestByTripId}
         manifestsLoaded={manifestsLoaded}
         onClose={() => setDrillRoute(null)}
+        onEdit={(r) => {
+          setDrillRoute(null);
+          setEditRoute(r);
+        }}
       />
 
       {/* KPI cards */}
@@ -217,6 +225,7 @@ export function RouteManagementPage() {
                 rows={data}
                 columns={stopCols}
                 rowKey={(s) => s.id}
+                onRowClick={(s) => setEditStop(s)}
                 search={(s) => s.name}
                 searchPlaceholder={t('routesMgmt.searchStops')}
                 empty={t('network.noStops')}
@@ -262,13 +271,14 @@ const ROUTE_TRIPS_PAGE_SIZE = 10;
 // content here (cards + a long trip list) to want the room. All passenger/booking-source figures are
 // computed from manifests the parent page already eagerly fetched for every trip — no per-row fetch, no
 // expand-to-view-manifest: each row shows its own numbers immediately, and rows link straight to the trip.
-function RouteDetailsSheet({ route, trips, incidents, manifestByTripId, manifestsLoaded, onClose }: {
+function RouteDetailsSheet({ route, trips, incidents, manifestByTripId, manifestsLoaded, onClose, onEdit }: {
   route: ApiRoute | null;
   trips: ApiTrip[];
   incidents: ApiIncident[];
   manifestByTripId: Map<string, ApiManifestEntry[]>;
   manifestsLoaded: boolean;
   onClose: () => void;
+  onEdit: (route: ApiRoute) => void;
 }) {
   const { t } = useTranslation();
   const [visibleCount, setVisibleCount] = useState(ROUTE_TRIPS_PAGE_SIZE);
@@ -327,6 +337,7 @@ function RouteDetailsSheet({ route, trips, incidents, manifestByTripId, manifest
       width="lg"
       title={route ? `${route.origin} → ${route.destination}` : ''}
       description={route ? t('routesMgmt.routeTripsSub', { trips: rows.length, revenue: formatRWF(revenue) }) : ''}
+      footer={route && <Button variant="outline" size="sm" onClick={() => onEdit(route)}><Pencil className="size-4" /> {t('network.editRoute')}</Button>}
     >
       {rows.length === 0 ? (
         <div className="grid place-items-center gap-2 py-12 text-center text-sm text-muted-foreground">
