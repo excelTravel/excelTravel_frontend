@@ -182,7 +182,7 @@ export function LoginPage() {
       const payloadId = channel === 'email' ? email.trim().toLowerCase() : (phone.startsWith('+') ? phone.trim() : `+250${phone.trim()}`);
       const res = channel === 'phone' && signup
         ? await authApi.register({ phone: payloadId, name: name.trim() })
-        : await authApi.requestOtp({ identifier: payloadId });
+        : await authApi.requestOtp({ phone: payloadId });
       
       setDevCode(res.devCode ?? null);
       setCode('');
@@ -205,7 +205,7 @@ export function LoginPage() {
       const payloadId = channel === 'email' ? email.trim().toLowerCase() : (phone.startsWith('+') ? phone.trim() : `+250${phone.trim()}`);
       const tokens = channel === 'phone' && signup
         ? await authApi.verifyPhone({ phone: payloadId, code: currentCode.trim() })
-        : await authApi.verifyOtp({ identifier: payloadId, code: currentCode.trim() });
+        : await authApi.verifyOtp({ phone: payloadId, code: currentCode.trim() });
       setSession(tokens);
       navigate('/', { replace: true });
     } catch {
