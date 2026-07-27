@@ -37,9 +37,9 @@ export function friendlyMessage(status: number, body: unknown): string {
     case 401:
       return 'Your session has expired. Please sign in again.';
     case 403:
-      return "You don't have access to this.";
+      return backend ?? "You don't have access to this.";
     case 404:
-      return "We couldn't find what you were looking for.";
+      return backend ?? "We couldn't find what you were looking for.";
     case 409:
       return backend ?? 'That action conflicts with the current state.';
     case 422:
