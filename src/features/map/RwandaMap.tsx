@@ -45,7 +45,38 @@ function makeMarkerEl(bus: LiveBus): HTMLButtonElement {
   return el;
 }
 
+// Labeled pin at a selected route's origin (green) or destination (red). Built via DOM APIs with
+// textContent (not innerHTML) since the stop name is real data, not trusted static markup.
+function makeRouteEndEl(name: string, kind: 'from' | 'to'): HTMLDivElement {
+  const el = document.createElement('div');
+  el.style.cssText = 'display:flex;align-items:center;gap:6px;pointer-events:none;';
+  const dot = document.createElement('span');
+  dot.style.cssText = `width:14px;height:14px;border-radius:9999px;background:${kind === 'from' ? '#22C55E' : '#EF4444'};border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);flex-shrink:0;`;
+  const label = document.createElement('span');
+  label.style.cssText =
+    'background:rgba(15,23,42,.92);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:9999px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.35);';
+  label.textContent = `${kind === 'from' ? 'From' : 'To'} · ${name}`;
+  el.appendChild(dot);
+  el.appendChild(label);
+  return el;
+}
+
 export interface MapStop { id: string; name: string; lng: number; lat: number }
+
+// The path a selected bus is actually running, in stop order — real coordinates from that route's
+// stops (not the decorative hub-to-hub corridor lines), so "where it's heading / where it's from" is
+// exact, not approximate.
+export interface SelectedRoute {
+  coords: [number, number][];
+  fromName: string;
+  toName: string;
+}
+
+// A zone polygon (province/district/sector/cell) drawn on request from the Zones list under the map.
+export interface SelectedZone {
+  boundary: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  name: string;
+}
 
 interface RwandaMapProps {
   buses: LiveBus[];
@@ -57,6 +88,8 @@ interface RwandaMapProps {
   stops?: MapStop[]; // static station/stop markers
   pinMode?: boolean; // when true, clicking the map drops a pin
   onPick?: (lng: number, lat: number) => void;
+  selectedRoute?: SelectedRoute | null; // highlighted on top of the map when a bus is selected
+  selectedZone?: SelectedZone | null; // zone boundary highlighted on top of the map when picked from the Zones list
 }
 
 export function RwandaMap({
@@ -69,10 +102,13 @@ export function RwandaMap({
   stops,
   pinMode = false,
   onPick,
+  selectedRoute,
+  selectedZone,
 }: RwandaMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const routeEndMarkersRef = useRef<maplibregl.Marker[]>([]);
   const stopMarkersRef = useRef<maplibregl.Marker[]>([]);
   const selectRef = useRef(onSelectBus);
   selectRef.current = onSelectBus;
@@ -126,6 +162,35 @@ export function RwandaMap({
             paint: { 'line-color': '#14B8A6', 'line-width': 3, 'line-opacity': 0.55, 'line-dasharray': [1, 1.6] },
           });
         }
+        // The selected bus's actual path (real stop coordinates, not the decorative corridors above) —
+        // solid and on top, so "where it's from / where it's heading" reads unambiguously.
+        if (!map.getSource('selected-route')) {
+          map.addSource('selected-route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+          map.addLayer({
+            id: 'selected-route-line',
+            type: 'line',
+            source: 'selected-route',
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': '#0F766E', 'line-width': 5, 'line-opacity': 0.95 },
+          });
+        }
+        // A zone polygon, picked from the Zones list below the map.
+        if (!map.getSource('selected-zone')) {
+          map.addSource('selected-zone', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+          map.addLayer({
+            id: 'selected-zone-fill',
+            type: 'fill',
+            source: 'selected-zone',
+            paint: { 'fill-color': '#7C3AED', 'fill-opacity': 0.22 },
+          });
+          map.addLayer({
+            id: 'selected-zone-line',
+            type: 'line',
+            source: 'selected-zone',
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: { 'line-color': '#7C3AED', 'line-width': 2.5 },
+          });
+        }
       } catch {
         // Route lines are decorative — never block the map on them.
       }
@@ -172,13 +237,73 @@ export function RwandaMap({
     }
   }, [buses, selectedId, ready]);
 
-  // Fly to the selected bus.
+  // Fly to the selected bus — only when its real route path isn't available to fit bounds to instead
+  // (the effect below does that, and framing the whole corridor is more useful than a tight zoom on
+  // just the bus's current point).
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !ready || !selectedId) return;
+    if (!map || !ready || !selectedId || selectedRoute) return;
     const bus = buses.find((b) => b.id === selectedId);
     if (bus) map.flyTo({ center: [bus.lng, bus.lat], zoom: 8.6, duration: 900 });
-  }, [selectedId, ready, buses]);
+  }, [selectedId, ready, buses, selectedRoute]);
+
+  // The selected bus's real route: a solid highlighted line end-to-end, plus a labeled marker at each
+  // end so "from" and "to" are unambiguous — and the map frames the whole corridor. The generic
+  // decorative corridors dim out while a specific route is being shown, so they don't compete with it.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const source = map.getSource('selected-route') as maplibregl.GeoJSONSource | undefined;
+    if (source) {
+      source.setData(
+        selectedRoute
+          ? { type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: selectedRoute.coords } }] }
+          : { type: 'FeatureCollection', features: [] },
+      );
+    }
+    try {
+      map.setPaintProperty('routes-line', 'line-opacity', selectedRoute ? 0.12 : 0.55);
+    } catch {
+      // Decorative layer — never block on it.
+    }
+
+    for (const m of routeEndMarkersRef.current) m.remove();
+    routeEndMarkersRef.current = [];
+
+    if (selectedRoute && selectedRoute.coords.length >= 2) {
+      const from = selectedRoute.coords[0]!;
+      const to = selectedRoute.coords[selectedRoute.coords.length - 1]!;
+      routeEndMarkersRef.current.push(
+        new maplibregl.Marker({ element: makeRouteEndEl(selectedRoute.fromName, 'from') }).setLngLat(from).addTo(map),
+        new maplibregl.Marker({ element: makeRouteEndEl(selectedRoute.toName, 'to') }).setLngLat(to).addTo(map),
+      );
+      const bounds = selectedRoute.coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(from, from));
+      map.fitBounds(bounds, { padding: 72, duration: 700, maxZoom: 10 });
+    }
+  }, [selectedRoute, ready]);
+
+  // Draw the picked zone's polygon and frame the map to it.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const source = map.getSource('selected-zone') as maplibregl.GeoJSONSource | undefined;
+    if (!source) return;
+
+    if (!selectedZone) {
+      source.setData({ type: 'FeatureCollection', features: [] });
+      return;
+    }
+    source.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', properties: { name: selectedZone.name }, geometry: selectedZone.boundary }] });
+
+    const geom = selectedZone.boundary;
+    const rings = geom.type === 'Polygon' ? [geom.coordinates] : geom.coordinates;
+    const coords = rings.flatMap((polygon) => polygon.flatMap((ring) => ring as [number, number][]));
+    if (coords.length > 0) {
+      const first = coords[0]!;
+      const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(first, first));
+      map.fitBounds(bounds, { padding: 48, duration: 700, maxZoom: 12 });
+    }
+  }, [selectedZone, ready]);
 
   // Render static station/stop markers.
   useEffect(() => {
