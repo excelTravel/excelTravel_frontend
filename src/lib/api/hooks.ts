@@ -19,8 +19,10 @@ export interface ApiRoute {
   id: string;
   companyId: string;
   name: string;
-  origin: string;
-  destination: string;
+  // Derived server-side from route_stops (first/last by stop_order), not stored — null until the
+  // route has stops.
+  origin: string | null;
+  destination: string | null;
   distanceKm: number | null;
   estimatedDurationMin: number | null;
   departureTimes: string[];
@@ -47,6 +49,21 @@ export interface ApiStop {
   longitude: number;
   phone: string | null;
   address: string | null;
+  adminZoneId: string | null;
+}
+
+export type AdminZoneLevel = 'province' | 'district' | 'sector' | 'cell';
+
+export interface ApiAdminZone {
+  id: string;
+  level: AdminZoneLevel;
+  name: string;
+  parentZoneId: string | null;
+  externalCode: string | null;
+  // GeoJSON geometry (simplified server-side for map rendering) — only present when the query asked
+  // for it (?withBoundary=true). A simplified single-part MultiPolygon can come back as a plain
+  // Polygon, so accept either.
+  boundary?: GeoJSON.Polygon | GeoJSON.MultiPolygon | null;
 }
 
 export interface ApiFare {
@@ -167,6 +184,7 @@ export interface ApiBooking {
   paymentMethod: string | null;
   paymentStatus: string;
   status: string;
+  bookingSource: string;
 }
 
 export interface ApiNotification {
@@ -210,6 +228,8 @@ export interface ApiPackage {
   fromStopId: string;
   toStopId: string;
   description: string;
+  tripId: string | null;
+  weightKg: number | null;
   fee: number | null;
   paymentStatus: string;
   status: string;
@@ -222,6 +242,7 @@ export const qk = {
   me: ['me'] as const,
   routes: ['routes'] as const,
   stops: ['stops'] as const,
+  zones: ['zones'] as const,
   fares: ['fares'] as const,
   vehicles: ['vehicles'] as const,
   trips: ['trips'] as const,
@@ -262,6 +283,36 @@ export const useRoutes = () => useQuery({ queryKey: qk.routes, queryFn: () => ap
 export const useRoute = (routeId?: string) =>
   useQuery({ queryKey: [...qk.routes, routeId], enabled: Boolean(routeId), queryFn: () => apiFetch<ApiRouteWithStops>(`/routes/${routeId}`) });
 export const useStops = () => useQuery({ queryKey: qk.stops, queryFn: () => apiFetch<ApiStop[]>('/stops') });
+// Rwanda's administrative geography. No boundary by default (cheap, for the grouped list) — pass
+// withBoundary for the map view. parentZoneId drills into one zone's direct children.
+export const useZones = (filter?: { level?: AdminZoneLevel; parentZoneId?: string; withBoundary?: boolean; enabled?: boolean }) => {
+  const params = new URLSearchParams();
+  if (filter?.level) params.set('level', filter.level);
+  if (filter?.parentZoneId) params.set('parentZoneId', filter.parentZoneId);
+  if (filter?.withBoundary) params.set('withBoundary', 'true');
+  const qs = params.toString();
+  return useQuery({
+    queryKey: [...qk.zones, filter?.level, filter?.parentZoneId, filter?.withBoundary],
+    queryFn: () => apiFetch<ApiAdminZone[]>(`/zones${qs ? `?${qs}` : ''}`),
+    enabled: filter?.enabled ?? true,
+  });
+};
+export interface ApiZoneHierarchy {
+  province: { id: string; name: string } | null;
+  district: { id: string; name: string } | null;
+  sector: { id: string; name: string } | null;
+  cell: { id: string; name: string } | null;
+}
+
+// Resolves a pinned lat/lng to its province/district/sector/cell — immediate feedback while
+// creating/editing a stop or station, before it's even saved. Disabled until both coordinates parse.
+export const useResolveZone = (latitude: number | null, longitude: number | null) =>
+  useQuery({
+    queryKey: ['zones', 'resolve', latitude, longitude],
+    queryFn: () => apiFetch<ApiZoneHierarchy>(`/zones/resolve?latitude=${latitude}&longitude=${longitude}`),
+    enabled: latitude != null && Number.isFinite(latitude) && longitude != null && Number.isFinite(longitude),
+  });
+
 export const useFares = () => useQuery({ queryKey: qk.fares, queryFn: () => apiFetch<ApiFare[]>('/fares') });
 export const useVehicles = () => useQuery({ queryKey: qk.vehicles, queryFn: () => apiFetch<ApiVehicle[]>('/vehicles') });
 export const useTrips = (range?: RangeQuery) =>
@@ -612,6 +663,12 @@ export const useUpdateCompany = () =>
     ({ id, ...b }) => apiFetch<ApiCompany>(`/companies/${id}`, patchBody(b)),
     [qk.companies],
   );
+// Parcel pricing only — manager-accessible (unlike the general company update above, which is admin-only).
+export const useUpdateParcelPricing = () =>
+  useApiMutation<{ id: string; parcelBaseFeeRwf?: number; parcelSurchargePerKgRwf?: number }, ApiCompany>(
+    ({ id, ...b }) => apiFetch<ApiCompany>(`/companies/${id}/parcel-pricing`, patchBody(b)),
+    [qk.companies],
+  );
 // Dispatch controls — send an in-app message to the trip's driver, or broadcast to its passengers.
 export const useMessageDriver = () =>
   useApiMutation<{ id: string; message: string }, { sent: boolean }>(({ id, message }) => apiFetch<{ sent: boolean }>(`/trips/${id}/message-driver`, jsonBody({ message })), [qk.notifications]);
@@ -670,11 +727,14 @@ export const useUpdateIncident = () =>
 
 // Fares
 // Create route / stop / vehicle (ops network + fleet management).
+// name/origin/destination are never accepted here — the backend derives them from the route's stops
+// (route_stops), first/last by stopOrder. `stops` should carry at least the origin (stopOrder 1) and
+// destination (stopOrder 2) — see AddRouteModal's Origin/Destination station pickers.
 export const useCreateRoute = () =>
-  useApiMutation<{ name: string; origin: string; destination: string; distanceKm?: number; estimatedDurationMin?: number; departureTimes?: string[] }, ApiRoute>(
-    (b) => apiFetch<ApiRoute>('/routes', jsonBody(b)),
-    [qk.routes],
-  );
+  useApiMutation<
+    { distanceKm?: number; estimatedDurationMin?: number; departureTimes?: string[]; stops: { stopId: string; stopOrder: number }[] },
+    ApiRoute
+  >((b) => apiFetch<ApiRoute>('/routes', jsonBody(b)), [qk.routes]);
 export const useCreateStop = () =>
   useApiMutation<{ name: string; type: 'station' | 'stop'; latitude: number; longitude: number; parentStationId?: string | null; phone?: string; address?: string }, ApiStop>(
     (b) => apiFetch<ApiStop>('/stops', jsonBody(b)),
