@@ -22,14 +22,14 @@ import {
   useTripManifests,
   useImportFares,
   type ApiRoute,
-  type ApiStop,
   type ApiTrip,
   type ApiIncident,
   type ApiIncidentCategory,
   type ApiManifestEntry,
 } from '@/lib/api/hooks';
-import { AddRouteModal, AddStopModal, AddFareModal, EditRouteModal, EditStopModal } from '@/features/network/NetworkModals';
+import { AddRouteModal, AddFareModal, EditRouteModal } from '@/features/network/NetworkModals';
 import { RouteFares } from '@/features/network/RouteFares';
+import { SchedulesTable } from '@/features/trips/SchedulesTable';
 import { formatRWF, cn } from '@/lib/utils';
 import { useDateRange, rangeToQuery } from '@/store/dateRange';
 
@@ -48,12 +48,10 @@ export function RouteManagementPage() {
   const incidentsQ = useIncidents();
   const templatesQ = useTripTemplates();
   const [addRoute, setAddRoute] = useState(false);
-  const [addStop, setAddStop] = useState(false);
   const [addFare, setAddFare] = useState(false);
   const [uploadFares, setUploadFares] = useState(false);
   const [drillRoute, setDrillRoute] = useState<ApiRoute | null>(null);
   const [editRoute, setEditRoute] = useState<ApiRoute | null>(null);
-  const [editStop, setEditStop] = useState<ApiStop | null>(null);
 
   const routes = routesQ.data ?? [];
   const stops = stopsQ.data ?? [];
@@ -127,15 +125,13 @@ export function RouteManagementPage() {
   const topRouteId = [...completedByRoute.entries()].sort((a, b) => (revByRoute.get(b[0]) ?? 0) - (revByRoute.get(a[0]) ?? 0) || b[1] - a[1])[0]?.[0];
   const topRoute = routes.find((r) => r.id === topRouteId);
 
-  const nameById = (id: string | null) => (id ? stops.find((s) => s.id === id)?.name ?? '—' : '—');
-
   const routeCols: Column<ApiRoute>[] = [
     {
       key: 'route', header: t('network.colRoute'),
       cell: (r) => (
         <div>
           <p className="font-medium">{r.name}</p>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin} <ArrowRight className="size-3" /> {r.destination}</p>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">{r.origin ?? '—'} <ArrowRight className="size-3" /> {r.destination ?? '—'}</p>
         </div>
       ),
       sort: (r) => r.name, filter: (r) => r.name,
@@ -153,21 +149,12 @@ export function RouteManagementPage() {
     },
   ];
 
-  const stopCols: Column<ApiStop>[] = [
-    { key: 'name', header: t('network.colName'), cell: (s) => <span className="font-medium">{s.name}</span>, sort: (s) => s.name, td: 'whitespace-nowrap' },
-    { key: 'type', header: t('network.colType'), cell: (s) => <StatusPill status={s.type === 'station' ? 'active' : 'idle'}>{t(`network.${s.type}`)}</StatusPill>, filter: (s) => s.type },
-    { key: 'parent', header: t('network.colParent'), cell: (s) => nameById(s.parentStationId), filter: (s) => nameById(s.parentStationId), td: 'whitespace-nowrap text-muted-foreground' },
-    { key: 'phone', header: t('network.colPhone'), cell: (s) => s.phone ?? '—', td: 'whitespace-nowrap text-muted-foreground' },
-  ];
-
   return (
     <Reveal className="space-y-6">
       <AddRouteModal open={addRoute} onClose={() => setAddRoute(false)} />
-      <AddStopModal open={addStop} onClose={() => setAddStop(false)} />
       <AddFareModal open={addFare} onClose={() => setAddFare(false)} />
       <UploadFaresModal open={uploadFares} onClose={() => setUploadFares(false)} />
       <EditRouteModal route={editRoute} open={editRoute !== null} onClose={() => setEditRoute(null)} />
-      <EditStopModal stop={editStop} open={editStop !== null} onClose={() => setEditStop(null)} />
       <RouteDetailsSheet
         route={drillRoute}
         trips={trips}
@@ -189,53 +176,9 @@ export function RouteManagementPage() {
         <KpiCard label={t('routesMgmt.topRoute')} value={topRoute?.name ?? '—'} />
       </RevealItem>
 
-      {/* Routes — every route the company covers, including ones with no trips/revenue yet */}
-      <RevealItem>
-        <GlassCard className="overflow-hidden">
-          <div className="border-b border-border p-5 pb-3">
-            <h3 className="text-base font-semibold">{t('network.tabs.routes')}</h3>
-          </div>
-          <Async query={routesQ} skeleton={<TableSkeleton />}>
-            {(data) => (
-              <DataTable
-                rows={data}
-                columns={routeCols}
-                rowKey={(r) => r.id}
-                onRowClick={(r) => setDrillRoute(r)}
-                search={(r) => `${r.name} ${r.origin} ${r.destination}`}
-                searchPlaceholder={t('routesMgmt.searchRoutes')}
-                empty={t('network.noRoutes')}
-                filtersInline
-                toolbarRight={<Button size="sm" onClick={() => setAddRoute(true)}><Plus className="size-4" /> {t('network.addRoute')}</Button>}
-              />
-            )}
-          </Async>
-        </GlassCard>
-      </RevealItem>
-
-      {/* Stops & stations */}
-      <RevealItem>
-        <GlassCard className="overflow-hidden">
-          <div className="border-b border-border p-5 pb-3">
-            <h3 className="text-base font-semibold">{t('network.tabs.stops')}</h3>
-          </div>
-          <Async query={stopsQ} skeleton={<TableSkeleton />}>
-            {(data) => (
-              <DataTable
-                rows={data}
-                columns={stopCols}
-                rowKey={(s) => s.id}
-                onRowClick={(s) => setEditStop(s)}
-                search={(s) => s.name}
-                searchPlaceholder={t('routesMgmt.searchStops')}
-                empty={t('network.noStops')}
-                filtersInline
-                toolbarRight={<Button size="sm" onClick={() => setAddStop(true)}><Plus className="size-4" /> {t('routesMgmt.addStopStation')}</Button>}
-              />
-            )}
-          </Async>
-        </GlassCard>
-      </RevealItem>
+      {/* Route schedules — the recurring template each route runs on. Lives here, not on Trips, since
+          it's route-scoped config; Trips keeps only actual scheduled trip instances. */}
+      <RevealItem><SchedulesTable /></RevealItem>
 
       {/* Fares */}
       <RevealItem>
@@ -251,6 +194,30 @@ export function RouteManagementPage() {
             </div>
           </div>
           <div className="p-5"><RouteFares /></div>
+        </GlassCard>
+      </RevealItem>
+
+      {/* Routes — every route the company covers, including ones with no trips/revenue yet */}
+      <RevealItem>
+        <GlassCard className="overflow-hidden">
+          <div className="border-b border-border p-5 pb-3">
+            <h3 className="text-base font-semibold">{t('network.tabs.routes')}</h3>
+          </div>
+          <Async query={routesQ} skeleton={<TableSkeleton />}>
+            {(data) => (
+              <DataTable
+                rows={data}
+                columns={routeCols}
+                rowKey={(r) => r.id}
+                onRowClick={(r) => setDrillRoute(r)}
+                search={(r) => `${r.name} ${r.origin ?? ''} ${r.destination ?? ''}`}
+                searchPlaceholder={t('routesMgmt.searchRoutes')}
+                empty={t('network.noRoutes')}
+                filtersInline
+                toolbarRight={<Button size="sm" onClick={() => setAddRoute(true)}><Plus className="size-4" /> {t('network.addRoute')}</Button>}
+              />
+            )}
+          </Async>
         </GlassCard>
       </RevealItem>
     </Reveal>
