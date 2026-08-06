@@ -25,8 +25,8 @@ export function useTripRows(range?: RangeQuery) {
   const rows: TripRow[] = (trips.data ?? []).map((t) => {
     const r = routeById.get(t.routeId);
     const isReturn = t.direction === 'return';
-    const origin = r ? (isReturn ? r.destination : r.origin) : '—';
-    const destination = r ? (isReturn ? r.origin : r.destination) : '—';
+    const origin = (isReturn ? r?.destination : r?.origin) ?? '—';
+    const destination = (isReturn ? r?.origin : r?.destination) ?? '—';
     const dep = new Date(t.departureTime);
     return {
       id: t.id,

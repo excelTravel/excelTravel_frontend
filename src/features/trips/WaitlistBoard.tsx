@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Modal } from '@/components/ui/modal';
 import { Field, Input, Select } from '@/components/ui/form';
 import { Async } from '@/components/ui/async';
+import { cn } from '@/lib/utils';
 import { useWaitlists, useDispatchWaitlist, useDenyWaitlist, useRoutes, useStops, useVehicles, useDrivers, type ApiWaitlist } from '@/lib/api/hooks';
 
 // Live per-route waitlist (GET /waitlist?status=open). Passengers/agents join a corridor; ops dispatch a bus
@@ -17,6 +18,7 @@ export function WaitlistBoard() {
   const stopsQ = useStops();
   const [dispatch, setDispatch] = useState<ApiWaitlist | null>(null);
   const deny = useDenyWaitlist();
+  const hasWaitlist = (waitlistsQ.data?.length ?? 0) > 0;
 
   const routeName = useMemo(() => {
     const m = new Map((routesQ.data ?? []).map((r) => [r.id, `${r.origin} → ${r.destination}`]));
@@ -28,10 +30,18 @@ export function WaitlistBoard() {
   }, [stopsQ.data]);
 
   return (
-    <GlassCard className="flex h-full flex-col p-6">
+    <GlassCard className={cn('flex h-full flex-col p-6', hasWaitlist && 'ring-1 ring-destructive/40')}>
       <DispatchWaitlistModal waitlist={dispatch} routeName={dispatch ? routeName(dispatch.routeId) : ''} onClose={() => setDispatch(null)} />
       <h3 className="flex items-center gap-2 text-base font-semibold">
-        <Users className="size-4" /> {t('sched.waitlist')}
+        <span className={cn('grid size-7 place-items-center rounded-full', hasWaitlist ? 'bg-destructive/15 text-destructive' : 'bg-secondary text-muted-foreground')}>
+          <Users className={cn('size-4', hasWaitlist && 'animate-pulse')} />
+        </span>
+        {t('sched.waitlist')}
+        {hasWaitlist && (
+          <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-xs font-semibold text-destructive">
+            {t('sched.waitlistOpenCount', { count: waitlistsQ.data!.length })}
+          </span>
+        )}
       </h3>
       <p className="text-sm text-muted-foreground">{t('sched.waitlistSub')}</p>
 

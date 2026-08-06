@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Plus } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { WaitlistBoard } from './WaitlistBoard';
-import { SchedulesTable } from './SchedulesTable';
+import { TripSchedule } from './TripSchedule';
 import { NewTripModal } from './TripManagement';
 import { useTripRows } from './useTripRows';
 import { type TripRow, type TripGroup } from './trips';
 import { formatRWF, cn } from '@/lib/utils';
 import { useDateRange, rangeToQuery } from '@/store/dateRange';
+import { useWaitlists } from '@/lib/api/hooks';
 
 // One row = one individual trip. Trip No. leads; the route is shown as its planned origin -> destination.
 // Clicking a row opens that trip's detail (where all the actions live) — there is no per-row Manage here.
@@ -27,6 +27,8 @@ export function TripsPage() {
   const tripsQ = useTripRows(rangeToQuery(range));
   const allRows = tripsQ.data;
   const countBy = (g: TripGroup) => allRows.filter((r) => r.group === g).length;
+  const waitlistQ = useWaitlists('open');
+  const openWaitlists = waitlistQ.data?.length ?? 0;
 
   const cols: Column<TripRow>[] = [
     {
@@ -66,18 +68,21 @@ export function TripsPage() {
       <NewTripModal open={newTripOpen} onClose={() => setNewTripOpen(false)} />
 
       {/* KPI cards */}
-      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <KpiCard label={t('tripsList.kpiTotal')} value={allRows.length.toLocaleString()} />
         <KpiCard label={t('tripsList.kpiScheduled')} value={String(countBy('scheduled'))} />
         <KpiCard label={t('tripsList.kpiActive')} value={String(countBy('active'))} badge={{ text: t('tripsList.live'), tone: 'teal' }} />
         <KpiCard label={t('tripsList.kpiCompleted')} value={String(countBy('completed'))} />
+        <KpiCard
+          label={t('tripsList.kpiWaitlist')}
+          value={String(openWaitlists)}
+          tone={openWaitlists > 0 ? 'danger' : 'default'}
+          badge={openWaitlists > 0 ? { text: t('tripsList.needsAttention'), tone: 'danger' } : undefined}
+        />
       </RevealItem>
 
-      {/* Agent & passenger waitlist */}
-      <RevealItem><WaitlistBoard /></RevealItem>
-
-      {/* Route schedules — the recurring template each route runs on */}
-      <RevealItem><SchedulesTable /></RevealItem>
+      {/* Trip schedule — what's planned, by day/week/month */}
+      <RevealItem><TripSchedule onNewTrip={() => setNewTripOpen(true)} /></RevealItem>
 
       {/* Trips history — individual trips, upcoming first */}
       <RevealItem>
@@ -96,12 +101,14 @@ export function TripsPage() {
                 search={(r) => `${r.tripNo} ${r.origin} ${r.destination} ${r.bus} ${r.driver}`}
                 searchPlaceholder={t('tripsList.search')}
                 empty={t('tripsList.emptyTitle')}
-                toolbarRight={<Button size="sm" onClick={() => setNewTripOpen(true)}><Plus className="size-4" /> {t('tripsList.newTrip')}</Button>}
               />
             )}
           </Async>
         </GlassCard>
       </RevealItem>
+
+      {/* Agent & passenger waitlist */}
+      <RevealItem><WaitlistBoard /></RevealItem>
     </Reveal>
   );
 }
