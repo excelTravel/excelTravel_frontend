@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/form';
-import { useUpdateCompany, type ApiCompany } from '@/lib/api/hooks';
+import { useUpdateParcelPricing, type ApiCompany } from '@/lib/api/hooks';
 
-// Global parcel pricing (base fee + per-kg surcharge) lives on the company row (PATCH /companies/{id}).
+// Global parcel pricing (base fee + per-kg surcharge) — a scoped, manager-accessible slice of the company
+// row (PATCH /companies/{id}/parcel-pricing), separate from the admin-only general company settings.
 export function UpdatePricingModal({ open, onClose, company }: { open: boolean; onClose: () => void; company: ApiCompany | null }) {
   const { t } = useTranslation();
-  const updateCompany = useUpdateCompany();
+  const updateCompany = useUpdateParcelPricing();
   const [base, setBase] = useState('');
   const [perKg, setPerKg] = useState('');
   const [err, setErr] = useState<string | null>(null);

@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRightLeft, Ban, Check, PackageCheck, Truck } from 'lucide-react';
+import { ArrowRightLeft, Ban, Bus, Check, PackageCheck, Truck, UserRound } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/form';
 import { StatusPill } from '@/components/ui/badge';
 import { Async } from '@/components/ui/async';
-import { usePackage, useStops, useHandToDriver, useDeliverPackage, useCollectPackage, useCancelPackage, useSetPackageFee, useMarkPackagePaid } from '@/lib/api/hooks';
+import { usePackage, useStops, useTrips, useAgents, useHandToDriver, useDeliverPackage, useCollectPackage, useCancelPackage, useSetPackageFee, useMarkPackagePaid } from '@/lib/api/hooks';
 import { useSession } from '@/lib/auth/session';
 import { formatRWF } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,8 @@ export function ParcelJourneyModal({ packageId, open, onClose }: { packageId: st
   const role = sessionUser?.role ?? '';
   const pkgQ = usePackage(packageId ?? undefined);
   const stopsQ = useStops();
+  const tripsQ = useTrips();
+  const agentsQ = useAgents();
   const stopName = (id: string) => stopsQ.data?.find((s) => s.id === id)?.name ?? '—';
 
   const handToDriver = useHandToDriver();
@@ -90,7 +92,10 @@ export function ParcelJourneyModal({ packageId, open, onClose }: { packageId: st
       }
     >
       <Async query={pkgQ} skeleton={<div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="shimmer h-8 rounded" />)}</div>}>
-        {(p) => (
+        {(p) => {
+          const trip = p.tripId ? tripsQ.data?.find((tr) => tr.id === p.tripId) : undefined;
+          const handlingAgents = (agentsQ.data ?? []).filter((a) => a.stationIds.includes(p.fromStopId));
+          return (
           <div className="space-y-5">
             <div className="flex items-center justify-between rounded-xl bg-secondary/50 p-3">
               <div className="text-sm">
@@ -100,6 +105,27 @@ export function ParcelJourneyModal({ packageId, open, onClose }: { packageId: st
                 </p>
               </div>
               <StatusPill status={p.status} />
+            </div>
+
+            {/* Who's carrying it + who to ask — the trip's driver/vehicle, and the origin station's agent(s) */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-border p-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"><Bus className="size-3" /> {t('parcels.trip')}</p>
+                {trip ? (
+                  <>
+                    <p className="mt-1 text-sm font-semibold">{trip.driverName ?? t('trip.noDriver')}</p>
+                    <p className="text-xs text-muted-foreground">{trip.vehiclePlate ?? '—'}</p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">{t('parcels.noTripYet')}</p>
+                )}
+              </div>
+              <div className="rounded-xl border border-border p-3">
+                <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"><UserRound className="size-3" /> {t('parcels.handlingAgent')}</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {handlingAgents.length > 0 ? handlingAgents.map((a) => a.name).join(', ') : t('parcels.noHandlingAgent')}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-border p-3">
@@ -154,7 +180,8 @@ export function ParcelJourneyModal({ packageId, open, onClose }: { packageId: st
               )}
             </div>
           </div>
-        )}
+          );
+        }}
       </Async>
     </Modal>
   );
