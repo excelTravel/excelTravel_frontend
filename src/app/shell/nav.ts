@@ -4,7 +4,11 @@ export interface NavItem {
   to: string;
   labelKey: string; // i18n key (nav.*)
   icon: LucideIcon;
+  roles?: string[]; // omitted = every ops role; present = only these roles see it
 }
+
+// Users/Team is a governance privilege — company_admin/super_admin only, never manager (see users.routes.ts).
+export const ADMIN_ROLES = ['super_admin', 'company_admin'];
 
 // Ops-manager navigation (we start here). Role-based variants layer on later.
 export const opsNav: NavItem[] = [
@@ -16,8 +20,13 @@ export const opsNav: NavItem[] = [
   { to: '/bookings', labelKey: 'nav.bookings', icon: Ticket },
   { to: '/parcels', labelKey: 'nav.parcels', icon: Package },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3 },
-  { to: '/users', labelKey: 'nav.users', icon: UsersRound },
+  { to: '/users', labelKey: 'nav.users', icon: UsersRound, roles: ADMIN_ROLES },
 ];
+
+// The nav items visible to a given role — filters out roles-gated items the caller can't use.
+export function navForRole(role: string | undefined): NavItem[] {
+  return opsNav.filter((item) => !item.roles || (role && item.roles.includes(role)));
+}
 
 // The i18n key for the section title shown in the top bar for a given path.
 export function sectionTitleKey(pathname: string): string {
