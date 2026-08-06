@@ -8,7 +8,6 @@ import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
-import { AssignDriverModal, type AssignTarget } from './AssignDriverModal';
 import { InviteDriverModal } from './InviteDriverModal';
 import { EditDriverModal } from './EditDriverModal';
 import { DriverScheduling } from './DriverScheduling';
@@ -35,7 +34,6 @@ export function DriversPanel() {
   const today = new Date();
   const tripsQ = useTrips({ from: startOfDay(today).toISOString(), to: endOfDay(today).toISOString() });
   const routesQ = useRoutes();
-  const [assignTo, setAssignTo] = useState<AssignTarget | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editDriver, setEditDriver] = useState<ApiDriver | null>(null);
   const now = new Date();
@@ -59,7 +57,6 @@ export function DriversPanel() {
 
   return (
     <div className="space-y-6">
-      <AssignDriverModal driver={assignTo} open={assignTo !== null} onClose={() => setAssignTo(null)} />
       <InviteDriverModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <EditDriverModal driver={editDriver} open={editDriver !== null} onClose={() => setEditDriver(null)} />
       {/* Trip schedule board (derived from assigned trips) */}
@@ -179,7 +176,6 @@ export function DriversPanel() {
                     <StatusPill status={d.status}>{t(`drivers.state.${d.status}`, d.status)}</StatusPill>
                     <div className="ml-auto flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => setEditDriver(d)}>{t('forms.edit')}</Button>
-                      <Button variant="outline" size="sm" onClick={() => setAssignTo({ id: d.id, name: d.name, license: d.licenseNumber })}>{t('drivers.assign')}</Button>
                       <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
                         <Phone className="size-4" />
                       </a>

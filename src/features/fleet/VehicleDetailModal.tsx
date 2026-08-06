@@ -150,11 +150,13 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
                 vehicle.currentTrip
                   ? `${vehicle.currentTrip.code} · ${vehicle.currentTrip.route}`
                   : vehicle.nextTrip
-                    ? `${vehicle.nextTrip.code} · ${vehicle.nextTrip.time}`
-                    : t(`vehicles.status.${vehicle.status}`)
+                    ? `${vehicle.nextTrip.code} · ${vehicle.nextTrip.route} · ${vehicle.nextTrip.time}`
+                    : vehicle.lastDestination
+                      ? t('vehicles.lastSeenAt', { place: vehicle.lastDestination })
+                      : t(`vehicles.status.${vehicle.status}`)
               }
+              className="col-span-2"
             />
-            <Detail label={t('vehicles.colDriver')} value={vehicle.driver ?? t('vehicles.unassigned')} className="col-span-2" />
           </dl>
         )}
       </div>
