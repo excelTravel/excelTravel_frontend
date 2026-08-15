@@ -30,9 +30,9 @@ const TAG_TONE: Record<TagTone, string> = {
 
 function StatusTag({ tone, icon, children }: { tone: TagTone; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className={cn('flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium', TAG_TONE[tone])}>
+    <div className={cn('flex min-w-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium', TAG_TONE[tone])}>
       {icon}
-      <span className="truncate">{children}</span>
+      <span className="min-w-0 truncate">{children}</span>
     </div>
   );
 }
@@ -41,7 +41,7 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
   const { t } = useTranslation();
 
   return (
-    <MotionCard className="flex flex-col overflow-hidden p-0">
+    <MotionCard className="flex min-w-0 flex-col overflow-hidden p-0">
       <div className="h-1 w-full" style={{ background: ACCENT[vehicle.status] }} aria-hidden />
       <div className="flex flex-col gap-4 p-5">
         {/* Identity + status */}

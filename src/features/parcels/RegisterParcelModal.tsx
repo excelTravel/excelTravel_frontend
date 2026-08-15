@@ -109,7 +109,7 @@ export function RegisterParcelModal({ open, onClose }: { open: boolean; onClose:
       }
     >
       <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('parcels.senderName')} htmlFor="pr-sender-name" required>
             <Input id="pr-sender-name" value={senderName} onChange={(e) => setSenderName(e.target.value)} autoComplete="name" />
           </Field>
@@ -117,7 +117,7 @@ export function RegisterParcelModal({ open, onClose }: { open: boolean; onClose:
             <Input id="pr-sender-phone" type="tel" value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)} placeholder="+250 788 000 000" autoComplete="tel" />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('parcels.recipientName')} htmlFor="pr-recipient-name" required>
             <Input id="pr-recipient-name" value={recipientName} onChange={(e) => setRecipientName(e.target.value)} autoComplete="name" />
           </Field>
@@ -125,7 +125,7 @@ export function RegisterParcelModal({ open, onClose }: { open: boolean; onClose:
             <Input id="pr-recipient-phone" type="tel" value={recipientPhone} onChange={(e) => setRecipientPhone(e.target.value)} placeholder="+250 788 000 000" autoComplete="tel" />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('parcels.fromStop')} htmlFor="pr-from" required>
             <Select id="pr-from" value={fromStopId} onChange={(e) => setFromStopId(e.target.value)} disabled={stopsQ.isLoading}>
               <option value="" disabled>{t('bookings.desk.selectStop')}</option>
@@ -150,7 +150,7 @@ export function RegisterParcelModal({ open, onClose }: { open: boolean; onClose:
         <Field label={t('parcels.description')} htmlFor="pr-desc" required>
           <Textarea id="pr-desc" value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t('parcels.descriptionPlaceholder')} />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('parcels.trip')} htmlFor="pr-trip" hint={t('parcels.tripHint')}>
             <Select id="pr-trip" value={tripId} onChange={(e) => setTripId(e.target.value)} disabled={tripsQ.isLoading}>
               <option value="">{t('parcels.noTripYet')}</option>

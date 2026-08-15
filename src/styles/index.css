@@ -72,6 +72,13 @@
   * {
     @apply border-border;
   }
+  html,
+  body {
+    /* Safety net: most of the app already stays within the viewport by design, but with this many
+       screens, one future fixed-width element shouldn't be able to open up page-level horizontal
+       scroll on a phone. */
+    overflow-x: hidden;
+  }
   body {
     @apply bg-background font-sans text-foreground antialiased;
     transition:

@@ -121,7 +121,7 @@ export function VehiclesPanel() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
               <Reveal className="grid gap-5 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3">
                 {vehicles.map((v) => (
-                  <RevealItem key={v.id}>
+                  <RevealItem key={v.id} className="min-w-0">
                     <VehicleCard vehicle={v} onOpenDetails={() => setSelected(v)} />
                   </RevealItem>
                 ))}

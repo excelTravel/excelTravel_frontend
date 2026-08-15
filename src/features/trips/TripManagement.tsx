@@ -60,11 +60,11 @@ export function NewTripModal({ open, onClose }: { open: boolean; onClose: () => 
             {(routesQ.data ?? []).map((r) => <option key={r.id} value={r.id}>{r.origin} → {r.destination}</option>)}
           </Select>
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('tripsList.mng.departDate')} htmlFor="nt-date" required><Input id="nt-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           <Field label={t('tripsList.mng.departTime')} htmlFor="nt-time" required><Input id="nt-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} /></Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('forms.vehicle')} htmlFor="nt-bus">
             <Select id="nt-bus" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
               <option value="">{t('forms.selectVehicle')}</option>

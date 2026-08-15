@@ -220,9 +220,9 @@ function MonthView({ rows, anchor, onPickDay }: { rows: TripRow[]; anchor: Date;
 
   return (
     <div>
-      <div className="grid grid-cols-7 border-b border-border text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="grid grid-cols-7 border-b border-border text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-[11px]">
         {[t('tripSchedule.mon'), t('tripSchedule.tue'), t('tripSchedule.wed'), t('tripSchedule.thu'), t('tripSchedule.fri'), t('tripSchedule.sat'), t('tripSchedule.sun')].map((d) => (
-          <div key={d} className="py-2">{d}</div>
+          <div key={d} className="py-1.5 sm:py-2">{d}</div>
         ))}
       </div>
       <div className="grid grid-cols-7">
@@ -236,15 +236,15 @@ function MonthView({ rows, anchor, onPickDay }: { rows: TripRow[]; anchor: Date;
               type="button"
               onClick={() => onPickDay(d)}
               className={cn(
-                'flex min-h-[92px] flex-col items-start gap-1 border-b border-r border-border p-2 text-left transition-colors hover:bg-secondary/40',
+                'flex min-h-[64px] flex-col items-start gap-1 border-b border-r border-border p-1 text-left transition-colors hover:bg-secondary/40 sm:min-h-[92px] sm:p-2',
                 !inMonth && 'bg-secondary/20 text-muted-foreground',
               )}
             >
-              <span className={cn('grid size-6 place-items-center rounded-full text-xs font-semibold tabular-nums', isSameDay(d, new Date()) && 'bg-primary text-primary-foreground')}>
+              <span className={cn('grid size-5 place-items-center rounded-full text-[11px] font-semibold tabular-nums sm:size-6 sm:text-xs', isSameDay(d, new Date()) && 'bg-primary text-primary-foreground')}>
                 {format(d, 'd')}
               </span>
               {trips.length > 0 && (
-                <span className="rounded-full bg-teal/15 px-2 py-0.5 text-[11px] font-semibold text-teal">
+                <span className="rounded-full bg-teal/15 px-1.5 py-0.5 text-[10px] font-semibold text-teal sm:px-2 sm:text-[11px]">
                   {t('tripSchedule.tripsCount', { count: trips.length })}
                 </span>
               )}

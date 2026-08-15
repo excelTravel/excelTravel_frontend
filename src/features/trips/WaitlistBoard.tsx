@@ -128,7 +128,7 @@ function DispatchWaitlistModal({ waitlist, routeName, onClose }: { waitlist: Api
         <Field label={t('sched.departAt')} htmlFor="dw-depart" required>
           <Input id="dw-depart" type="datetime-local" value={departAt} onChange={(e) => setDepartAt(e.target.value)} />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('trip.vehicleDetails')} htmlFor="dw-vehicle">
             <Select id="dw-vehicle" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
               <option value="">{t('forms.selectVehicle')}</option>

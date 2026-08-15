@@ -14,7 +14,7 @@ export function ZonesSection({ onSelectZone, selectedId }: { onSelectZone: (zone
   const total = zonesQ.data?.length ?? 0;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="min-w-0 overflow-hidden">
       <div className="border-b border-border p-5 pb-3">
         <h3 className="text-base font-semibold">{t('zones.title')}</h3>
         <p className="text-sm text-muted-foreground">{t('zones.subtitle')}</p>

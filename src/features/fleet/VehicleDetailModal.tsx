@@ -140,7 +140,7 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
             </Field>
           </div>
         ) : (
-          <dl className="grid grid-cols-2 gap-3">
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Detail label={t('vehicles.colCapacity')} value={`${vehicle.capacity} ${t('vehicles.seats')}`} />
             <Detail label={t('vehicles.nextMaintenance')} value={vehicle.nextServiceDate} />
             <Detail label={t('forms.year')} value={String(vehicle.year)} />

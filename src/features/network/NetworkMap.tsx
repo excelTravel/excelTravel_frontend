@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Radio, Bus, MapPin, MapPinPlus, X, Users, IdCard, Wrench } from 'lucide-react';
 import { Badge, StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useLiveBuses } from '@/features/map/useLiveBuses';
+import { useLiveBuses, type LiveBus } from '@/features/map/useLiveBuses';
 import { useStops, useRoute, useZones, type ApiAdminZone } from '@/lib/api/hooks';
 import { AddStationModal, AddStopModal } from './NetworkModals';
 import { StopsSection } from './StopsSection';
@@ -14,6 +14,69 @@ type PinKind = 'station' | 'stop';
 
 // MapLibre is heavy → code-split; shimmer shows while the chunk + tiles load.
 const RwandaMap = lazy(() => import('@/features/map/RwandaMap').then((m) => ({ default: m.RwandaMap })));
+
+// Shared between the desktop floating panel and the mobile bottom sheet (see NetworkMap below) so the
+// two only ever differ in their outer positioning, never in content.
+function BusListPanel({
+  t,
+  buses,
+  selected,
+  setSelected,
+}: {
+  t: ReturnType<typeof useTranslation>['t'];
+  buses: LiveBus[];
+  selected: string | null;
+  setSelected: (id: string | null) => void;
+}) {
+  return (
+    <>
+      <div className="border-b border-border p-4 pb-3">
+        <h3 className="flex items-center gap-2 text-base font-semibold"><Radio className="size-4 text-teal" /> {t('map.busesOnMap')}</h3>
+        <p className="text-sm text-muted-foreground">{selected ? t('map.showingOne') : t('map.busesSub')}</p>
+      </div>
+      <ul className="flex-1 space-y-2 overflow-y-auto p-3">
+        {buses.map((b) => {
+          const active = b.id === selected;
+          return (
+            <li key={b.id}>
+              <button
+                type="button"
+                onClick={() => setSelected(active ? null : b.id)}
+                aria-pressed={active}
+                className={cn('w-full rounded-xl border p-3 text-left transition-colors', active ? 'border-primary/40 bg-primary/5' : 'border-border/60 hover:border-border hover:bg-secondary/40')}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-teal/15 text-teal"><Bus className="size-4" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">{b.code}</p>
+                      {b.eta && <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">{b.eta}</span>}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">{b.driverName ?? t('map.noDriver')}</p>
+                  </div>
+                  <StatusPill status={b.status}>{t(`map.status.${b.status}`)}</StatusPill>
+                </div>
+                <p className="mt-2 truncate text-xs text-muted-foreground">{b.routeName}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1"><Users className="size-3.5" /> {t('map.passengersOnBoard', { n: b.passengers, capacity: b.capacity ?? '—' })}</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Badge tone={b.maintenance.tone}><Wrench className="size-3" /> {b.maintenance.label}</Badge>
+                  <Badge tone={b.license.tone}><IdCard className="size-3" /> {b.license.label}</Badge>
+                </div>
+              </button>
+            </li>
+          );
+        })}
+        {buses.length === 0 && (
+          <li className="grid place-items-center gap-2 py-10 text-center text-sm text-muted-foreground">
+            <Bus className="size-7" /> {t('map.noBuses')}
+          </li>
+        )}
+      </ul>
+    </>
+  );
+}
 
 // Live Map: a toolbar (Live status + Add stop) sits above the map itself — not floating over the
 // canvas, where it used to collide with MapLibre's own zoom control in the same corner. The bus list
@@ -32,6 +95,9 @@ export function NetworkMap() {
   const [stationOpen, setStationOpen] = useState(false);
   const [stopOpen, setStopOpen] = useState(false);
   const [selectedZone, setSelectedZone] = useState<ApiAdminZone | null>(null);
+  // Below `lg` the bus list is a dismissible bottom sheet (it would otherwise fully cover the map on a
+  // phone); at `lg`+ it's always shown as the floating side panel, same as before.
+  const [busListOpen, setBusListOpen] = useState(false);
 
   function startPin(kind: PinKind) {
     setPinMode((v) => (v === kind ? null : kind));
@@ -92,7 +158,7 @@ export function NetworkMap() {
         <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 text-xs font-semibold text-teal shadow-sm">
           <Radio className="size-3.5 animate-pulse" /> {t('map.live')}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant={pinMode === 'station' ? 'default' : 'outline'} className="shadow-sm" onClick={() => startPin('station')}>
             {pinMode === 'station' ? <X className="size-4" /> : <MapPinPlus className="size-4" />}
             {pinMode === 'station' ? t('network.pinCancel') : t('network.addStationPin')}
@@ -126,55 +192,46 @@ export function NetworkMap() {
           />
         </Suspense>
 
-        {/* Bus list — floats over the map on the right, scrolls within itself. Selecting a bus filters
-            the map down to just that one; selecting the same bus again (or nothing matches) clears
-            back to all. */}
-        <div className="absolute bottom-3 right-3 top-3 z-10 flex w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur">
-          <div className="border-b border-border p-4 pb-3">
-            <h3 className="flex items-center gap-2 text-base font-semibold"><Radio className="size-4 text-teal" /> {t('map.busesOnMap')}</h3>
-            <p className="text-sm text-muted-foreground">{selected ? t('map.showingOne') : t('map.busesSub')}</p>
-          </div>
-          <ul className="flex-1 space-y-2 overflow-y-auto p-3">
-            {buses.map((b) => {
-              const active = b.id === selected;
-              return (
-                <li key={b.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelected(active ? null : b.id)}
-                    aria-pressed={active}
-                    className={cn('w-full rounded-xl border p-3 text-left transition-colors', active ? 'border-primary/40 bg-primary/5' : 'border-border/60 hover:border-border hover:bg-secondary/40')}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-teal/15 text-teal"><Bus className="size-4" /></span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-sm font-semibold">{b.code}</p>
-                          {b.eta && <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">{b.eta}</span>}
-                        </div>
-                        <p className="truncate text-xs text-muted-foreground">{b.driverName ?? t('map.noDriver')}</p>
-                      </div>
-                      <StatusPill status={b.status}>{t(`map.status.${b.status}`)}</StatusPill>
-                    </div>
-                    <p className="mt-2 truncate text-xs text-muted-foreground">{b.routeName}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1"><Users className="size-3.5" /> {t('map.passengersOnBoard', { n: b.passengers, capacity: b.capacity ?? '—' })}</span>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      <Badge tone={b.maintenance.tone}><Wrench className="size-3" /> {b.maintenance.label}</Badge>
-                      <Badge tone={b.license.tone}><IdCard className="size-3" /> {b.license.label}</Badge>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-            {buses.length === 0 && (
-              <li className="grid place-items-center gap-2 py-10 text-center text-sm text-muted-foreground">
-                <Bus className="size-7" /> {t('map.noBuses')}
-              </li>
-            )}
-          </ul>
+        {/* Bus list. Selecting a bus filters the map down to just that one; selecting the same bus
+            again (or nothing matches) clears back to all. Desktop (`lg`+): floats over the map on the
+            right, always visible, as before. Below `lg`: a full-width panel would otherwise cover the
+            entire map with no way to see or dismiss it, so it's a dismissible bottom sheet instead,
+            opened by the pill button and closed by its own close button or the backdrop. */}
+        <div className="absolute bottom-3 right-3 top-3 z-10 hidden w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card/95 shadow-xl backdrop-blur lg:flex">
+          <BusListPanel t={t} buses={buses} selected={selected} setSelected={setSelected} />
         </div>
+
+        {!busListOpen && (
+          <button
+            type="button"
+            onClick={() => setBusListOpen(true)}
+            className="absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-full bg-card/95 px-4 py-2.5 text-sm font-semibold shadow-xl backdrop-blur lg:hidden"
+          >
+            <Radio className="size-4 text-teal" /> {t('map.busesOnMap')} ({buses.length})
+          </button>
+        )}
+
+        {busListOpen && (
+          <>
+            <button
+              type="button"
+              aria-label={t('common.close')}
+              onClick={() => setBusListOpen(false)}
+              className="absolute inset-0 z-10 bg-[hsl(var(--navy))]/40 backdrop-blur-sm lg:hidden"
+            />
+            <div className="absolute inset-x-3 bottom-3 z-20 flex max-h-[70%] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-xl lg:hidden">
+              <button
+                type="button"
+                onClick={() => setBusListOpen(false)}
+                aria-label={t('common.close')}
+                className="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+              <BusListPanel t={t} buses={buses} selected={selected} setSelected={setSelected} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Stops & stations on the left, administrative geography on the right — both are location

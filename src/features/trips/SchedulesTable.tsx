@@ -120,7 +120,7 @@ function GenerateModal({ template, routeName, onClose }: { template: ApiTripTemp
     >
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('schedules.from')} htmlFor="g-from" required><Input id="g-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
           <Field label={t('schedules.to')} htmlFor="g-to" required><Input id="g-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
         </div>

@@ -30,7 +30,7 @@ export function StopsSection() {
   ];
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="min-w-0 overflow-hidden">
       <AddStationModal open={addStation} onClose={() => setAddStation(false)} />
       <AddStopModal open={addStop} onClose={() => setAddStop(false)} />
       <EditStopModal stop={editStop} open={editStop !== null} onClose={() => setEditStop(null)} />

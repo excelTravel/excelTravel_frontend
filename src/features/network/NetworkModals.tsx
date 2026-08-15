@@ -85,7 +85,7 @@ export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () =>
       footer={<><Button variant="outline" onClick={onClose} disabled={create.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={create.isPending}>{create.isPending ? t('forms.saving') : t('network.createRoute')}</Button></>}>
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.originStation')} htmlFor="nr-o" required>
             <Select id="nr-o" value={originId} onChange={(e) => setOriginId(e.target.value)}>
               <option value="" disabled>{t('network.selectStation')}</option>
@@ -99,7 +99,7 @@ export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () =>
             </Select>
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.distance')} htmlFor="nr-km"><Input id="nr-km" type="number" value={km} onChange={(e) => setKm(e.target.value)} placeholder="116" /></Field>
           <Field label={t('network.duration')} htmlFor="nr-min"><Input id="nr-min" type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder="150" /></Field>
         </div>
@@ -145,7 +145,7 @@ export function AddStationModal({ open, onClose, pin }: { open: boolean; onClose
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <Field label={t('network.stationName')} htmlFor="nst-name" required><Input id="nst-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nyabugogo" /></Field>
         <Field label={t('network.phone')} htmlFor="nst-phone" required><Input id="nst-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 788 000 000" /></Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.latitude')} htmlFor="nst-lat" hint={pin ? t('network.fromMap') : undefined}><Input id="nst-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-1.9536" /></Field>
           <Field label={t('network.longitude')} htmlFor="nst-lng"><Input id="nst-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="30.0606" /></Field>
         </div>
@@ -195,7 +195,7 @@ export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: (
             {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </Select>
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.latitude')} htmlFor="ns-lat" hint={pin ? t('network.fromMap') : undefined}><Input id="ns-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-1.9536" /></Field>
           <Field label={t('network.longitude')} htmlFor="ns-lng"><Input id="ns-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="30.0606" /></Field>
         </div>
@@ -238,7 +238,7 @@ export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => 
       footer={<><Button variant="outline" onClick={onClose} disabled={upsert.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={upsert.isPending}>{upsert.isPending ? t('forms.saving') : t('network.saveFare')}</Button></>}>
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.originStation')} htmlFor="nf-o">
             <Select id="nf-o" value={origin} onChange={(e) => setOrigin(e.target.value)}>
               <option value="" disabled>{t('network.selectStation')}</option>
@@ -328,7 +328,7 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <p className="text-xs text-muted-foreground">{t('network.routeEndpointsLocked')}</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.distance')} htmlFor="er-km"><Input id="er-km" type="number" value={km} onChange={(e) => setKm(e.target.value)} /></Field>
           <Field label={t('network.duration')} htmlFor="er-min"><Input id="er-min" type="number" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
         </div>
@@ -422,7 +422,7 @@ export function EditStopModal({ stop, open, onClose }: { stop: ApiStop | null; o
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <Field label={t(isStation ? 'network.stationName' : 'network.stopName')} htmlFor="es-name" required><Input id="es-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.latitude')} htmlFor="es-lat"><Input id="es-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} /></Field>
           <Field label={t('network.longitude')} htmlFor="es-lng"><Input id="es-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} /></Field>
         </div>

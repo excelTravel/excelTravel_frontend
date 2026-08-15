@@ -68,7 +68,7 @@ export function RoutineModal({ open, onClose }: { open: boolean; onClose: () => 
             {(routesQ.data ?? []).map((r) => <option key={r.id} value={r.id}>{r.origin} → {r.destination}</option>)}
           </Select>
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('sched.frequency')} htmlFor="r-freq">
             <Select id="r-freq" value={frequency} onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly' | 'monthly')}>
               <option value="daily">{t('sched.freq.daily')}</option>
@@ -103,7 +103,7 @@ export function RoutineModal({ open, onClose }: { open: boolean; onClose: () => 
         <Field label={t('sched.times')} htmlFor="r-times" hint={t('sched.timesHint')}>
           <Input id="r-times" value={times} onChange={(e) => setTimes(e.target.value)} placeholder="06:00, 12:00, 17:30" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('forms.vehicle')} htmlFor="r-bus">
             <Select id="r-bus" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)}>
               <option value="">{t('forms.selectVehicle')}</option>
