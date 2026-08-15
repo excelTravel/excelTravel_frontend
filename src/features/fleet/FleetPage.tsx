@@ -46,8 +46,8 @@ export function FleetPage() {
         ))}
       </RevealItem>
 
-      <RevealItem>
-        <div role="tablist" aria-label={t('fleet.consoleTitle')} className="inline-flex gap-1 rounded-xl bg-secondary/60 p-1">
+      <RevealItem className="overflow-x-auto">
+        <div role="tablist" aria-label={t('fleet.consoleTitle')} className="inline-flex w-max gap-1 rounded-xl bg-secondary/60 p-1">
           {TABS.map((tb) => {
             const activeTab = tab === tb.key;
             return (

@@ -49,7 +49,7 @@ export function InviteDriverModal({ open, onClose }: { open: boolean; onClose: (
         <Field label={t('team.fullName')} htmlFor="id-name" required>
           <Input id="id-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Eric Habimana" autoComplete="name" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('team.email')} htmlFor="id-email" required>
             <Input id="id-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="eric@exceltravel.rw" autoComplete="email" />
           </Field>
@@ -57,7 +57,7 @@ export function InviteDriverModal({ open, onClose }: { open: boolean; onClose: (
             <Input id="id-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 788 000 000" autoComplete="tel" />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('drivers.licenseNumber')} htmlFor="id-license" required>
             <Input id="id-license" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} placeholder="RW-DL-000000" />
           </Field>

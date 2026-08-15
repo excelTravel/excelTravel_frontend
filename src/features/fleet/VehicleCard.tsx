@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Bus, CalendarDays, Clock, MoreVertical, Navigation, Phone, UserRound, Wrench } from 'lucide-react';
+import { Bus, CalendarDays, MapPin, MoreVertical, Navigation, CalendarClock, Wrench } from 'lucide-react';
 import { MotionCard } from '@/components/motion/Motion';
 import { StatusPill } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -17,11 +17,31 @@ function maintenanceFor(sinceISO: string) {
   return { d: Math.floor(totalH / 24), h: totalH % 24, since: new Date(sinceISO).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) };
 }
 
+// Four distinct tag colours for "what's this vehicle doing right now": green = on a trip, gold =
+// scheduled next, yellow = idle, sitting wherever its last trip left it, red = in maintenance.
+type TagTone = 'green' | 'gold' | 'yellow' | 'red' | 'neutral';
+const TAG_TONE: Record<TagTone, string> = {
+  green: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  gold: 'bg-amber-600/15 text-amber-700 dark:text-amber-500',
+  yellow: 'bg-yellow-400/20 text-yellow-700 dark:text-yellow-400',
+  red: 'bg-red-500/15 text-red-600 dark:text-red-400',
+  neutral: 'bg-secondary text-muted-foreground',
+};
+
+function StatusTag({ tone, icon, children }: { tone: TagTone; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className={cn('flex min-w-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium', TAG_TONE[tone])}>
+      {icon}
+      <span className="min-w-0 truncate">{children}</span>
+    </div>
+  );
+}
+
 export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOpenDetails?: () => void }) {
   const { t } = useTranslation();
 
   return (
-    <MotionCard className="flex flex-col overflow-hidden p-0">
+    <MotionCard className="flex min-w-0 flex-col overflow-hidden p-0">
       <div className="h-1 w-full" style={{ background: ACCENT[vehicle.status] }} aria-hidden />
       <div className="flex flex-col gap-4 p-5">
         {/* Identity + status */}
@@ -56,54 +76,35 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
           </div>
         </div>
 
-        {/* Contextual status: on a trip / scheduled next / how long in maintenance */}
-        {vehicle.status === 'maintenance' && vehicle.maintenanceSince ? (
-          (() => {
-            const m = maintenanceFor(vehicle.maintenanceSince);
-            return (
-              <div className="flex items-center gap-1.5 text-sm text-warning">
-                <Wrench className="size-3.5 shrink-0" />
-                <span className="truncate">{t('vehicles.inMaintenanceFor', { d: m.d, h: m.h })} · {t('vehicles.since', { date: m.since })}</span>
-              </div>
-            );
-          })()
+        {/* What it's doing right now — one of exactly four states, colour-coded so it reads at a glance:
+            in maintenance (red) > on a trip now (green) > next scheduled trip (gold) > idle at its last
+            trip's destination (yellow). A vehicle with no trip history at all falls back to neutral. */}
+        {vehicle.status === 'maintenance' ? (
+          <StatusTag tone="red" icon={<Wrench className="size-3.5 shrink-0" />}>
+            {vehicle.maintenanceSince
+              ? (() => { const m = maintenanceFor(vehicle.maintenanceSince!); return `${t('vehicles.inMaintenanceFor', { d: m.d, h: m.h })} · ${t('vehicles.since', { date: m.since })}`; })()
+              : t('vehicles.status.maintenance')}
+          </StatusTag>
         ) : vehicle.currentTrip ? (
-          <div className="flex items-center gap-1.5 text-sm text-[hsl(var(--teal))]">
-            <Navigation className="size-3.5 shrink-0" />
-            <span className="truncate">{t('vehicles.onTrip', { code: vehicle.currentTrip.code })} · {vehicle.currentTrip.route}</span>
-          </div>
+          <StatusTag tone="green" icon={<Navigation className="size-3.5 shrink-0" />}>
+            {t('vehicles.onTrip', { code: vehicle.currentTrip.code })} · {vehicle.currentTrip.route}
+          </StatusTag>
         ) : vehicle.nextTrip ? (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Clock className="size-3.5 shrink-0" />
-            <span className="truncate">{t('vehicles.scheduledTrip', { code: vehicle.nextTrip.code, time: vehicle.nextTrip.time })}</span>
-          </div>
+          <StatusTag tone="gold" icon={<CalendarClock className="size-3.5 shrink-0" />}>
+            {t('vehicles.scheduledTrip', { code: vehicle.nextTrip.code, time: vehicle.nextTrip.time })} · {vehicle.nextTrip.route}
+          </StatusTag>
+        ) : vehicle.lastDestination ? (
+          <StatusTag tone="yellow" icon={<MapPin className="size-3.5 shrink-0" />}>
+            {t('vehicles.lastSeenAt', { place: vehicle.lastDestination })}
+          </StatusTag>
         ) : (
-          <div className={cn('flex items-center gap-1.5 text-sm text-muted-foreground')}>
-            <span className="truncate">{t('vehicles.idle')}</span>
-          </div>
+          <StatusTag tone="neutral" icon={<MapPin className="size-3.5 shrink-0" />}>
+            {t('vehicles.noTripsYet')}
+          </StatusTag>
         )}
 
-        {/* Driver + actions */}
-        <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
-          <div className="flex min-w-0 items-center gap-2">
-            {vehicle.driver ? (
-              <>
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
-                  {vehicle.driver.charAt(0)}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium leading-tight">{vehicle.driver}</p>
-                  <a href={`tel:${vehicle.driverPhone ?? ''}`} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                    <Phone className="size-3" /> {vehicle.driverPhone}
-                  </a>
-                </div>
-              </>
-            ) : (
-              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <UserRound className="size-4" /> {t('vehicles.unassigned')}
-              </span>
-            )}
-          </div>
+        {/* Details action */}
+        <div className="flex items-center justify-end border-t border-border pt-3">
           <button
             type="button"
             onClick={onOpenDetails}

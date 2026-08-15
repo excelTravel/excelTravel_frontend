@@ -86,14 +86,18 @@ origin-bus check) + detail + per-trip Manage [x] Booking desk (Bookings → Desk
 [x] Fleet console (Vehicles / Drivers roster+fairness / Maintenance=coming-soon / Accidents)
 [x] Network — **Map** (live+scheduled buses, pin-to-add-stop) / Routes / Stops / Fares (per-route + matrix)
 [x] Users (Staff / Agents / Passengers-with-metrics) [x] Analytics [x] Parcels [x] Notifications [x] Settings
-Auth: [x] Login (email/phone + OTP) · Remaining: [ ] Passenger portal [ ] Driver portal (mobile-first)
+Auth: [x] Login (email/phone + OTP) · Passenger/Driver/Agent portals: built, but in `excelTravel_mobile`
+(Flutter), not this repo — manager/company_admin/super_admin have no native app by design and use this
+web console, so it needs to be genuinely mobile-responsive too, not just desktop.
 Removed from ops build: standalone Live Map (now Network→Map), Admin/Companies/Audit/Private-bookings
 (→ future system-admin surface). Plates are formatted `RAA-000-A`.
 
-**All screens render from local stub data**, aligned to the backend contracts (shapes/enums verified against
-`../excelTravel_backend`), full EN/KIN i18n + dark mode + code-split routes. **Not wired to the API yet** —
-next big step is: regenerate `openapi.json` → typed client → TanStack Query hooks → OTP session token → live socket.
-Mock-ahead features + backend gaps are tracked in `docs/integration-map.md`.
+**Screens are wired to the live API** via `src/lib/api/hooks.ts` (TanStack Query, ~840 lines, consumed from
+37+ page/feature files) — this is stale-doc territory to double-check before trusting: verify with
+`grep -rl "lib/api/hooks" src` rather than assuming. Full EN/KIN i18n + dark mode + code-split routes.
+Remaining mock-ahead features (screens still waiting on a backend endpoint) + known backend gaps are tracked
+in `docs/integration-map.md` — check that file for the current per-screen list rather than assuming
+everything is live.
 
 ## Status
 Foundation being set up while final visual designs are prepared (Stitch → Figma). Design-dependent screens

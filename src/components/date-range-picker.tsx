@@ -25,16 +25,16 @@ export function DateRangePicker() {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform active:scale-[0.98]"
+          className="flex items-center gap-2 rounded-full bg-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-transform active:scale-[0.98] sm:px-5"
         >
           <Calendar className="size-4" aria-hidden />
-          {label}
+          <span className="hidden sm:inline">{label}</span>
           <ChevronDown className="size-3.5" aria-hidden />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-auto p-0">
-        <div className="flex">
-          <div className="flex w-40 flex-col gap-0.5 border-r border-border p-2">
+      <PopoverContent align="end" className="w-[calc(100vw-2rem)] max-w-xs p-0 sm:w-auto sm:max-w-none">
+        <div className="flex flex-col sm:flex-row">
+          <div className="flex w-full flex-row gap-0.5 overflow-x-auto border-b border-border p-2 sm:w-40 sm:flex-col sm:overflow-visible sm:border-b-0 sm:border-r">
             {PRESETS.map((p) => (
               <button
                 key={p.id}
@@ -45,7 +45,7 @@ export function DateRangePicker() {
                   setOpen(false);
                 }}
                 className={cn(
-                  'rounded-md px-3 py-2 text-left text-sm transition-colors',
+                  'shrink-0 rounded-md px-3 py-2 text-left text-sm transition-colors',
                   preset === p.id ? 'bg-primary/10 font-medium text-primary' : 'hover:bg-secondary',
                 )}
               >

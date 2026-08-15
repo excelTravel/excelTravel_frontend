@@ -55,7 +55,7 @@ export function AddVehicleModal({ open, onClose }: { open: boolean; onClose: () 
         <Field label={t('forms.plate')} htmlFor="v-plate" required hint={t('forms.plateHint')}>
           <Input id="v-plate" value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} placeholder="RAB 402 C" autoComplete="off" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('forms.model')} htmlFor="v-model">
             <Input id="v-model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="Yutong Bus" />
           </Field>
@@ -63,7 +63,7 @@ export function AddVehicleModal({ open, onClose }: { open: boolean; onClose: () 
             <Input id="v-year" type="number" min={1950} max={2100} value={year} onChange={(e) => setYear(e.target.value)} placeholder="2023" />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('vehicles.colCapacity')} htmlFor="v-cap">
             <Input id="v-cap" type="number" min={1} value={capacity} onChange={(e) => setCapacity(e.target.value)} placeholder="40" />
           </Field>

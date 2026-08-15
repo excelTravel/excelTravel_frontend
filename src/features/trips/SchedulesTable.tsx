@@ -60,7 +60,6 @@ export function SchedulesTable() {
                 <Tr key={tpl.id}>
                   <Td className="whitespace-nowrap">
                     <span className="flex items-center gap-2 font-medium">{routeName(tpl.routeId).replace(' → ', ' ')} <ArrowRight className="size-3.5 text-muted-foreground" /></span>
-                    <span className="text-xs uppercase text-muted-foreground">{t(`tripsList.status.${tpl.direction}`, tpl.direction)}</span>
                   </Td>
                   <Td className="whitespace-nowrap text-muted-foreground">{t(`sched.freq.${tpl.frequency}`, tpl.frequency)}</Td>
                   <Td className="whitespace-nowrap tabular-nums">{tpl.departureTimes.join(' · ')}</Td>
@@ -121,11 +120,16 @@ function GenerateModal({ template, routeName, onClose }: { template: ApiTripTemp
     >
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('schedules.from')} htmlFor="g-from" required><Input id="g-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></Field>
           <Field label={t('schedules.to')} htmlFor="g-to" required><Input id="g-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></Field>
         </div>
-        {result && <p className="rounded-lg bg-success/10 p-3 text-sm font-medium text-success">{t('schedules.generated', { created: result.created, skipped: result.skipped })}</p>}
+        {result && (
+          <p className="rounded-lg bg-success/10 p-3 text-sm text-success">
+            <span className="font-medium">{t('schedules.generated', { created: result.created, skipped: result.skipped })}</span>{' '}
+            {t('schedules.generatedHint')}
+          </p>
+        )}
       </div>
     </Modal>
   );

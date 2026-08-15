@@ -43,6 +43,11 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Same control as the centred desktop one — inline here since it only renders below `lg`. */}
+        <div className="lg:hidden">
+          <DateRangePicker />
+        </div>
+
         <button
           type="button"
           onClick={toggle}

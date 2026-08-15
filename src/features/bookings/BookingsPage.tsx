@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { CheckCircle2, XCircle } from 'lucide-react';
+import { isThisMonth, isThisWeek, isToday } from 'date-fns';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { StatusPill } from '@/components/ui/badge';
@@ -27,14 +28,28 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 // Only two booking sources: App (passenger self-book) and Agent (agent-booked, incl. walk-ins).
 const CHANNEL_COLORS: Record<string, string> = { app: '#0F766E', agent: '#14B8A6' };
 
+type DateScope = 'all' | 'today' | 'week' | 'month';
+const DATE_SCOPES: DateScope[] = ['all', 'today', 'week', 'month'];
+
+// Scopes by the trip's departure — what's actually happening today/this week, not when it was booked.
+function inScope(departureAt: string, scope: DateScope): boolean {
+  if (scope === 'all') return true;
+  const d = new Date(departureAt);
+  if (scope === 'today') return isToday(d);
+  if (scope === 'week') return isThisWeek(d, { weekStartsOn: 1 });
+  return isThisMonth(d);
+}
+
 interface BookingRow {
   id: string;
   name: string;
   phone: string;
   route: string;
   time: string;
+  departureAt: string | null;
   status: string;
   paymentStatus: string;
+  channel: string;
   bus: string;
   amount: number;
 }
@@ -52,10 +67,11 @@ export function BookingsPage() {
   const updatePayment = useUpdatePayment();
   const cancelBooking = useCancelBooking();
   const [velMode, setVelMode] = useState<'hours' | 'days'>('hours');
+  const [dateScope, setDateScope] = useState<DateScope>('all');
   const o = overviewQ.data;
 
   // Join bookings -> trip -> route so the table shows route / time / bus from live data.
-  const rows: BookingRow[] = useMemo(() => {
+  const allRows: BookingRow[] = useMemo(() => {
     const tripById = new Map((tripsQ.data ?? []).map((tp) => [tp.id, tp]));
     const routeById = new Map((routesQ.data ?? []).map((r) => [r.id, r]));
     return (bookingsQ.data?.pages.flatMap((p) => p.items) ?? []).map((b: ApiBooking) => {
@@ -67,13 +83,20 @@ export function BookingsPage() {
         phone: b.passengerPhone ?? '—',
         route: r ? `${r.origin} → ${r.destination}` : '—',
         time: tp ? new Date(tp.departureTime).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—',
+        departureAt: tp?.departureTime ?? null,
         status: b.status,
         paymentStatus: b.paymentStatus,
+        channel: b.bookingSource,
         bus: tp?.vehiclePlate ?? '—',
         amount: b.fareAmount,
       };
     });
   }, [bookingsQ.data, tripsQ.data, routesQ.data]);
+
+  const rows = useMemo(
+    () => (dateScope === 'all' ? allRows : allRows.filter((r) => r.departureAt !== null && inScope(r.departureAt, dateScope))),
+    [allRows, dateScope],
+  );
 
   const velocity = useMemo(() => {
     const rowsP = peakQ.data ?? [];
@@ -97,27 +120,30 @@ export function BookingsPage() {
     { key: 'name', header: t('bookings.colPassenger'), sort: (r) => r.name, cell: (r) => (<div><p className="font-medium">{r.name}</p><p className="text-xs text-muted-foreground tabular-nums">{r.phone}</p></div>) },
     { key: 'route', header: t('bookings.colRoute'), filter: (r) => r.route, sort: (r) => r.route, cell: (r) => r.route, td: 'whitespace-nowrap text-muted-foreground' },
     { key: 'time', header: t('bookings.colTime'), sort: (r) => r.time, cell: (r) => r.time, td: 'whitespace-nowrap tabular-nums text-muted-foreground' },
-    { key: 'status', header: t('bookings.colStatus'), sort: (r) => r.status, cell: (r) => <StatusPill status={r.status} /> },
-    { key: 'payment', header: t('bookings.colPayment', 'Payment'), sort: (r) => r.paymentStatus, cell: (r) => <StatusPill status={r.paymentStatus} /> },
+    { key: 'status', header: t('bookings.colStatus'), filter: (r) => r.status, sort: (r) => r.status, cell: (r) => <StatusPill status={r.status} /> },
+    { key: 'payment', header: t('bookings.colPayment', 'Payment'), filter: (r) => r.paymentStatus, sort: (r) => r.paymentStatus, cell: (r) => <StatusPill status={r.paymentStatus} /> },
+    { key: 'channel', header: t('bookings.colChannel'), filter: (r) => r.channel, sort: (r) => r.channel, cell: (r) => <span className="capitalize">{t(`trip.via.${r.channel}`, r.channel)}</span>, td: 'whitespace-nowrap text-muted-foreground' },
     { key: 'bus', header: t('bookings.colBusStation'), filter: (r) => r.bus, sort: (r) => r.bus, cell: (r) => r.bus, td: 'whitespace-nowrap text-muted-foreground' },
     { key: 'amount', header: t('bookings.colAmount'), align: 'right', sort: (r) => r.amount, cell: (r) => (r.amount ? formatRWF(r.amount) : '—'), td: 'whitespace-nowrap font-semibold tabular-nums' },
     {
       key: 'actions',
       header: '',
-      cell: (r) => (
-        <div className="flex justify-end gap-1">
-          {r.status !== 'cancelled' && r.paymentStatus === 'pending' && (
+      cell: (r) => {
+        // Once resolved (paid, or cancelled) there's nothing left to approve or decline — the row just
+        // shows its final state instead of stale action buttons.
+        const resolved = r.status === 'cancelled' || r.paymentStatus !== 'pending';
+        if (resolved) return null;
+        return (
+          <div className="flex flex-col items-end gap-1">
             <Button variant="outline" size="sm" disabled={updatePayment.isPending} onClick={() => updatePayment.mutate({ id: r.id, paymentStatus: 'paid' })}>
-              <CheckCircle2 className="size-4" /> {t('bookings.approve', 'Approve')}
+              <CheckCircle2 className="size-4" /> {t('bookings.approve')}
             </Button>
-          )}
-          {r.status !== 'cancelled' && (
             <Button variant="ghost" size="sm" disabled={cancelBooking.isPending} onClick={() => cancelBooking.mutate({ id: r.id, override: true })}>
-              <XCircle className="size-4" />
+              <XCircle className="size-4" /> {t('bookings.decline')}
             </Button>
-          )}
-        </div>
-      ),
+          </div>
+        );
+      },
       td: 'whitespace-nowrap',
     },
   ];
@@ -210,7 +236,7 @@ export function BookingsPage() {
             <div className="shimmer m-5 h-72 rounded-xl" />
           ) : bookingsQ.isError ? (
             <div className="px-6 py-12 text-center text-sm text-destructive">{t('common.error', 'Could not load bookings.')}</div>
-          ) : rows.length === 0 ? (
+          ) : allRows.length === 0 ? (
             <div className="px-6 py-12 text-center text-sm text-muted-foreground">{t('bookings.emptyTitle')}</div>
           ) : (
             <>
@@ -221,6 +247,24 @@ export function BookingsPage() {
                 search={(r) => `${r.name} ${r.id} ${r.route} ${r.bus}`}
                 searchPlaceholder={t('bookings.search')}
                 empty={t('bookings.emptyTitle')}
+                filtersInline
+                toolbarRight={
+                  <div className="flex rounded-lg border border-border p-0.5">
+                    {DATE_SCOPES.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setDateScope(s)}
+                        className={cn(
+                          'rounded-md px-3 py-1.5 text-xs font-semibold transition-colors',
+                          dateScope === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+                        )}
+                      >
+                        {t(`bookings.dateScope.${s}`)}
+                      </button>
+                    ))}
+                  </div>
+                }
               />
               {bookingsQ.hasNextPage && (
                 <div className="flex justify-center border-t border-border p-4">

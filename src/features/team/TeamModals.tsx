@@ -74,7 +74,7 @@ export function InviteUserModal({ open, onClose }: { open: boolean; onClose: () 
         <Field label={t('team.fullName')} htmlFor="iu-name" required>
           <Input id="iu-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Uwase" autoComplete="name" />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('team.email')} htmlFor="iu-email" required>
             <Input id="iu-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@exceltravel.rw" autoComplete="email" />
           </Field>
@@ -102,7 +102,7 @@ export function InviteUserModal({ open, onClose }: { open: boolean; onClose: () 
           </div>
         </Field>
         {role === 'driver' && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label={t('drivers.licenseNumber')} htmlFor="iu-license" required>
               <Input id="iu-license" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} placeholder="RW-DL-000000" />
             </Field>

@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Bus, Mail, Phone, User, AlertCircle, CheckCircle2, Moon, Sun } from 'lucide-react';
+import { Bus, Mail, AlertCircle, CheckCircle2, Moon, Sun } from 'lucide-react';
 import { Reveal } from '@/components/motion/Motion';
 import { authApi } from '@/lib/api/auth';
 import { useSession } from '@/lib/auth/session';
 import { useTheme } from '@/store/theme';
 import { cn } from '@/lib/utils';
 
-type Channel = 'phone' | 'email';
 const RESEND_SECONDS = 60;
+// Structural check only ("something@something.something") — real validation is the backend's job
+// (z.string().email()). Must NOT assume a specific TLD: staff emails here are @exceltravel.rw, not
+// .com, and a hardcoded ".com" check would silently lock out every real account.
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Reusable 6-digit OTP Input component
 function OTPInput({ length = 6, value, onChange, error, busy, onComplete }: { length?: number, value: string, onChange: (v: string) => void, error: boolean, busy: boolean, onComplete: (v: string) => void }) {
@@ -93,11 +96,7 @@ export function LoginPage() {
   const setSession = useSession((s) => s.setSession);
   const { theme, toggle } = useTheme();
 
-  const [channel, setChannel] = useState<Channel>('phone');
-  const [signup, setSignup] = useState(false);
-  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [devCode, setDevCode] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -112,43 +111,9 @@ export function LoginPage() {
     timer.current = setInterval(() => setCooldown((c) => (c <= 1 ? (clearInterval(timer.current), 0) : c - 1)), 1000);
   }
 
-  function reset(next: Partial<{ channel: Channel; signup: boolean }>) {
-    setCode(''); setDevCode(null); setErrors({});
-    if (next.channel !== undefined) setChannel(next.channel);
-    if (next.signup !== undefined) setSignup(next.signup);
-  }
-
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/[^a-zA-Z\s]/.test(val)) {
-      setErrors((prev) => ({ ...prev, name: "Only letters are allowed" }));
-      return;
-    }
-    setName(val);
-    if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
-  };
-
   const handleCodeChange = (newCode: string) => {
     setCode(newCode);
     if (errors.code) setErrors((prev) => ({ ...prev, code: '' }));
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    if (/\D/.test(val)) {
-      setErrors((prev) => ({ ...prev, phone: "Only numbers are allowed" }));
-      return;
-    }
-    if (val.length > 9) {
-      return;
-    }
-    setPhone(val);
-    
-    if (val.length > 0 && val[0] !== '7') {
-      setErrors((prev) => ({ ...prev, phone: "Must start with 7" }));
-    } else if (errors.phone) {
-      setErrors((prev) => ({ ...prev, phone: '' }));
-    }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,35 +130,17 @@ export function LoginPage() {
 
   async function requestCode() {
     setErrors({});
-    let hasErr = false;
-    const newErr: Record<string, string> = {};
-
-    if (channel === 'phone') {
-      if (!phone.trim()) { newErr.phone = t('auth.needPhone'); hasErr = true; }
-      else if (phone.length !== 9) { newErr.phone = "Phone must be exactly 9 digits"; hasErr = true; }
-    }
-    if (channel === 'email' && !email.trim()) { newErr.email = t('auth.needEmail'); hasErr = true; }
-    if (channel === 'phone' && signup && !name.trim()) { newErr.name = t('auth.needName'); hasErr = true; }
-    
-    if (hasErr) { setErrors(newErr); return; }
+    if (!email.trim()) { setErrors({ email: t('auth.needEmail') }); return; }
 
     setBusy(true);
     try {
-      const payloadId = channel === 'email' ? email.trim().toLowerCase() : (phone.startsWith('+') ? phone.trim() : `+250${phone.trim()}`);
-      const res = channel === 'phone' && signup
-        ? await authApi.register({ phone: payloadId, name: name.trim() })
-        : await authApi.requestOtp({ identifier: payloadId });
-      
+      const res = await authApi.requestOtp({ identifier: email.trim().toLowerCase() });
       setDevCode(res.devCode ?? null);
       setCode('');
       startCooldown();
     } catch (e) {
       const message = e instanceof Error ? e.message : t('auth.failed');
-      if (channel === 'email' && message.toLowerCase().includes('no account')) {
-        setErrors({ form: 'This staff email is not registered in the system.' });
-      } else {
-        setErrors({ form: message });
-      }
+      setErrors({ form: message.toLowerCase().includes('no account') ? 'This staff email is not registered in the system.' : message });
     } finally {
       setBusy(false);
     }
@@ -207,10 +154,7 @@ export function LoginPage() {
     }
     setBusy(true);
     try {
-      const payloadId = channel === 'email' ? email.trim().toLowerCase() : (phone.startsWith('+') ? phone.trim() : `+250${phone.trim()}`);
-      const tokens = channel === 'phone' && signup
-        ? await authApi.verifyPhone({ phone: payloadId, code: currentCode.trim() })
-        : await authApi.verifyOtp({ identifier: payloadId, code: currentCode.trim() });
+      const tokens = await authApi.verifyOtp({ identifier: email.trim().toLowerCase(), code: currentCode.trim() });
       setSession(tokens);
       navigate('/', { replace: true });
     } catch {
@@ -269,7 +213,7 @@ export function LoginPage() {
               excel<span className="text-[#0e76db]">Travel</span>
             </h1>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-              {channel === 'phone' ? (signup ? t('auth.createTitle') : t('auth.phoneTitle')) : t('auth.staffTitle')}
+              {t('auth.staffTitle')}
             </h2>
           </div>
 
@@ -281,64 +225,24 @@ export function LoginPage() {
           )}
 
           <div className="space-y-6">
-            {channel === 'phone' ? (
-              <>
-                {signup && (
-                  <div className="space-y-1">
-                    <div className={cn("relative group rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.name ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#0e76db]" />
-                      <input 
-                        id="a-name" value={name} onChange={handleNameChange} placeholder="Full Name" autoComplete="name"
-                        className="w-full bg-transparent py-4 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none"
-                      />
-                    </div>
-                    {errors.name && <p className="text-xs font-bold text-red-500 pl-2">{errors.name}</p>}
-                  </div>
-                )}
-
-                <div className="flex gap-1.5 sm:gap-2 items-start">
-                  <div className={cn("relative flex flex-1 items-center rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.phone ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
-                    {/* Rwanda Flag & Prefix */}
-                    <div className="flex items-center gap-2 pl-3 sm:pl-4 pr-2 sm:pr-3 py-4 border-r border-border shrink-0">
-                      <img src="https://flagcdn.com/w20/rw.png" srcSet="https://flagcdn.com/w40/rw.png 2x" alt="Rwanda" className="w-5 rounded-[2px]" />
-                      <span className="text-sm font-bold">+250</span>
-                    </div>
-                    <input 
-                      id="a-phone" type="tel" value={phone} onChange={handlePhoneChange} placeholder="788 000 000" autoComplete="tel" autoFocus
-                      className="w-full bg-transparent py-4 pl-2 sm:pl-3 pr-2 sm:pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none tracking-wide"
-                    />
-                  </div>
-                  <button 
-                    type="button" 
-                    disabled={busy || cooldown > 0 || phone.length !== 9} 
-                    onClick={() => void requestCode()}
-                    className="shrink-0 h-[56px] px-3 sm:px-4 rounded-2xl bg-[#0e76db]/10 border-2 border-[#0e76db]/20 text-[11px] sm:text-xs font-bold text-[#0e76db] transition-all hover:bg-[#0e76db]/20 hover:border-[#0e76db]/30 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    {cooldown > 0 ? t('auth.resendIn', { s: cooldown }) : "Get Code"}
-                  </button>
-                </div>
-                {errors.phone && <p className="text-xs font-bold text-red-500 pl-2 -mt-4">{errors.phone}</p>}
-              </>
-            ) : (
-              <div className="flex gap-1.5 sm:gap-2 items-start">
-                <div className={cn("relative flex-1 group rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.email ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#0e76db]" />
-                  <input 
-                    id="a-email" type="email" value={email} onChange={handleEmailChange} placeholder="staff@exceltravel.rw" autoComplete="email" autoFocus
-                    className="w-full bg-transparent py-4 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none"
-                  />
-                </div>
-                <button 
-                  type="button" 
-                  disabled={busy || cooldown > 0 || !email.includes('@') || !email.toLowerCase().includes('.com')} 
-                  onClick={() => void requestCode()}
-                  className="shrink-0 h-[56px] px-3 sm:px-4 rounded-2xl bg-[#0e76db]/10 border-2 border-[#0e76db]/20 text-[11px] sm:text-xs font-bold text-[#0e76db] transition-all hover:bg-[#0e76db]/20 hover:border-[#0e76db]/30 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {cooldown > 0 ? t('auth.resendIn', { s: cooldown }) : "Get Code"}
-                </button>
-                {errors.email && <p className="text-xs font-bold text-red-500 pl-2 -mt-4 absolute">{errors.email}</p>}
+            <div className="flex gap-1.5 sm:gap-2 items-start">
+              <div className={cn("relative flex-1 group rounded-2xl border-2 transition-all bg-secondary focus-within:bg-background", errors.email ? "border-red-300 focus-within:border-red-500" : "border-transparent focus-within:border-[#0e76db] focus-within:ring-4 focus-within:ring-[#0e76db]/10")}>
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#0e76db]" />
+                <input
+                  id="a-email" type="email" value={email} onChange={handleEmailChange} placeholder="staff@exceltravel.rw" autoComplete="email" autoFocus
+                  className="w-full bg-transparent py-4 pl-11 pr-4 text-sm font-bold placeholder:text-muted-foreground focus:outline-none"
+                />
               </div>
-            )}
+              <button
+                type="button"
+                disabled={busy || cooldown > 0 || !EMAIL_SHAPE.test(email)}
+                onClick={() => void requestCode()}
+                className="shrink-0 h-[56px] px-3 sm:px-4 rounded-2xl bg-[#0e76db]/10 border-2 border-[#0e76db]/20 text-[11px] sm:text-xs font-bold text-[#0e76db] transition-all hover:bg-[#0e76db]/20 hover:border-[#0e76db]/30 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {cooldown > 0 ? t('auth.resendIn', { s: cooldown }) : "Get Code"}
+              </button>
+              {errors.email && <p className="text-xs font-bold text-red-500 pl-2 -mt-4 absolute">{errors.email}</p>}
+            </div>
 
             <div className="pt-2 animate-in fade-in">
               <div className="mb-3 flex items-center justify-between">
@@ -350,39 +254,15 @@ export function LoginPage() {
             </div>
 
             <div className="pt-2">
-              <button 
-                type="button" 
-                onClick={() => verify(code)} 
-                disabled={busy || code.length < 6} 
+              <button
+                type="button"
+                onClick={() => verify(code)}
+                disabled={busy || code.length < 6}
                 className="flex w-full items-center justify-center rounded-2xl bg-[#0e76db] px-8 py-4 text-lg font-bold text-white shadow-lg shadow-[#0e76db]/20 transition-all hover:bg-blue-700 hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none disabled:transform-none active:scale-[0.98]"
               >
-                {busy ? t('auth.verifying') : (channel === 'phone' && signup ? t('auth.createTitle') : t('auth.login'))}
+                {busy ? t('auth.verifying') : t('auth.login')}
               </button>
             </div>
-
-            {channel === 'phone' && (
-              <div className="text-center pt-1">
-                <button type="button" className="text-sm font-bold text-muted-foreground hover:text-[#0e76db] transition-colors" onClick={() => reset({ signup: !signup })}>
-                  {signup ? t('auth.haveAccount') : t('auth.newHere')}
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8">
-            <div className="relative flex items-center py-5">
-              <div className="flex-grow border-t border-border"></div>
-              <span className="flex-shrink-0 mx-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('auth.or')}</span>
-              <div className="flex-grow border-t border-border"></div>
-            </div>
-            
-            <button
-              type="button"
-              onClick={() => reset({ channel: channel === 'phone' ? 'email' : 'phone', signup: false })}
-              className="flex w-full items-center justify-center gap-3 rounded-2xl border-2 border-border bg-background px-4 py-4 text-sm font-bold transition-all hover:bg-secondary active:scale-[0.98]"
-            >
-              {channel === 'phone' ? <><Mail className="w-5 h-5 text-muted-foreground" /> Continue with company email</> : <><Phone className="w-5 h-5 text-muted-foreground" /> Continue with phone number</>}
-            </button>
           </div>
         </div>
       </Reveal>

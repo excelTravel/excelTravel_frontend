@@ -82,7 +82,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
             </Select>
           </Field>
         )}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('maintenance.serviceType')} htmlFor="lm-type" required>
             <Input id="lm-type" value={serviceType} onChange={(e) => setServiceType(e.target.value)} placeholder={t('maintenance.serviceTypePlaceholder')} />
           </Field>
@@ -93,7 +93,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
         <Field label={t('forms.description')} htmlFor="lm-desc">
           <Textarea id="lm-desc" value={description} onChange={(e) => setDescription(e.target.value)} />
         </Field>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('maintenance.cost')} htmlFor="lm-cost" hint={t('forms.rwf')}>
             <Input id="lm-cost" type="number" min={0} value={cost} onChange={(e) => setCost(e.target.value)} />
           </Field>
@@ -101,7 +101,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
             <Input id="lm-odo" type="number" min={0} value={odometerKm} onChange={(e) => setOdometerKm(e.target.value)} />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('maintenance.nextServiceDate')} htmlFor="lm-next-date">
             <Input id="lm-next-date" type="date" value={nextServiceDate} onChange={(e) => setNextServiceDate(e.target.value)} />
           </Field>

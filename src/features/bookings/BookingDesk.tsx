@@ -110,7 +110,7 @@ export function BookingDesk() {
               </Select>
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('bookings.desk.board')} htmlFor="bd-board" required>
                 <Select id="bd-board" value={boardStopId} onChange={(e) => setBoardStopId(e.target.value)} disabled={!tripId || tripDetailQ.isLoading}>
                   <option value="" disabled>{t('bookings.desk.selectStop')}</option>
@@ -125,7 +125,7 @@ export function BookingDesk() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('bookings.desk.passenger')} htmlFor="bd-name" required>
                 <Input id="bd-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jean Uwase" autoComplete="name" />
               </Field>

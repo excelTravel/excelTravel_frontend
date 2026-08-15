@@ -59,7 +59,14 @@ export function OverviewPage() {
                 return (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={bars} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
-                      <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748B' }} interval={0} />
+                      <XAxis
+                        dataKey="label"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 11, fill: '#64748B' }}
+                        interval={0}
+                        tickFormatter={(label: string) => (label.length > 14 ? `${label.slice(0, 13)}…` : label)}
+                      />
                       <Tooltip
                         cursor={{ fill: '#64748B', opacity: 0.12 }}
                         contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 12, color: 'hsl(var(--popover-foreground))', fontSize: 12 }}
@@ -94,8 +101,8 @@ export function OverviewPage() {
               <ul className="mt-4 space-y-4">
                 {data.topRoutes.map((r) => (
                   <li key={r.routeId} className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="grid size-9 place-items-center rounded-lg bg-accent text-accent-foreground">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-accent-foreground">
                         <Bus className="size-4" aria-hidden />
                       </span>
                       <div className="min-w-0">

@@ -13,6 +13,7 @@ export interface LiveBus {
   id: string; // vehicleId
   code: string; // plate number
   driverName: string | null;
+  routeId: string | null;
   routeName: string;
   from: string;
   to: string;
@@ -78,7 +79,8 @@ export function useLiveBuses(): LiveBus[] {
     return (tracking.data ?? []).map((loc) => {
       const vehicle = vehicleById.get(loc.vehicleId);
       const trip = tripByVehicle.get(loc.vehicleId);
-      const route = routeById.get(trip?.routeId ?? vehicle?.routeId ?? '');
+      const routeId = trip?.routeId ?? vehicle?.routeId ?? null;
+      const route = routeById.get(routeId ?? '');
       const from = route?.origin ?? '—';
       const to = route?.destination ?? '—';
       const driver = trip?.driverId ? driverById.get(trip.driverId) : (loc.driverId ? driverById.get(loc.driverId) : undefined);
@@ -86,6 +88,7 @@ export function useLiveBuses(): LiveBus[] {
         id: loc.vehicleId,
         code: vehicle?.plateNumber ?? loc.vehicleId,
         driverName: trip?.driverName ?? driver?.name ?? null,
+        routeId,
         routeName: route ? `${from} → ${to}` : '—',
         from,
         to,

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Bus, LogOut } from 'lucide-react';
 import { useUi } from '@/store/ui';
 import { cn } from '@/lib/utils';
-import { opsNav } from './nav';
+import { navForRole } from './nav';
 import { authApi } from '@/lib/api/auth';
 import { useSession, getRefreshToken } from '@/lib/auth/session';
 
@@ -14,6 +14,8 @@ export function Sidebar() {
   const { sidebarOpen, closeSidebar } = useUi();
   const navigate = useNavigate();
   const clear = useSession((s) => s.clear);
+  const role = useSession((s) => s.user?.role);
+  const nav = navForRole(role);
 
   async function onLogout() {
     const rt = getRefreshToken();
@@ -42,7 +44,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 space-y-2 overflow-y-auto px-2 py-2">
-        {opsNav.map(({ to, labelKey, icon: Icon }) => (
+        {nav.map(({ to, labelKey, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}

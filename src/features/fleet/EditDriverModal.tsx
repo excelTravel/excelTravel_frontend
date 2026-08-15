@@ -131,7 +131,7 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
                 <p className="flex items-center gap-1 text-xs text-muted-foreground"><UserRound className="size-3" /> {driver.phone}</p>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('forms.status')} htmlFor="ed-status">
                 <Select id="ed-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
                   {STATUSES.map((s) => <option key={s} value={s}>{t(`drivers.state.${s}`, s)}</option>)}
@@ -141,7 +141,7 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
                 <Input id="ed-rating" type="number" min={0} max={5} step={0.1} value={rating} onChange={(e) => setRating(e.target.value)} />
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('drivers.licenseNumber')} htmlFor="ed-license">
                 <Input id="ed-license" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} />
               </Field>

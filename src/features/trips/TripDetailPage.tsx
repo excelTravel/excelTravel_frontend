@@ -12,12 +12,13 @@ import {
   MessageSquare,
   Radio,
   Shuffle,
+  UserCog,
   Users,
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge, StatusPill } from '@/components/ui/badge';
-import { Select, Textarea } from '@/components/ui/form';
+import { Field, Select, Textarea } from '@/components/ui/form';
 import { Table, Thead, Th, Tbody, Td, Tr } from '@/components/ui/table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
@@ -26,12 +27,14 @@ import {
   useTrip,
   useRoutes,
   useVehicles,
+  useDrivers,
   useTripManifest,
   useTripLog,
   useMessageDriver,
   useBroadcastPassengers,
   useUpdateTrip,
   qk,
+  type ApiTrip,
   type ApiManifestEntry,
   type ApiTripLogEntry,
 } from '@/lib/api/hooks';
@@ -55,6 +58,7 @@ export function TripDetailPage() {
   const tripQ = useTrip(id);
   const routesQ = useRoutes();
   const vehiclesQ = useVehicles();
+  const driversQ = useDrivers();
   const manifestQ = useTripManifest(id);
   const logQ = useTripLog(id);
 
@@ -71,6 +75,9 @@ export function TripDetailPage() {
   const routeName = route ? `${route.origin} → ${route.destination}` : (trip?.routeId ?? id ?? '');
   const isLive = trip ? LIVE.has(trip.status) : false;
   const hasOps = isLive || trip?.status === 'completed';
+  // Vehicle/driver can be assigned or changed any time before the trip wraps up — not just while it's
+  // live. Only a finished or cancelled trip is locked (nothing left to dispatch).
+  const assignable = trip ? trip.status !== 'completed' && trip.status !== 'cancelled' : false;
 
   const manifest = manifestQ.data ?? [];
   const appCount = manifest.filter((m) => m.bookingSource === 'app').length;
@@ -105,7 +112,6 @@ export function TripDetailPage() {
               {trip && <StatusPill status={trip.status}>{t(`tripsList.status.${trip.status}`)}</StatusPill>}
               {trip && <span className="text-muted-foreground/50">·</span>}
               {trip && <span className="tabular-nums">{dateFmt.format(new Date(trip.departureTime))} · {fmtTime(trip.departureTime)}</span>}
-              {trip && <span className="uppercase text-muted-foreground/70">{t(`tripsList.status.${trip.direction === 'return' ? 'return' : 'outbound'}`, trip.direction)}</span>}
             </p>
           </div>
           {trip?.vehiclePlate && (
@@ -269,20 +275,14 @@ export function TripDetailPage() {
 
         {/* Right: driver, vehicle, revenue, dispatch */}
         <div className="space-y-6">
-          <GlassCard className="p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.assignedDriver')}</p>
-            <div className="mt-1 flex items-center gap-3">
-              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                {trip?.driverName?.[0] ?? '—'}
-              </span>
-              <p className="text-lg font-bold leading-tight">{trip?.driverName ?? t('trip.noDriver')}</p>
-            </div>
-          </GlassCard>
-
-          <GlassCard className="p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.vehicleDetails')}</p>
-            <p className="mt-1 text-lg font-bold">{trip?.vehiclePlate ?? '—'}</p>
-          </GlassCard>
+          {trip && (
+            <AssignmentCard
+              trip={trip}
+              assignable={assignable}
+              vehicles={vehiclesQ.data ?? []}
+              drivers={driversQ.data ?? []}
+            />
+          )}
 
           <GlassCard className="border-t-2 border-t-primary p-5">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{t('trip.tripRevenueLive')}</p>
@@ -317,6 +317,61 @@ function logLabel(t: ReturnType<typeof useTranslation>['t'], e: ApiTripLogEntry)
     case 'completed': return e.stopName ? t('trip.log.completed', { stop: e.stopName }) : t('trip.log.completedNoStop');
     default: return e.type;
   }
+}
+
+// Assign or change this trip's vehicle and driver — the one place that's done now (vehicle cards on
+// Fleet are read-only). Available any time before the trip completes or is cancelled, not just once it's
+// live, since a scheduled trip needs a bus and a driver put on it before it can depart at all.
+function AssignmentCard({ trip, assignable, vehicles, drivers }: {
+  trip: ApiTrip;
+  assignable: boolean;
+  vehicles: { id: string; plateNumber: string }[];
+  drivers: { id: string; name: string }[];
+}) {
+  const { t } = useTranslation();
+  const update = useUpdateTrip();
+  const [vehicleId, setVehicleId] = useState(trip.vehicleId ?? '');
+  const [driverId, setDriverId] = useState(trip.driverId ?? '');
+  const [err, setErr] = useState<string | null>(null);
+
+  const dirty = vehicleId !== (trip.vehicleId ?? '') || driverId !== (trip.driverId ?? '');
+
+  function save() {
+    setErr(null);
+    update.mutate(
+      { id: trip.id, vehicleId: vehicleId || null, driverId: driverId || null },
+      { onError: (e) => setErr(e instanceof Error ? e.message : t('trip.sendFailed')) },
+    );
+  }
+
+  return (
+    <GlassCard className="p-5">
+      <h3 className="flex items-center gap-2 text-base font-semibold"><UserCog className="size-4" /> {t('trip.assignVehicleDriver')}</h3>
+      {!assignable && <p className="mt-1 text-xs text-muted-foreground">{t('trip.assignLockedHint')}</p>}
+      {err && <p className="mt-3 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
+
+      <div className="mt-4 space-y-3">
+        <Field label={t('trip.vehicleDetails')} htmlFor="td-vehicle">
+          <Select id="td-vehicle" value={vehicleId} onChange={(e) => setVehicleId(e.target.value)} disabled={!assignable}>
+            <option value="">{t('trip.noVehicle')}</option>
+            {vehicles.map((v) => <option key={v.id} value={v.id}>{v.plateNumber}</option>)}
+          </Select>
+        </Field>
+        <Field label={t('trip.assignedDriver')} htmlFor="td-driver">
+          <Select id="td-driver" value={driverId} onChange={(e) => setDriverId(e.target.value)} disabled={!assignable}>
+            <option value="">{t('trip.noDriver')}</option>
+            {drivers.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </Select>
+        </Field>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs" aria-live="polite">{update.isSuccess && !dirty && <span className="text-success">{t('trip.assignSaved')}</span>}</span>
+          <Button size="sm" disabled={!assignable || !dirty || update.isPending} onClick={save}>
+            {update.isPending ? t('forms.saving') : t('forms.save')}
+          </Button>
+        </div>
+      </div>
+    </GlassCard>
+  );
 }
 
 // Inline dispatch composers (no modals): message the driver, broadcast to passengers, or swap the vehicle.

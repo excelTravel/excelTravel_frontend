@@ -3,7 +3,9 @@ import { Routes, Route } from 'react-router-dom';
 import { authEnabled } from './lib/config';
 import { AppShell } from './app/shell/AppShell';
 import { RequireAuth } from './features/auth/RequireAuth';
-import { PlaceholderPage } from './app/pages/PlaceholderPage';
+import { RequireRole } from './features/auth/RequireRole';
+import { ADMIN_ROLES } from './app/shell/nav';
+import { NotFoundPage } from './app/pages/NotFoundPage';
 
 // Routes are code-split so the initial bundle stays small and each screen (and its heavy deps like
 // Recharts / MapLibre) loads on demand behind a Suspense skeleton (see AppShell). Named exports are
@@ -37,10 +39,10 @@ export function App() {
         <Route path="/bookings" element={<BookingsPage />} />
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/users" element={<TeamPage />} />
+        <Route path="/users" element={<RequireRole roles={ADMIN_ROLES}><TeamPage /></RequireRole>} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="*" element={<PlaceholderPage title="Not found" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

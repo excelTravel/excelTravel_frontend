@@ -7,19 +7,44 @@ import { SegmentedDonut } from '@/components/ui/segmented-donut';
 import { CountUp } from '@/components/ui/count-up';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useVehicles, useMaintenanceLogs, type ApiVehicle } from '@/lib/api/hooks';
+import { useVehicles, useMaintenanceLogs, useTrips, useRoutes, type ApiVehicle, type ApiTrip, type ApiRoute } from '@/lib/api/hooks';
 import { VehicleCard } from './VehicleCard';
 import { VehicleDetailModal } from './VehicleDetailModal';
 import { AddVehicleModal } from './AddVehicleModal';
 import { type Vehicle, type VehicleStatus } from './data';
 
 const nextServiceFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+const tripTimeFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+const LIVE_STATUSES = new Set(['boarding', 'departed', 'in_transit', 'arriving']);
 
-// Map a live /vehicles row onto the Vehicle shape the card renders. Driver / current-trip aren't in the
-// vehicles endpoint yet, so they still degrade to unassigned / idle (see integration-map). nextServiceDate
-// is real — the most recent maintenance log's next_service_date for this vehicle, if any.
-function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
+// A trip's planned origin/destination, swapped for a return leg (route stores one direction's endpoints).
+function endpoints(trip: ApiTrip, route: ApiRoute | undefined): string {
+  if (!route) return '—';
+  const isReturn = trip.direction === 'return';
+  const origin = isReturn ? route.destination : route.origin;
+  const destination = isReturn ? route.origin : route.destination;
+  return `${origin} → ${destination}`;
+}
+
+// Map a live /vehicles row onto the Vehicle shape the card renders, joined against this vehicle's own
+// trips (client-side, since /vehicles carries no trip data) to find: a trip in progress right now, else
+// the next scheduled one, else where its last completed trip ended. nextServiceDate is real — the most
+// recent maintenance log's next_service_date for this vehicle, if any.
+function toVehicle(v: ApiVehicle, nextServiceDate: string | null, vehicleTrips: ApiTrip[], routeById: Map<string, ApiRoute>): Vehicle {
   const status = (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus;
+
+  const current = vehicleTrips.find((tr) => LIVE_STATUSES.has(tr.status));
+  const upcoming = vehicleTrips
+    .filter((tr) => tr.status === 'scheduled' || tr.status === 'delayed')
+    .sort((a, b) => a.departureTime.localeCompare(b.departureTime))[0];
+  const lastCompleted = vehicleTrips
+    .filter((tr) => tr.status === 'completed')
+    .sort((a, b) => b.departureTime.localeCompare(a.departureTime))[0];
+  const lastRoute = lastCompleted ? routeById.get(lastCompleted.routeId) : undefined;
+  const lastDestination = lastCompleted && lastRoute
+    ? (lastCompleted.direction === 'return' ? lastRoute.origin : lastRoute.destination)
+    : null;
+
   return {
     id: v.id,
     plate: v.plateNumber,
@@ -27,11 +52,12 @@ function toVehicle(v: ApiVehicle, nextServiceDate: string | null): Vehicle {
     capacity: v.capacity,
     year: v.year ?? 0,
     status,
-    driver: null,
-    driverPhone: null,
     nextServiceDate: status === 'maintenance' ? 'In service' : status === 'retired' ? '—' : nextServiceDate ? nextServiceFmt.format(new Date(nextServiceDate)) : '—',
-    currentTrip: null,
-    nextTrip: null,
+    currentTrip: current ? { code: `#${current.tripNo ?? '—'}`, route: endpoints(current, routeById.get(current.routeId)) } : null,
+    nextTrip: upcoming
+      ? { code: `#${upcoming.tripNo ?? '—'}`, route: endpoints(upcoming, routeById.get(upcoming.routeId)), time: tripTimeFmt.format(new Date(upcoming.departureTime)) }
+      : null,
+    lastDestination,
     maintenanceSince: null,
     photoUrl: v.photoUrl,
   };
@@ -47,6 +73,8 @@ export function VehiclesPanel() {
   const { t } = useTranslation();
   const vehiclesQ = useVehicles();
   const maintenanceQ = useMaintenanceLogs();
+  const tripsQ = useTrips();
+  const routesQ = useRoutes();
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
@@ -54,6 +82,15 @@ export function VehiclesPanel() {
   const nextServiceByVehicle = new Map<string, string | null>();
   for (const log of maintenanceQ.data ?? []) {
     if (!nextServiceByVehicle.has(log.vehicleId)) nextServiceByVehicle.set(log.vehicleId, log.nextServiceDate);
+  }
+
+  const routeById = new Map((routesQ.data ?? []).map((r) => [r.id, r]));
+  const tripsByVehicle = new Map<string, ApiTrip[]>();
+  for (const tr of tripsQ.data ?? []) {
+    if (!tr.vehicleId) continue;
+    const list = tripsByVehicle.get(tr.vehicleId) ?? [];
+    list.push(tr);
+    tripsByVehicle.set(tr.vehicleId, list);
   }
 
   return (
@@ -68,9 +105,9 @@ export function VehiclesPanel() {
         </Button>
       </div>
 
-      <Async query={vehiclesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /></div>}>
+      <Async query={vehiclesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /></div>}>
         {(apiVehicles) => {
-          const vehicles = apiVehicles.map((v) => toVehicle(v, nextServiceByVehicle.get(v.id) ?? null));
+          const vehicles = apiVehicles.map((v) => toVehicle(v, nextServiceByVehicle.get(v.id) ?? null, tripsByVehicle.get(v.id) ?? [], routeById));
           const counts = { active: 0, maintenance: 0, retired: 0 } as Record<VehicleStatus, number>;
           for (const v of vehicles) counts[v.status] += 1;
           const total = vehicles.length;
@@ -81,10 +118,10 @@ export function VehiclesPanel() {
             { key: 'retired', count: counts.retired, color: STATUS_COLOR.retired },
           ];
           return (
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 2xl:grid-cols-4">
-              <Reveal className="grid gap-5 sm:grid-cols-2 xl:col-span-2 2xl:col-span-3">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+              <Reveal className="grid gap-5 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3">
                 {vehicles.map((v) => (
-                  <RevealItem key={v.id}>
+                  <RevealItem key={v.id} className="min-w-0">
                     <VehicleCard vehicle={v} onOpenDetails={() => setSelected(v)} />
                   </RevealItem>
                 ))}

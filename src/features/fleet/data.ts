@@ -8,11 +8,10 @@ export interface Vehicle {
   capacity: number;
   year: number;
   status: VehicleStatus;
-  driver: string | null;
-  driverPhone: string | null;
   nextServiceDate: string; // next maintenance day
   currentTrip: { code: string; route: string } | null; // running now
-  nextTrip: { code: string; time: string } | null; // scheduled, not yet started
+  nextTrip: { code: string; route: string; time: string } | null; // scheduled, not yet started
+  lastDestination: string | null; // where its most recently completed trip ended
   maintenanceSince: string | null; // ISO datetime when it entered maintenance
   photoUrl: string | null;
 }

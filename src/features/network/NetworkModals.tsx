@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
 import {
   useStops,
+  useAgents,
   useUpsertFare,
   useCreateRoute,
   useCreateStop,
@@ -13,30 +14,65 @@ import {
   useArchiveRoute,
   useUpdateStop,
   useArchiveStop,
+  useAssignAgentStation,
+  useResolveZone,
   type ApiRoute,
   type ApiStop,
 } from '@/lib/api/hooks';
 
-// POST /routes (CreateRoute).
+// Live feedback the moment a pin/coordinate resolves to a real place — shown under the lat/lng
+// fields in every stop/station form, before the row is even saved.
+function ZoneFeedback({ lat, lng }: { lat: number | null; lng: number | null }) {
+  const { t } = useTranslation();
+  const q = useResolveZone(lat, lng);
+  if (lat == null || lng == null) return null;
+  if (q.isLoading) return <p className="text-xs text-muted-foreground">{t('network.resolvingZone')}</p>;
+  if (q.isError || !q.data) return null;
+  const { province, district, sector, cell } = q.data;
+  const parts = [province?.name, district?.name, sector?.name, cell?.name].filter(Boolean);
+  if (parts.length === 0) return <p className="text-xs text-warning">{t('network.zoneUnresolved')}</p>;
+  return (
+    <p className="flex items-center gap-1.5 text-xs text-teal">
+      <MapPin className="size-3.5" /> {parts.join(' › ')}
+    </p>
+  );
+}
+
+function useCoords(pin?: { lat: number; lng: number } | null) {
+  const [lat, setLat] = useState('');
+  const [lng, setLng] = useState('');
+  useEffect(() => {
+    if (pin) { setLat(pin.lat.toFixed(5)); setLng(pin.lng.toFixed(5)); }
+  }, [pin]);
+  const latN = Number(lat);
+  const lngN = Number(lng);
+  const valid = lat !== '' && lng !== '' && Number.isFinite(latN) && Number.isFinite(lngN);
+  return { lat, setLat, lng, setLng, latN, lngN, valid };
+}
+
+// POST /routes (CreateRoute). A route IS its origin and destination — name is always derived
+// server-side from these two stops, never typed. This picker only sets the two endpoints; adding
+// intermediate waypoints to a route isn't available from the console yet.
 export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
+  const stopsQ = useStops();
   const create = useCreateRoute();
-  const [name, setName] = useState('');
-  const [origin, setOrigin] = useState('');
-  const [dest, setDest] = useState('');
+  const [originId, setOriginId] = useState('');
+  const [destId, setDestId] = useState('');
   const [km, setKm] = useState('');
   const [min, setMin] = useState('');
   const [times, setTimes] = useState('');
   const [err, setErr] = useState<string | null>(null);
+  const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station');
 
-  function done() { setName(''); setOrigin(''); setDest(''); setKm(''); setMin(''); setTimes(''); setErr(null); onClose(); }
+  function done() { setOriginId(''); setDestId(''); setKm(''); setMin(''); setTimes(''); setErr(null); onClose(); }
   function go() {
     setErr(null);
-    if (!name.trim() || !origin.trim() || !dest.trim()) { setErr(t('forms.checkFields')); return; }
+    if (!originId || !destId || originId === destId) { setErr(t('network.originDestRequired')); return; }
     const departureTimes = times.split(',').map((s) => s.trim()).filter(Boolean);
     create.mutate(
       {
-        name: name.trim(), origin: origin.trim(), destination: dest.trim(),
+        stops: [{ stopId: originId, stopOrder: 1 }, { stopId: destId, stopOrder: 2 }],
         ...(km ? { distanceKm: Number(km) } : {}),
         ...(min ? { estimatedDurationMin: Number(min) } : {}),
         ...(departureTimes.length ? { departureTimes } : {}),
@@ -49,12 +85,21 @@ export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () =>
       footer={<><Button variant="outline" onClick={onClose} disabled={create.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={create.isPending}>{create.isPending ? t('forms.saving') : t('network.createRoute')}</Button></>}>
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <Field label={t('network.routeName')} htmlFor="nr-name" required><Input id="nr-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Kigali — Musanze" /></Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('network.origin')} htmlFor="nr-o"><Input id="nr-o" value={origin} onChange={(e) => setOrigin(e.target.value)} placeholder="Nyabugogo" /></Field>
-          <Field label={t('network.destination')} htmlFor="nr-d"><Input id="nr-d" value={dest} onChange={(e) => setDest(e.target.value)} placeholder="Musanze" /></Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t('network.originStation')} htmlFor="nr-o" required>
+            <Select id="nr-o" value={originId} onChange={(e) => setOriginId(e.target.value)}>
+              <option value="" disabled>{t('network.selectStation')}</option>
+              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </Select>
+          </Field>
+          <Field label={t('network.destStation')} htmlFor="nr-d" required>
+            <Select id="nr-d" value={destId} onChange={(e) => setDestId(e.target.value)}>
+              <option value="" disabled>{t('network.selectStation')}</option>
+              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </Select>
+          </Field>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.distance')} htmlFor="nr-km"><Input id="nr-km" type="number" value={km} onChange={(e) => setKm(e.target.value)} placeholder="116" /></Field>
           <Field label={t('network.duration')} htmlFor="nr-min"><Input id="nr-min" type="number" value={min} onChange={(e) => setMin(e.target.value)} placeholder="150" /></Field>
         </div>
@@ -64,35 +109,77 @@ export function AddRouteModal({ open, onClose }: { open: boolean; onClose: () =>
   );
 }
 
-// POST /stops (CreateStop). `pin` prefills coordinates when the stop was dropped on the map.
+// POST /stops (CreateStop, type: station). A station is a bus park: it has its own phone line and
+// (optionally) an agent working from it. `pin` prefills coordinates when dropped on the map; the
+// zone (district/sector/cell) resolves live from those coordinates.
+export function AddStationModal({ open, onClose, pin }: { open: boolean; onClose: () => void; pin?: { lat: number; lng: number } | null }) {
+  const { t } = useTranslation();
+  const create = useCreateStop();
+  const assignAgent = useAssignAgentStation();
+  const agentsQ = useAgents();
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [agentId, setAgentId] = useState('');
+  const [err, setErr] = useState<string | null>(null);
+  const { lat, setLat, lng, setLng, latN, lngN, valid } = useCoords(pin);
+
+  function done() { setName(''); setPhone(''); setAgentId(''); setLat(''); setLng(''); setErr(null); onClose(); }
+  function go() {
+    setErr(null);
+    if (!name.trim() || !phone.trim() || !valid) { setErr(t('forms.checkFields')); return; }
+    create.mutate(
+      { name: name.trim(), type: 'station', latitude: latN, longitude: lngN, phone: phone.trim() },
+      {
+        onSuccess: (station) => {
+          if (agentId) assignAgent.mutate({ id: agentId, stationId: station.id });
+          done();
+        },
+        onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')),
+      },
+    );
+  }
+  return (
+    <Modal open={open} onClose={onClose} title={t('network.addStation')} description={t('network.addStationSub')}
+      footer={<><Button variant="outline" onClick={onClose} disabled={create.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={create.isPending}>{create.isPending ? t('forms.saving') : t('network.createStation')}</Button></>}>
+      <div className="space-y-4">
+        {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
+        <Field label={t('network.stationName')} htmlFor="nst-name" required><Input id="nst-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nyabugogo" /></Field>
+        <Field label={t('network.phone')} htmlFor="nst-phone" required><Input id="nst-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 788 000 000" /></Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t('network.latitude')} htmlFor="nst-lat" hint={pin ? t('network.fromMap') : undefined}><Input id="nst-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-1.9536" /></Field>
+          <Field label={t('network.longitude')} htmlFor="nst-lng"><Input id="nst-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="30.0606" /></Field>
+        </div>
+        <ZoneFeedback lat={valid ? latN : null} lng={valid ? lngN : null} />
+        <Field label={t('network.assignAgent')} htmlFor="nst-agent" hint={t('network.assignAgentHint')}>
+          <Select id="nst-agent" value={agentId} onChange={(e) => setAgentId(e.target.value)}>
+            <option value="">{t('network.noAgentYet')}</option>
+            {(agentsQ.data ?? []).map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </Select>
+        </Field>
+      </div>
+    </Modal>
+  );
+}
+
+// POST /stops (CreateStop, type: stop). A stop is just a pickup point on the way to a station — no
+// phone (only the parent station has one), but it must belong to one. Zone resolves live, same as
+// the station form.
 export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: () => void; pin?: { lat: number; lng: number } | null }) {
   const { t } = useTranslation();
   const stopsQ = useStops();
   const create = useCreateStop();
   const [name, setName] = useState('');
-  const [type, setType] = useState<'station' | 'stop'>('station');
   const [parent, setParent] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [phone, setPhone] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station');
-  // A fresh map pin fills the coordinate fields.
-  useEffect(() => {
-    if (pin) { setLat(pin.lat.toFixed(5)); setLng(pin.lng.toFixed(5)); }
-  }, [pin]);
+  const { lat, setLat, lng, setLng, latN, lngN, valid } = useCoords(pin);
 
-  function done() { setName(''); setType('station'); setParent(''); setLat(''); setLng(''); setPhone(''); setErr(null); onClose(); }
+  function done() { setName(''); setParent(''); setLat(''); setLng(''); setErr(null); onClose(); }
   function go() {
     setErr(null);
-    const latN = Number(lat), lngN = Number(lng);
-    if (!name.trim() || !Number.isFinite(latN) || !Number.isFinite(lngN) || (type === 'stop' && !parent)) { setErr(t('forms.checkFields')); return; }
+    if (!name.trim() || !parent || !valid) { setErr(t('forms.checkFields')); return; }
     create.mutate(
-      {
-        name: name.trim(), type, latitude: latN, longitude: lngN,
-        ...(type === 'stop' ? { parentStationId: parent } : {}),
-        ...(phone.trim() ? { phone: phone.trim() } : {}),
-      },
+      { name: name.trim(), type: 'stop', parentStationId: parent, latitude: latN, longitude: lngN },
       { onSuccess: done, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
     );
   }
@@ -102,28 +189,17 @@ export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: (
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <Field label={t('network.stopName')} htmlFor="ns-name" required><Input id="ns-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Shyorongi" /></Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('network.type')} htmlFor="ns-type">
-            <Select id="ns-type" value={type} onChange={(e) => setType(e.target.value as 'station' | 'stop')}>
-              <option value="station">{t('network.station')}</option>
-              <option value="stop">{t('network.stop')}</option>
-            </Select>
-          </Field>
-          <Field label={t('network.parentStation')} htmlFor="ns-parent" hint={type === 'stop' ? t('network.parentRequired') : undefined}>
-            <Select id="ns-parent" value={parent} onChange={(e) => setParent(e.target.value)} disabled={type === 'station'}>
-              <option value="" disabled>{t('network.selectStation')}</option>
-              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </Select>
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
+        <Field label={t('network.parentStation')} htmlFor="ns-parent" required>
+          <Select id="ns-parent" value={parent} onChange={(e) => setParent(e.target.value)}>
+            <option value="" disabled>{t('network.selectStation')}</option>
+            {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </Select>
+        </Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.latitude')} htmlFor="ns-lat" hint={pin ? t('network.fromMap') : undefined}><Input id="ns-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="-1.9536" /></Field>
           <Field label={t('network.longitude')} htmlFor="ns-lng"><Input id="ns-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="30.0606" /></Field>
         </div>
-        {pin && (
-          <p className="flex items-center gap-1.5 text-xs text-teal"><MapPin className="size-3.5" /> {t('network.pinnedHint')}</p>
-        )}
-        <Field label={t('network.phone')} htmlFor="ns-phone"><Input id="ns-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+250 788 000 000" /></Field>
+        <ZoneFeedback lat={valid ? latN : null} lng={valid ? lngN : null} />
       </div>
     </Modal>
   );
@@ -162,7 +238,7 @@ export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => 
       footer={<><Button variant="outline" onClick={onClose} disabled={upsert.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={upsert.isPending}>{upsert.isPending ? t('forms.saving') : t('network.saveFare')}</Button></>}>
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.originStation')} htmlFor="nf-o">
             <Select id="nf-o" value={origin} onChange={(e) => setOrigin(e.target.value)}>
               <option value="" disabled>{t('network.selectStation')}</option>
@@ -185,13 +261,13 @@ export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => 
 }
 
 // PATCH/DELETE /routes/{id} — DELETE is a soft archive, blocked while the route has an active trip.
+// Name/origin/destination aren't editable here — they're derived from the route's stops at creation;
+// changing a route's endpoints (or adding waypoints) isn't exposed yet, since a blind replace could
+// silently break fares/capacity for trips already keyed to the current stop chain.
 export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | null; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const update = useUpdateRoute();
   const archive = useArchiveRoute();
-  const [name, setName] = useState('');
-  const [origin, setOrigin] = useState('');
-  const [dest, setDest] = useState('');
   const [km, setKm] = useState('');
   const [min, setMin] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
@@ -200,9 +276,6 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
 
   useEffect(() => {
     if (route) {
-      setName(route.name);
-      setOrigin(route.origin);
-      setDest(route.destination);
       setKm(route.distanceKm != null ? String(route.distanceKm) : '');
       setMin(route.estimatedDurationMin != null ? String(route.estimatedDurationMin) : '');
       setStatus(route.status);
@@ -218,9 +291,6 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
     update.mutate(
       {
         id: route!.id,
-        name: name.trim(),
-        origin: origin.trim(),
-        destination: dest.trim(),
         status,
         ...(km.trim() ? { distanceKm: Number(km) } : {}),
         ...(min.trim() ? { estimatedDurationMin: Number(min) } : {}),
@@ -238,8 +308,8 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
     <Modal
       open={open}
       onClose={onClose}
-      title={t('network.editRoute')}
-      description={`${route.origin} → ${route.destination}`}
+      title={route.name}
+      description={route.origin && route.destination ? `${route.origin} → ${route.destination}` : t('network.originDestPending')}
       footer={
         confirmArchive ? (
           <>
@@ -257,12 +327,8 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
     >
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <Field label={t('network.routeName')} htmlFor="er-name" required><Input id="er-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('network.origin')} htmlFor="er-o"><Input id="er-o" value={origin} onChange={(e) => setOrigin(e.target.value)} /></Field>
-          <Field label={t('network.destination')} htmlFor="er-d"><Input id="er-d" value={dest} onChange={(e) => setDest(e.target.value)} /></Field>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
+        <p className="text-xs text-muted-foreground">{t('network.routeEndpointsLocked')}</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.distance')} htmlFor="er-km"><Input id="er-km" type="number" value={km} onChange={(e) => setKm(e.target.value)} /></Field>
           <Field label={t('network.duration')} htmlFor="er-min"><Input id="er-min" type="number" value={min} onChange={(e) => setMin(e.target.value)} /></Field>
         </div>
@@ -278,6 +344,8 @@ export function EditRouteModal({ route, open, onClose }: { route: ApiRoute | nul
 }
 
 // PATCH/DELETE /stops/{id} — DELETE is a soft archive, blocked while in active use or has child stops.
+// Phone only shows for a station (a stop can't have one — see AddStopModal). Zone re-resolves live if
+// the coordinates are edited.
 export function EditStopModal({ stop, open, onClose }: { stop: ApiStop | null; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const update = useUpdateStop();
@@ -303,13 +371,24 @@ export function EditStopModal({ stop, open, onClose }: { stop: ApiStop | null; o
   }, [stop]);
 
   if (!stop) return null;
+  const isStation = stop.type === 'station';
+  const latN = Number(lat);
+  const lngN = Number(lng);
+  const validCoords = Number.isFinite(latN) && Number.isFinite(lngN);
 
   function save() {
     setErr(null);
-    const latN = Number(lat), lngN = Number(lng);
-    if (!name.trim() || !Number.isFinite(latN) || !Number.isFinite(lngN)) { setErr(t('forms.checkFields')); return; }
+    if (!name.trim() || !validCoords) { setErr(t('forms.checkFields')); return; }
+    if (isStation && !phone.trim()) { setErr(t('forms.checkFields')); return; }
     update.mutate(
-      { id: stop!.id, name: name.trim(), latitude: latN, longitude: lngN, ...(phone.trim() ? { phone: phone.trim() } : {}), ...(address.trim() ? { address: address.trim() } : {}) },
+      {
+        id: stop!.id,
+        name: name.trim(),
+        latitude: latN,
+        longitude: lngN,
+        ...(isStation ? { phone: phone.trim() } : {}),
+        ...(address.trim() ? { address: address.trim() } : {}),
+      },
       { onSuccess: onClose, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
     );
   }
@@ -342,12 +421,13 @@ export function EditStopModal({ stop, open, onClose }: { stop: ApiStop | null; o
     >
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
-        <Field label={t('network.stopName')} htmlFor="es-name" required><Input id="es-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <div className="grid grid-cols-2 gap-4">
+        <Field label={t(isStation ? 'network.stationName' : 'network.stopName')} htmlFor="es-name" required><Input id="es-name" value={name} onChange={(e) => setName(e.target.value)} /></Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.latitude')} htmlFor="es-lat"><Input id="es-lat" type="number" step="any" value={lat} onChange={(e) => setLat(e.target.value)} /></Field>
           <Field label={t('network.longitude')} htmlFor="es-lng"><Input id="es-lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} /></Field>
         </div>
-        <Field label={t('network.phone')} htmlFor="es-phone"><Input id="es-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>
+        <ZoneFeedback lat={validCoords ? latN : null} lng={validCoords ? lngN : null} />
+        {isStation && <Field label={t('network.phone')} htmlFor="es-phone" required><Input id="es-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} /></Field>}
         <Field label={t('forms.address', 'Address')} htmlFor="es-address"><Input id="es-address" value={address} onChange={(e) => setAddress(e.target.value)} /></Field>
       </div>
     </Modal>
