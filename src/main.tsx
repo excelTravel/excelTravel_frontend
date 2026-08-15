@@ -6,6 +6,7 @@ import '@fontsource-variable/inter';
 import './lib/i18n';
 import './styles/index.css';
 import { App } from './App';
+import { ErrorBoundary } from './app/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000, refetchOnWindowFocus: false } },
@@ -26,8 +27,10 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 root.render(
   <React.StrictMode>
-    <Providers>
-      <App />
-    </Providers>
+    <ErrorBoundary>
+      <Providers>
+        <App />
+      </Providers>
+    </ErrorBoundary>
   </React.StrictMode>,
 );

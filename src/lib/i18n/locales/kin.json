@@ -1090,5 +1090,16 @@
       "year": "ku mwaka ushize",
       "custom": "ku gihe gishize"
     }
+  },
+  "notFound": {
+    "title": "Ipaji ntibonetse",
+    "subtitle": "Iyi paji ntibaho, cyangwa nta burenganzira ufite bwo kuyibona.",
+    "goHome": "Jya ku Ncamake"
+  },
+  "errorBoundary": {
+    "title": "Habaye ikibazo",
+    "subtitle": "Habaye ikibazo tutari twiteguye. Kongera gufungura paji akenshi bikemura ikibazo.",
+    "reload": "Ongera ufungure paji",
+    "goHome": "Jya ku Ncamake"
   }
 }

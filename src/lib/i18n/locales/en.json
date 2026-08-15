@@ -1092,5 +1092,16 @@
       "year": "vs last year",
       "custom": "vs previous period"
     }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "subtitle": "That page doesn't exist, or you may not have access to it.",
+    "goHome": "Go to Overview"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "subtitle": "We hit an unexpected error. Reloading the page usually fixes it.",
+    "reload": "Reload page",
+    "goHome": "Go to Overview"
   }
 }
