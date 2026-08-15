@@ -27,6 +27,10 @@ notifications GET/POST /notifications · PATCH /notifications/{id}
 private-book. GET/POST /private-bookings · GET /private-bookings/{id}
 audit-logs    GET /audit-logs
 me            GET/PATCH /me · PUT /me/device-token
+driver-shifts GET /driver-shifts?driverId= · PUT /driver-shifts (upsert by day-of-week) · DELETE /driver-shifts/{id}
+trip-templates GET/POST /trip-templates · GET/PATCH/DELETE /trip-templates/{id} · POST /trip-templates/{id}/generate
+waitlist      GET /waitlist?status= · POST /waitlist/join · GET /waitlist/{id} · POST /waitlist/{id}/dispatch|deny
+zones         GET /zones?level=&parentZoneId=&withBoundary= · GET /zones/resolve?latitude=&longitude=
 tracking realtime (socket): bus:location · bus:alert · trip:status  (join:trip / leave:trip)
 ```
 
@@ -137,7 +141,7 @@ The frontend now talks to the real backend. Foundation + first slices are wired 
 - **Degrade to —/0 in the wired screens** (backend doesn't return these yet): trip occupancy + revenue (needs bookings aggregation), trip driver (needs `/drivers` join), vehicle model/year/driver/current-trip/next-service/maintenance.
 - **Still on stub** (need backend aggregation endpoints or GPS/socket — not just seed data):
   - **Overview** KPIs, **Analytics** charts, **Bookings** dashboard (velocity/channel/revenue) — no aggregation endpoints (`/analytics/overview` is 404).
-  - **Booking desk** create flow (POST /bookings — capacity-safe txn; not yet wired), Network **Map markers/live buses** (needs GPS + socket), Trips **Scheduling** (recurring/waitlist — no backend), Fleet **Drivers roster / Accidents** tabs, **Settings**, Users **Passengers** tab (login metrics — see gap #11), Parcels/Notifications **aggregation KPIs**.
+  - **Booking desk** create flow (POST /bookings — capacity-safe txn; not yet wired), Network **Map markers/live buses** (needs GPS + socket), Trips **Scheduling** (recurring/waitlist — backend now exists, see gaps #3/#4/#6; only the UI wiring is outstanding), Fleet **Drivers roster / Accidents** tabs (roster backend now exists, see gap #3), **Settings**, Users **Passengers** tab (login metrics — see gap #11), Parcels/Notifications **aggregation KPIs**.
 
 ### ⚠ Blockers found while wiring (relay to backend team)
 - **Hosted server DB is down**: `http://13.140.133.61:3300` returns **500 on every DB route** (health is fine). Its `DATABASE_URL` is `localhost:5432` — the deploy has no working Postgres/migrations. Wiring was verified against a **local** backend instead. Fix the hosted DB before the frontend can point at the hosted API.
@@ -148,10 +152,10 @@ The frontend now talks to the real backend. Foundation + first slices are wired 
 ## Backend gaps to flag (frontend wants, backend can't fully serve)
 1. **Ops→driver / broadcast messaging** — `notifications.triggerType` enum is passenger-only. Add e.g. `ops_message` / `broadcast`.
 2. **Dashboard aggregation analytics** — revenue totals, daily ticket volume, occupancy, period-over-period deltas. Only peak-hours + seat-map exist today.
-3. **Driver work-shifts / weekly roster** — no shift/roster table. The Fleet → Drivers **weekly roster + workload/fairness board** is a full mock; needs a `driver_shifts` table (driver, day, start, end) to persist + a weekly-hours aggregate for the fairness cap.
-4. **Recurring trip routines** — Trips → Scheduling **recurring routines** are mocked; needs a `trip_templates`/recurring-trips concept (route, frequency, times, vehicle) that materializes trips.
-5. **Agent trip requests (demand pooling)** — mocked; needs a `trip_requests` table (agent, corridor/stops, pax count) so ops can pool demand and dispatch.
-6. **Passenger waitlist + early dispatch** — mocked; needs a `waitlist` concept (passenger, from/to stop, desired window) + a threshold trigger to dispatch a bus early.
+3. ~~**Driver work-shifts / weekly roster**~~ — **backend now exists** (`driver_shifts` table + `GET/PUT/DELETE /driver-shifts`, one row per driver per day-of-week, tested in `tests/driver-shifts.test.ts`). The Fleet → Drivers **weekly roster + workload/fairness board** is still UI-mocked and needs wiring to this endpoint; no further backend work needed.
+4. ~~**Recurring trip routines**~~ — **backend now exists** (`trip_templates` table + `GET/POST/PATCH/DELETE /trip-templates` + `POST /trip-templates/{id}/generate`, tested in `tests/trip-templates.test.ts`). Trips → Scheduling **recurring routines** is still UI-mocked and needs wiring; no further backend work needed.
+5. **Agent trip requests (demand pooling)** — mocked; needs a `trip_requests` table (agent, corridor/stops, pax count) so ops can pool demand and dispatch. (Distinct from the waitlist below — this is agent-initiated demand pooling, not passenger self-join.)
+6. ~~**Passenger waitlist + early dispatch**~~ — **backend now exists** (`route_waitlist`/`waitlist_joins` tables + `GET /waitlist`, `POST /waitlist/join`, `GET /waitlist/{id}`, `POST /waitlist/{id}/dispatch|deny`, tested in `tests/waitlist.test.ts`; passengers can self-join via the existing `passenger_open`/`passenger_join_insert` RLS policies). Trips → Scheduling **waitlist + early-dispatch** is still UI-mocked and needs wiring; no further backend work needed.
 7. **Live demand board** — mocked; derivable once bookings + requests + waitlist aggregate by corridor.
 8. **Driver document images** (profile/licence/ID) — drivers store licence number + expiry only; needs image-URL fields (Cloudinary).
 9. **Global parcel pricing config** — only per-package `PATCH /packages/{id}/fee` exists; a base-fee + weight-surcharge config endpoint is needed.
