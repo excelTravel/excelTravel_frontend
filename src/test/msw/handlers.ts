@@ -10,7 +10,17 @@ import {
   fixtureBookings,
   fixtureWaitlists,
   fixturePeakBooking,
+  fixturePeakTravel,
   fixtureNotifications,
+  fixtureVehicles,
+  fixtureDrivers,
+  fixtureAgents,
+  fixtureUsers,
+  fixturePassengers,
+  fixturePackages,
+  fixtureCompanies,
+  fixtureMe,
+  fixtureStops,
 } from './fixtures';
 
 const BASE = 'http://localhost:3000/api/v1';
@@ -18,10 +28,25 @@ const BASE = 'http://localhost:3000/api/v1';
 export const handlers = [
   http.get(`${BASE}/analytics/overview`, () => HttpResponse.json(fixtureOverview)),
   http.get(`${BASE}/analytics/peak-booking`, () => HttpResponse.json(fixturePeakBooking)),
+  http.get(`${BASE}/analytics/peak-travel`, () => HttpResponse.json(fixturePeakTravel)),
+  http.get(`${BASE}/analytics/routes/revenue`, () => HttpResponse.json(fixtureOverview.topRoutes)),
   http.get(`${BASE}/trips`, () => HttpResponse.json(fixtureTrips)),
   http.get(`${BASE}/routes`, () => HttpResponse.json(fixtureRoutes)),
   http.get(`${BASE}/waitlist`, () => HttpResponse.json(fixtureWaitlists)),
   http.get(`${BASE}/notifications`, () => HttpResponse.json(fixtureNotifications)),
+  http.get(`${BASE}/vehicles`, () => HttpResponse.json(fixtureVehicles)),
+  http.get(`${BASE}/drivers`, () => HttpResponse.json(fixtureDrivers)),
+  http.get(`${BASE}/driver-shifts`, () => HttpResponse.json([])),
+  http.get(`${BASE}/agents`, () => HttpResponse.json(fixtureAgents)),
+  http.get(`${BASE}/users`, () => HttpResponse.json(fixtureUsers)),
+  http.get(`${BASE}/passengers`, () => HttpResponse.json(fixturePassengers)),
+  http.get(`${BASE}/packages`, () => HttpResponse.json(fixturePackages)),
+  http.get(`${BASE}/companies`, () => HttpResponse.json(fixtureCompanies)),
+  http.get(`${BASE}/me`, () => HttpResponse.json(fixtureMe)),
+  http.get(`${BASE}/stops`, () => HttpResponse.json(fixtureStops)),
+  http.get(`${BASE}/tracking`, () => HttpResponse.json([])),
+  http.get(`${BASE}/maintenance`, () => HttpResponse.json([])),
+  http.get(`${BASE}/incidents`, () => HttpResponse.json([])),
   http.get(`${BASE}/bookings`, ({ request }) => {
     const url = new URL(request.url);
     const limit = Number(url.searchParams.get('limit') ?? fixtureBookings.length);
