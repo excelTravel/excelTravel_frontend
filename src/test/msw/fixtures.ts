@@ -7,6 +7,7 @@ import type {
   ApiRoute,
   ApiBooking,
   ApiWaitlist,
+  ApiTripRequest,
   ApiPeakBooking,
   ApiPeakTravel,
   ApiNotification,
@@ -159,8 +160,8 @@ export const fixtureVehicles: ApiVehicle[] = [
 ];
 
 export const fixtureDrivers: ApiDriver[] = [
-  { id: 'driver-1', userId: 'user-driver-1', companyId: 'company-1', name: 'Jean Bosco', email: null, phone: '+250788100001', licenseNumber: 'RW-DL-000001', licenseExpiry: '2028-01-01', rating: 4.8, status: 'available', photoUrl: null, licenseImageUrl: null, idImageUrl: null },
-  { id: 'driver-2', userId: 'user-driver-2', companyId: 'company-1', name: 'Alice Uwase', email: null, phone: '+250788100002', licenseNumber: 'RW-DL-000002', licenseExpiry: '2027-06-01', rating: 4.6, status: 'on_trip', photoUrl: null, licenseImageUrl: null, idImageUrl: null },
+  { id: 'driver-1', userId: 'user-driver-1', companyId: 'company-1', name: 'Jean Bosco', email: null, phone: '+250788100001', licenseNumber: 'RW-DL-000001', licenseExpiry: '2028-01-01', status: 'available', photoUrl: null, licenseImageUrl: null, idImageUrl: null },
+  { id: 'driver-2', userId: 'user-driver-2', companyId: 'company-1', name: 'Alice Uwase', email: null, phone: '+250788100002', licenseNumber: 'RW-DL-000002', licenseExpiry: '2027-06-01', status: 'on_trip', photoUrl: null, licenseImageUrl: null, idImageUrl: null },
 ];
 
 export const fixtureAgents: ApiAgent[] = [
@@ -196,6 +197,11 @@ export const fixtureMe: Me = {
   id: 'user-1', name: 'Test Admin', email: 'admin@exceltravel.rw', phone: '+250788000000',
   role: 'company_admin', companyId: 'company-1', status: 'active', avatarUrl: null,
 };
+
+export const fixtureTripRequests: ApiTripRequest[] = [
+  { id: 'triprequest-1', companyId: 'company-1', routeId: 'route-1', agentId: 'agent-1', agentName: 'Claudine Ingabire', originStopId: 'stop-1', passengerCount: 6, notes: 'morning rush', status: 'open', denyReason: null, dispatchedTripId: null, resolvedAt: null, createdAt: '2026-08-16T06:00:00.000Z' },
+  { id: 'triprequest-2', companyId: 'company-1', routeId: 'route-1', agentId: 'agent-2', agentName: 'Eric Habimana', originStopId: 'stop-1', passengerCount: 4, notes: null, status: 'open', denyReason: null, dispatchedTripId: null, resolvedAt: null, createdAt: '2026-08-16T06:10:00.000Z' },
+];
 
 export const fixtureStops: ApiStop[] = [
   { id: 'stop-1', name: 'Nyabugogo Station', type: 'station', parentStationId: null, latitude: -1.9536, longitude: 30.0518, phone: '+250788300001', address: 'Nyabugogo, Kigali', adminZoneId: null },

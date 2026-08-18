@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { startOfDay, endOfDay } from 'date-fns';
-import { Star, Phone, CalendarClock, UserPlus } from 'lucide-react';
+import { Phone, CalendarClock, UserPlus } from 'lucide-react';
 import { GlassCard } from '@/components/ui/card';
 import { StatusPill } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,23 +10,16 @@ import { MotionCard, Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { InviteDriverModal } from './InviteDriverModal';
 import { EditDriverModal } from './EditDriverModal';
+import { DriverDetailModal } from './DriverDetailModal';
 import { DriverScheduling } from './DriverScheduling';
 import { useDrivers, useTrips, useRoutes, type ApiDriver } from '@/lib/api/hooks';
+import { kigaliHM, kigaliHour } from '@/lib/kigaliTime';
 
 const DAY_START = 5;
 const DAY_END = 23;
 const SPAN = DAY_END - DAY_START;
 const TICKS = [6, 9, 12, 15, 18, 21];
 const clampPct = (hour: number) => Math.max(0, Math.min(100, ((hour - DAY_START) / SPAN) * 100));
-
-// Trip bars are laid out on an Africa/Kigali day, regardless of the viewing browser's local timezone.
-const kigaliHM = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'Africa/Kigali' });
-function kigaliHour(iso: string): number {
-  const parts = kigaliHM.formatToParts(new Date(iso));
-  const h = Number(parts.find((p) => p.type === 'hour')?.value ?? 0);
-  const m = Number(parts.find((p) => p.type === 'minute')?.value ?? 0);
-  return h + m / 60;
-}
 
 export function DriversPanel() {
   const { t } = useTranslation();
@@ -36,6 +29,7 @@ export function DriversPanel() {
   const routesQ = useRoutes();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editDriver, setEditDriver] = useState<ApiDriver | null>(null);
+  const [detailDriver, setDetailDriver] = useState<ApiDriver | null>(null);
   const now = new Date();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const nowPct = clampPct(nowHour);
@@ -59,6 +53,7 @@ export function DriversPanel() {
     <div className="space-y-6">
       <InviteDriverModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <EditDriverModal driver={editDriver} open={editDriver !== null} onClose={() => setEditDriver(null)} />
+      <DriverDetailModal driver={detailDriver} open={detailDriver !== null} onClose={() => setDetailDriver(null)} />
       {/* Trip schedule board (derived from assigned trips) */}
       <GlassCard className="p-6">
         <div className="flex items-center justify-between">
@@ -138,7 +133,7 @@ export function DriversPanel() {
         <Button size="sm" onClick={() => setInviteOpen(true)}><UserPlus className="size-4" /> {t('drivers.inviteDriver')}</Button>
       </div>
 
-      {/* Driver cards — live roster from GET /drivers */}
+      {/* Driver cards — live roster from GET /drivers, click through to view documents */}
       <Async
         query={driversQ}
         isEmpty={(d) => d.length === 0}
@@ -149,22 +144,21 @@ export function DriversPanel() {
           <Reveal className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {drivers.map((d) => (
               <RevealItem key={d.id}>
-                <MotionCard className="flex flex-col gap-4 p-5">
+                <MotionCard className="flex cursor-pointer flex-col gap-4 p-5" onClick={() => setDetailDriver(d)}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
-                        {d.name.charAt(0)}
-                      </span>
+                      {d.photoUrl ? (
+                        <img src={d.photoUrl} alt="" className="size-12 shrink-0 rounded-full object-cover" />
+                      ) : (
+                        <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-bold text-primary">
+                          {d.name.charAt(0)}
+                        </span>
+                      )}
                       <div className="min-w-0">
                         <p className="truncate font-semibold leading-tight">{d.name}</p>
                         <p className="truncate text-xs text-muted-foreground">{d.licenseNumber ?? '—'}</p>
                       </div>
                     </div>
-                    {d.rating != null && (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
-                        <Star className="size-3 fill-warning text-warning" /> {d.rating.toFixed(2)}
-                      </span>
-                    )}
                   </div>
 
                   <div className="space-y-2 rounded-xl bg-secondary/40 p-3">
@@ -175,8 +169,13 @@ export function DriversPanel() {
                   <div className="flex items-center gap-2 border-t border-border pt-3">
                     <StatusPill status={d.status}>{t(`drivers.state.${d.status}`, d.status)}</StatusPill>
                     <div className="ml-auto flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setEditDriver(d)}>{t('forms.edit')}</Button>
-                      <a href={`tel:${d.phone}`} aria-label={t('drivers.call')} className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground">
+                      <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setEditDriver(d); }}>{t('forms.edit')}</Button>
+                      <a
+                        href={`tel:${d.phone}`}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={t('drivers.call')}
+                        className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                      >
                         <Phone className="size-4" />
                       </a>
                     </div>
@@ -199,4 +198,3 @@ function DriverRow({ icon, label, value }: { icon: ReactNode; label: string; val
     </div>
   );
 }
-

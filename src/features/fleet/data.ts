@@ -9,6 +9,7 @@ export interface Vehicle {
   year: number;
   status: VehicleStatus;
   nextServiceDate: string; // next maintenance day
+  nextInsuranceExpiry: string; // next insurance renewal day
   currentTrip: { code: string; route: string } | null; // running now
   nextTrip: { code: string; route: string; time: string } | null; // scheduled, not yet started
   lastDestination: string | null; // where its most recently completed trip ended

@@ -4,7 +4,7 @@ import { authEnabled } from './lib/config';
 import { AppShell } from './app/shell/AppShell';
 import { RequireAuth } from './features/auth/RequireAuth';
 import { RequireRole } from './features/auth/RequireRole';
-import { ADMIN_ROLES } from './app/shell/nav';
+import { ADMIN_ROLES, STAFF_ROLES } from './app/shell/nav';
 import { NotFoundPage } from './app/pages/NotFoundPage';
 
 // Routes are code-split so the initial bundle stays small and each screen (and its heavy deps like
@@ -23,6 +23,7 @@ const NetworkPage = lazy(() => import('./features/network/NetworkPage').then((m)
 const RouteManagementPage = lazy(() => import('./features/routes/RouteManagementPage').then((m) => ({ default: m.RouteManagementPage })));
 const NotificationsPage = lazy(() => import('./features/notifications/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 const TeamPage = lazy(() => import('./features/team/TeamPage').then((m) => ({ default: m.TeamPage })));
+const StaffPage = lazy(() => import('./features/staff/StaffPage').then((m) => ({ default: m.StaffPage })));
 
 // Ops-manager routes under the app shell. Login is always enforced (in-house OTP auth; see lib/config).
 export function App() {
@@ -40,6 +41,7 @@ export function App() {
         <Route path="/parcels" element={<ParcelsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/users" element={<RequireRole roles={ADMIN_ROLES}><TeamPage /></RequireRole>} />
+        <Route path="/staff" element={<RequireRole roles={STAFF_ROLES}><StaffPage /></RequireRole>} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="*" element={<NotFoundPage />} />

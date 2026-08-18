@@ -155,7 +155,6 @@ export interface ApiDriver {
   phone: string;
   licenseNumber: string | null;
   licenseExpiry: string | null;
-  rating: number | null;
   status: string;
   photoUrl: string | null;
   licenseImageUrl: string | null;
@@ -259,6 +258,7 @@ export const qk = {
   tracking: ['tracking'] as const,
   tripTemplates: ['tripTemplates'] as const,
   waitlist: ['waitlist'] as const,
+  tripRequests: ['tripRequests'] as const,
   incidents: ['incidents'] as const,
   driverShifts: ['driverShifts'] as const,
 };
@@ -473,6 +473,24 @@ export interface ApiWaitlist {
   joiners: ApiWaitlistJoiner[];
 }
 
+// Agent-submitted demand-pooling request — distinct from ApiWaitlist (individual passengers self-join
+// with name/phone); this is one agent's own passenger-count estimate for a route.
+export interface ApiTripRequest {
+  id: string;
+  companyId: string;
+  routeId: string;
+  agentId: string;
+  agentName: string;
+  originStopId: string;
+  passengerCount: number;
+  notes: string | null;
+  status: 'open' | 'dispatched' | 'denied';
+  denyReason: string | null;
+  dispatchedTripId: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+}
+
 // Coarse incident type (backend migration 016) so ops can see which kind of incident happens most,
 // per route/bus. Existing rows predating the migration backfill to 'other'.
 export type ApiIncidentCategory = 'mechanical' | 'collision' | 'medical' | 'road_hazard' | 'weather' | 'other';
@@ -494,12 +512,6 @@ export interface ApiIncident {
   resolvedAt: string | null;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ApiFareImportResult {
-  totalRows: number;
-  imported: number;
-  skipped: { line: number; origin: string; destination: string; reason: string }[];
 }
 
 // ---------------------------------------------------------------------------
@@ -542,19 +554,41 @@ export interface ApiMaintenanceLog {
   performedAt: string;
   nextServiceDate: string | null;
   nextServiceKm: number | null;
-  photoUrl: string | null;
+  photoUrls: string[];
   createdAt: string;
 }
 export const useMaintenanceLogs = (vehicleId?: string) =>
   useQuery({ queryKey: ['maintenance', vehicleId ?? 'all'], queryFn: () => apiFetch<ApiMaintenanceLog[]>(`/maintenance${vehicleId ? `?vehicleId=${vehicleId}` : ''}`) });
 export const useCreateMaintenance = () =>
   useApiMutation<
-    { vehicleId: string; serviceType: string; performedAt: string; description?: string; cost?: number; odometerKm?: number; performedBy?: string; nextServiceDate?: string; nextServiceKm?: number; photoUrl?: string },
+    { vehicleId: string; serviceType: string; performedAt: string; description?: string; cost?: number; odometerKm?: number; performedBy?: string; nextServiceDate?: string; nextServiceKm?: number; photoUrls?: string[] },
     ApiMaintenanceLog
   >((b) => apiFetch<ApiMaintenanceLog>('/maintenance', jsonBody(b)), [['maintenance']]);
+
+export interface ApiInsuranceRecord {
+  id: string;
+  vehicleId: string;
+  companyId: string;
+  provider: string | null;
+  policyNumber: string | null;
+  cost: number | null;
+  renewedAt: string;
+  expiryDate: string;
+  photoUrls: string[];
+  createdAt: string;
+}
+export const useInsuranceRecords = (vehicleId?: string) =>
+  useQuery({ queryKey: ['insurance', vehicleId ?? 'all'], queryFn: () => apiFetch<ApiInsuranceRecord[]>(`/insurance${vehicleId ? `?vehicleId=${vehicleId}` : ''}`) });
+export const useCreateInsurance = () =>
+  useApiMutation<
+    { vehicleId: string; renewedAt: string; expiryDate: string; provider?: string; policyNumber?: string; cost?: number; photoUrls?: string[] },
+    ApiInsuranceRecord
+  >((b) => apiFetch<ApiInsuranceRecord>('/insurance', jsonBody(b)), [['insurance']]);
 export const useTripTemplates = () => useQuery({ queryKey: qk.tripTemplates, queryFn: () => apiFetch<ApiTripTemplate[]>('/trip-templates') });
 export const useWaitlists = (status?: 'open' | 'dispatched' | 'denied') =>
   useQuery({ queryKey: [...qk.waitlist, status ?? 'open'], queryFn: () => apiFetch<ApiWaitlist[]>(`/waitlist${status ? `?status=${status}` : ''}`) });
+export const useTripRequests = (status?: 'open' | 'dispatched' | 'denied') =>
+  useQuery({ queryKey: [...qk.tripRequests, status ?? 'open'], queryFn: () => apiFetch<ApiTripRequest[]>(`/trip-requests${status ? `?status=${status}` : ''}`) });
 export const useIncidents = (tripId?: string) =>
   useQuery({ queryKey: [...qk.incidents, tripId ?? 'all'], queryFn: () => apiFetch<ApiIncident[]>(`/incidents${tripId ? `?tripId=${tripId}` : ''}`) });
 // Infinite (load-more) list for the high-volume bookings endpoint: fetches pages of `pageSize` and stops
@@ -699,6 +733,15 @@ export const useDispatchWaitlist = () =>
 export const useDenyWaitlist = () =>
   useApiMutation<{ id: string; reason: string }, ApiWaitlist>(({ id, ...b }) => apiFetch<ApiWaitlist>(`/waitlist/${id}/deny`, jsonBody(b)), [qk.waitlist]);
 
+// Trip requests (agent demand pooling) — ops dispatch/deny only; agents submit from the mobile app.
+export const useDispatchTripRequest = () =>
+  useApiMutation<{ id: string; departureTime: string; vehicleId?: string; driverId?: string }, ApiTripRequest>(
+    ({ id, ...b }) => apiFetch<ApiTripRequest>(`/trip-requests/${id}/dispatch`, jsonBody(b)),
+    [qk.tripRequests],
+  );
+export const useDenyTripRequest = () =>
+  useApiMutation<{ id: string; reason: string }, ApiTripRequest>(({ id, ...b }) => apiFetch<ApiTripRequest>(`/trip-requests/${id}/deny`, jsonBody(b)), [qk.tripRequests]);
+
 // Staff invitations — each pre-creates the row and fires an email invite. Managers/admins use
 // /users/invite; agents and drivers use their own endpoints so the extension row is created too.
 export const useInviteUser = () =>
@@ -769,7 +812,7 @@ export const useDeactivateUser = () =>
   useApiMutation<{ id: string }, ApiUser>(({ id }) => apiFetch<ApiUser>(`/users/${id}`, { method: 'DELETE' }), [qk.users]);
 
 export const useUpdateDriver = () =>
-  useApiMutation<{ id: string; status?: string; rating?: number; licenseNumber?: string; licenseExpiry?: string }, ApiDriver>(
+  useApiMutation<{ id: string; status?: string; licenseNumber?: string; licenseExpiry?: string }, ApiDriver>(
     ({ id, ...b }) => apiFetch<ApiDriver>(`/drivers/${id}`, patchBody(b)),
     [qk.drivers],
   );
@@ -794,13 +837,6 @@ export const useUpsertFare = () =>
     (f) => apiFetch<ApiFare>('/fares', jsonBody(f)),
     [qk.fares],
   );
-export const useImportFares = () =>
-  useApiMutation<File, ApiFareImportResult>((file) => {
-    const form = new FormData();
-    form.append('file', file);
-    return apiFetch<ApiFareImportResult>('/fares/import', { method: 'POST', body: form });
-  }, [qk.fares]);
-
 // Packages (parcels) — full custody-chain lifecycle: register -> hand-to-driver -> deliver -> collect,
 // with cancel available at any non-terminal step and fee/pay handled separately.
 export const useRegisterPackage = () =>

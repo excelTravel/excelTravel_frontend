@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, MapPin } from 'lucide-react';
+import { Archive, MapPin, Info } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
+import { SearchSelect } from '@/components/ui/search-select';
 import {
   useStops,
   useAgents,
+  useFares,
   useUpsertFare,
   useCreateRoute,
   useCreateStop,
@@ -19,6 +21,7 @@ import {
   type ApiRoute,
   type ApiStop,
 } from '@/lib/api/hooks';
+import { formatRWF } from '@/lib/utils';
 
 // Live feedback the moment a pin/coordinate resolves to a real place — shown under the lat/lng
 // fields in every stop/station form, before the row is even saved.
@@ -205,19 +208,34 @@ export function AddStopModal({ open, onClose, pin }: { open: boolean; onClose: (
   );
 }
 
-// POST /fares (upsert_fare — canonical ordering + same-both-ways handled server-side). Live stations.
+// POST /fares (upsert_fare — canonical ordering + same-both-ways handled server-side). Live stations,
+// searchable so picking one out of 90+ stations doesn't mean scrolling a long list. Fares are stored once
+// per station pair regardless of direction (Nyabugogo→Nyagatare and Nyagatare→Nyabugogo are the same row),
+// so picking a pair that's already priced doesn't create a duplicate — it mentions the existing price and
+// saving here updates that same fare.
 export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const stopsQ = useStops();
+  const faresQ = useFares();
   const upsert = useUpsertFare();
   const [origin, setOrigin] = useState('');
   const [dest, setDest] = useState('');
   const [amount, setAmount] = useState('');
+  const [amountTouched, setAmountTouched] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const stations = (stopsQ.data ?? []).filter((s) => s.type === 'station');
+  const stationOptions = stations.map((s) => ({ value: s.id, label: s.name }));
+
+  // Fares are stored once per unordered station pair — look up either direction.
+  function findFare(a: string, b: string) {
+    return (faresQ.data ?? []).find(
+      (f) => (f.originStationId === a && f.destinationStationId === b) || (f.originStationId === b && f.destinationStationId === a),
+    );
+  }
+  const existingFare = origin && dest ? findFare(origin, dest) : undefined;
 
   function done() {
-    setOrigin(''); setDest(''); setAmount(''); setErr(null);
+    setOrigin(''); setDest(''); setAmount(''); setAmountTouched(false); setErr(null);
     onClose();
   }
   function go() {
@@ -232,28 +250,60 @@ export function AddFareModal({ open, onClose }: { open: boolean; onClose: () => 
       { onSuccess: done, onError: (e) => setErr(e instanceof Error ? e.message : t('network.fareInvalid')) },
     );
   }
+  // Selecting a pair that's already priced quietly offers the current amount as the starting value —
+  // never overwrites something the person already typed.
+  function pick(which: 'origin' | 'dest', stationId: string) {
+    const nextOrigin = which === 'origin' ? stationId : origin;
+    const nextDest = which === 'dest' ? stationId : dest;
+    if (which === 'origin') setOrigin(stationId); else setDest(stationId);
+    if (!amountTouched && nextOrigin && nextDest) {
+      const match = findFare(nextOrigin, nextDest);
+      if (match) setAmount(String(match.fareAmount));
+    }
+  }
 
   return (
     <Modal open={open} onClose={onClose} title={t('network.addFare')} description={t('network.addFareSub')}
-      footer={<><Button variant="outline" onClick={onClose} disabled={upsert.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={upsert.isPending}>{upsert.isPending ? t('forms.saving') : t('network.saveFare')}</Button></>}>
+      footer={<><Button variant="outline" onClick={onClose} disabled={upsert.isPending}>{t('forms.cancel')}</Button><Button onClick={go} disabled={upsert.isPending}>{upsert.isPending ? t('forms.saving') : existingFare ? t('network.updateFare') : t('network.saveFare')}</Button></>}>
       <div className="space-y-4">
         {err && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">{err}</p>}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('network.originStation')} htmlFor="nf-o">
-            <Select id="nf-o" value={origin} onChange={(e) => setOrigin(e.target.value)}>
-              <option value="" disabled>{t('network.selectStation')}</option>
-              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </Select>
+            <SearchSelect
+              id="nf-o"
+              value={origin}
+              onChange={(v) => pick('origin', v)}
+              options={stationOptions}
+              placeholder={t('network.selectStation')}
+              searchPlaceholder={t('network.searchStation')}
+            />
           </Field>
           <Field label={t('network.destStation')} htmlFor="nf-d">
-            <Select id="nf-d" value={dest} onChange={(e) => setDest(e.target.value)}>
-              <option value="" disabled>{t('network.selectStation')}</option>
-              {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </Select>
+            <SearchSelect
+              id="nf-d"
+              value={dest}
+              onChange={(v) => pick('dest', v)}
+              options={stationOptions}
+              placeholder={t('network.selectStation')}
+              searchPlaceholder={t('network.searchStation')}
+            />
           </Field>
         </div>
+        {existingFare && (
+          <p className="flex items-start gap-2 rounded-lg bg-teal/10 px-3 py-2 text-xs text-teal">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
+            {t('network.fareExists', { amount: formatRWF(existingFare.fareAmount) })}
+          </p>
+        )}
         <Field label={t('network.fareAmount')} htmlFor="nf-amt" hint={t('network.fareHint')}>
-          <Input id="nf-amt" type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="3500" />
+          <Input
+            id="nf-amt"
+            type="number"
+            min={0}
+            value={amount}
+            onChange={(e) => { setAmount(e.target.value); setAmountTouched(true); }}
+            placeholder="3500"
+          />
         </Field>
       </div>
     </Modal>

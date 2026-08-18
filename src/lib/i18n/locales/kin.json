@@ -9,6 +9,7 @@
     "tripDetail": "Urugendo",
     "routes": "Imihanda",
     "fleet": "Amamodoka",
+    "staff": "Abakozi",
     "liveMap": "Ikarita",
     "zones": "Uturere",
     "bookings": "Amatike",
@@ -16,7 +17,7 @@
     "analytics": "Isesengura",
     "settings": "Igenamiterere",
     "notifications": "Imenyesha",
-    "users": "Abakoresha",
+    "passengers": "Abagenzi",
     "primary": "Urutonde rw'ibanze",
     "logout": "Sohoka",
     "openMenu": "Fungura menu",
@@ -49,7 +50,6 @@
     "activeNow": "Arakora",
     "scheduledToday": "Ateganyijwe uyu munsi",
     "retiredCount": "Yavuye mu kazi",
-    "totalDrivers": "Abashoferi bose",
     "onShift": "Ku kazi",
     "inTrip": "Mu rugendo",
     "available": "Barahari",
@@ -179,6 +179,10 @@
     "colService": "Isanwa rikurikira",
     "odometer": "Kilometero",
     "nextMaintenance": "Isanwa rikurikira",
+    "nextInsurance": "Ubwishingizi bukurikira",
+    "tabDetails": "Ibisobanuro",
+    "tabMaintenance": "Isanwa",
+    "tabInsurance": "Ubwishingizi",
     "inMaintenanceFor": "Iri gusanwa · iminsi {{d}} amasaha {{h}}",
     "since": "kuva {{date}}",
     "onTrip": "Kuri {{code}}",
@@ -219,7 +223,6 @@
     "noTrips": "Nta ngendo uyu munsi",
     "now": "UBU",
     "colDriver": "Umushoferi",
-    "colRating": "Amanota",
     "colStatus": "Uko bimeze",
     "colVehicle": "Imodoka",
     "colTrips": "Uyu munsi",
@@ -247,7 +250,6 @@
     "transfer": "Imura",
     "transferTo": "Imura ujyane mu kigo",
     "transferFailed": "Ntibyakunze kwimura uyu mushoferi. Ongera ugerageze.",
-    "ratingHint": "0–5",
     "editHint": "Ifoto, uruhushya n'indangamuntu bicungwa n'umushoferi ku giti cye.",
     "endReason": {
       "transferred": "Yimuwe",
@@ -261,6 +263,19 @@
       "off_duty": "Ntari ku kazi",
       "suspended": "Yahagaritswe"
     }
+  },
+  "staff": {
+    "kpiDrivers": "Abashoferi",
+    "tabs": {
+      "drivers": "Abashoferi",
+      "roster": "Urutonde"
+    },
+    "rosterTitle": "Urutonde rw'abashoferi",
+    "rosterSub": "Ingendo buri mushoferi agenewe gukora, ku munsi.",
+    "prevWeek": "Icyumweru gishize",
+    "nextWeek": "Icyumweru gitaha",
+    "weekTotal": "Igiteranyo cy'icyumweru",
+    "tripsAndHours": "ingendo {{trips}} · amasaha {{hours}}"
   },
   "maintenance": {
     "title": "Urutonde rwo gusana",
@@ -283,6 +298,22 @@
       "success": "Yasanwe",
       "warning": "Bizasanwa vuba",
       "danger": "Byarengeje igihe"
+    }
+  },
+  "insurance": {
+    "logInsurance": "Andika ubwishingizi bushya",
+    "logInsuranceSub": "Andika ubwishingizi bwavuguruwe ku modoka.",
+    "provider": "Uwatanze ubwishingizi",
+    "policyNumber": "Nomero y'amasezerano",
+    "renewedAt": "Bwavuguruwe ku wa",
+    "expiryDate": "Itariki birangirira",
+    "cost": "Igiciro",
+    "photoHint": "PNG, JPG cyangwa WebP.",
+    "empty": "Nta bwishingizi bwanditswe.",
+    "urgency": {
+      "success": "Bwishingiwe",
+      "warning": "Bugiye kurangira",
+      "danger": "Bwarangiye"
     }
   },
   "login": {
@@ -447,16 +478,7 @@
       "tripSourceLine": "{{app}}% app · {{agent}}% agent"
     },
     "searchRoutes": "Shakisha imihanda",
-    "searchStops": "Shakisha sitasiyo",
-    "uploadFares": "Ohereza PDF ya RURA",
-    "uploadFaresTitle": "Ohereza ibiciro bya RURA (PDF)",
-    "uploadFaresSub": "Imbonerahamwe za PDF (uva → ugana → igiciro) zisomwa zishyirwe ku mihanda no ku mbonerahamwe y'ibiciro.",
-    "dropPdf": "Hitamo cyangwa ushyire dosiye CSV y'ibiciro bya RURA",
-    "pdfHint": "Inkingi za CSV: sitasiyo iva, sitasiyo igana, igiciro (RWF). Umutwe w'imbonerahamwe ni amahitamo.",
-    "importRows": "Injiza ibiciro",
-    "uploadPending": "Amazina ya sitasiyo agomba guhuza neza n'aya sitasiyo zawe; imirongo itahujwe cyangwa itari yo iratangazwa igasimburwa.",
-    "importDone": "Ibiciro {{imported}} kuri {{total}} byinjijwe.",
-    "importSkipped": "Imirongo {{n}} yasimbutse:"
+    "searchStops": "Shakisha sitasiyo"
   },
   "network": {
     "tabs": {
@@ -534,10 +556,13 @@
     "addFare": "Shyiraho igiciro",
     "addFareSub": "Shyiraho igiciro hagati ya sitasiyo ebyiri (impande zombi).",
     "saveFare": "Bika igiciro",
+    "updateFare": "Vugurura igiciro",
     "originStation": "Sitasiyo itangirira",
     "destStation": "Sitasiyo igana",
+    "searchStation": "Shakisha sitasiyo…",
     "fareAmount": "Igiciro (RWF)",
     "fareHint": "Bireba impande zombi.",
+    "fareExists": "Iyi sitasiyo ebyiri isanzwe ifite igiciro cya {{amount}} — kubika hano bizavugurura icyo giciro, ntibizarema andi makuru mashya.",
     "fareInvalid": "Hitamo sitasiyo ebyiri zitandukanye n'igiciro kiri hejuru ya zeru.",
     "editRoute": "Hindura umuhanda",
     "editStop": "Hindura ahahagarara",
@@ -668,7 +693,12 @@
     "destination": "Aho igana",
     "frequency": "Inshuro",
     "times": "Amasaha yo kugenda",
-    "timesHint": "Bitandukanyijwe na koma, isaha 24 (urugero: 06:00, 12:00)."
+    "timesHint": "Bitandukanyijwe na koma, isaha 24 (urugero: 06:00, 12:00).",
+    "tripRequests": "Ibisabwa n'abakozi ku modoka",
+    "tripRequestsSub": "Abakozi batanga umubare ugereranyije w'abagenzi bifuza urugendo runaka baturutse ku irembo ryabo. Kohereza bisi bihuza ibisabwa byose bifunguye kuri uwo muhanda muri bisi imwe.",
+    "tripRequestsOpenCount": "{{count}} bifunguye",
+    "tripRequestsEmpty": "Nta gisabwa cy'urugendo gifunguye ubu.",
+    "tripRequestDenyPrompt": "Impamvu yo kwanga iki gisabwa cy'urugendo?"
   },
   "analytics": {
     "title": "Isesengura",
@@ -1013,6 +1043,7 @@
     "noCompanyEditAccess": "Ni abayobozi b'ikigo gusa bashobora guhindura ikirango cy'ikigo."
   },
   "forms": {
+    "photoN": "Ifoto ya {{n}}",
     "cancel": "Hagarika",
     "close": "Funga",
     "save": "Bika impinduka",

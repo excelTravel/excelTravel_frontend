@@ -26,6 +26,7 @@ trips          GET/POST /trips · GET/PATCH /trips/{id} · PATCH /trips/{id}/sta
                · POST /trips/{id}/message-driver · POST /trips/{id}/broadcast
 trip-templates GET/POST /trip-templates · GET/PATCH/DELETE /trip-templates/{id} · POST /{id}/generate
 waitlist       GET /waitlist?status= · POST /waitlist/join · GET /waitlist/{id} · POST /{id}/dispatch|deny
+trip-requests  GET /trip-requests?status= · POST /trip-requests (agent) · GET /{id} · POST /{id}/dispatch|deny
 bookings       GET/POST /bookings · GET /bookings/{id} · POST /bookings/{id}/cancel
 tracking       GET /tracking · GET/POST /tracking/{vehicleId}
 analytics      GET /analytics/overview · /routes/revenue · /peak-travel · /peak-booking
@@ -74,6 +75,7 @@ tracking realtime (socket): bus:location · bus:alert · trip:status · notifica
 | Reroute / vehicle+driver assign, status change | `PATCH /trips/{id}`, `PATCH /trips/{id}/status` | ✅ |
 | **Scheduling → recurring routines** | `useCreateTemplate` → `POST /trip-templates` | ✅ |
 | **Scheduling → waitlist / early dispatch** | `useWaitlists`, `useDispatchWaitlist`, `useDenyWaitlist` | ✅ |
+| **Scheduling → agent trip-request pooling** | `useTripRequests`, `useDispatchTripRequest`, `useDenyTripRequest` (`TripRequestsBoard.tsx`) | ✅ |
 | Scheduling calendar (day/week/month) | `useTripRows` scoped by range | ✅ |
 
 ### Fleet (`src/features/fleet/*`)
@@ -121,12 +123,9 @@ tracking realtime (socket): bus:location · bus:alert · trip:status · notifica
 
 ## Genuinely open gaps (both sides checked, neither exists)
 
-1. **Agent trip requests / demand pooling** — no `trip_requests` table, no endpoint, no frontend UI. This
-   is the one real feature gap found in this rewrite: an agent-initiated "I have N passengers wanting this
-   corridor" request that ops could pool and dispatch against, distinct from the passenger self-join
-   waitlist (which is fully built — see Trips → Scheduling above).
-2. **Live demand board** — would be derivable once #1 exists (bookings + waitlist + trip-requests
-   aggregated by corridor); not built because #1 isn't.
+1. **Live demand board** — a single view combining bookings + waitlist + trip-requests aggregated by
+   corridor. Each input now exists (agent trip-request pooling landed — see Trips → Scheduling above and
+   `mobile: agent_trip_request_sheet.dart`); the combined visualization itself hasn't been built.
 
 ## Deliberately out of scope for this build
 - **Companies / Audit-log / Private-bookings admin section** — removed from this per-company ops console;

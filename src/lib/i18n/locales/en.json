@@ -9,6 +9,7 @@
     "tripDetail": "Trip",
     "routes": "Routes",
     "fleet": "Fleet",
+    "staff": "Staff",
     "liveMap": "Live Map",
     "zones": "Zones",
     "bookings": "Bookings",
@@ -16,7 +17,7 @@
     "analytics": "Analytics",
     "settings": "Settings",
     "notifications": "Notifications",
-    "users": "Users",
+    "passengers": "Passengers",
     "primary": "Primary navigation",
     "logout": "Logout",
     "openMenu": "Open menu",
@@ -49,7 +50,6 @@
     "activeNow": "Active",
     "scheduledToday": "Scheduled today",
     "retiredCount": "Retired",
-    "totalDrivers": "Total drivers",
     "onShift": "On shift",
     "inTrip": "In trip",
     "available": "Available",
@@ -179,6 +179,10 @@
     "colService": "Next service",
     "odometer": "Odometer",
     "nextMaintenance": "Next maintenance",
+    "nextInsurance": "Next insurance renewal",
+    "tabDetails": "Details",
+    "tabMaintenance": "Maintenance",
+    "tabInsurance": "Insurance",
     "inMaintenanceFor": "In maintenance · {{d}}d {{h}}h",
     "since": "since {{date}}",
     "onTrip": "On {{code}}",
@@ -219,7 +223,6 @@
     "noTrips": "No trips today",
     "now": "NOW",
     "colDriver": "Driver",
-    "colRating": "Rating",
     "colStatus": "Status",
     "colVehicle": "Vehicle",
     "colTrips": "Today",
@@ -247,7 +250,6 @@
     "transfer": "Transfer",
     "transferTo": "Transfer to company",
     "transferFailed": "Couldn't transfer this driver — try again.",
-    "ratingHint": "0–5",
     "editHint": "Photo, license and ID images are managed by the driver from their own account.",
     "endReason": {
       "transferred": "Transferred",
@@ -261,6 +263,19 @@
       "off_duty": "Off duty",
       "suspended": "Suspended"
     }
+  },
+  "staff": {
+    "kpiDrivers": "Drivers",
+    "tabs": {
+      "drivers": "Drivers",
+      "roster": "Roster"
+    },
+    "rosterTitle": "Driver roster",
+    "rosterSub": "Trips each driver is assigned to carry out, by day.",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "weekTotal": "Week total",
+    "tripsAndHours": "{{trips}} trips · {{hours}}h"
   },
   "maintenance": {
     "title": "Maintenance log",
@@ -283,6 +298,22 @@
       "success": "Serviced",
       "warning": "Due soon",
       "danger": "Overdue"
+    }
+  },
+  "insurance": {
+    "logInsurance": "Log insurance renewal",
+    "logInsuranceSub": "Record an insurance renewal against a vehicle.",
+    "provider": "Provider",
+    "policyNumber": "Policy number",
+    "renewedAt": "Renewed on",
+    "expiryDate": "Expiry date",
+    "cost": "Cost",
+    "photoHint": "PNG, JPG or WebP.",
+    "empty": "No insurance logged yet.",
+    "urgency": {
+      "success": "Insured",
+      "warning": "Renewal due soon",
+      "danger": "Expired"
     }
   },
   "login": {
@@ -448,16 +479,7 @@
       "tripSourceLine": "{{app}}% app · {{agent}}% agent"
     },
     "searchRoutes": "Search routes",
-    "searchStops": "Search stops",
-    "uploadFares": "Upload RURA PDF",
-    "uploadFaresTitle": "Upload RURA fares (PDF)",
-    "uploadFaresSub": "The PDF's from → to → fare rows are read and applied to routes + the national fare matrix.",
-    "dropPdf": "Choose or drop the RURA fares CSV",
-    "pdfHint": "CSV columns: origin station, destination station, fare (RWF). A header row is optional.",
-    "importRows": "Import fares",
-    "uploadPending": "Station names must match your stations exactly; unmatched or invalid rows are reported and skipped.",
-    "importDone": "{{imported}} of {{total}} fares imported.",
-    "importSkipped": "{{n}} rows skipped:"
+    "searchStops": "Search stops"
   },
   "network": {
     "tabs": {
@@ -535,10 +557,13 @@
     "addFare": "Set fare",
     "addFareSub": "Set the fare between two stations (applies both directions).",
     "saveFare": "Save fare",
+    "updateFare": "Update fare",
     "originStation": "Origin station",
     "destStation": "Destination station",
+    "searchStation": "Search stations…",
     "fareAmount": "Fare (RWF)",
     "fareHint": "Applies to both directions.",
+    "fareExists": "This pair already has a fare of {{amount}} — saving here updates it, it won't create a second entry.",
     "fareInvalid": "Pick two different stations and a fare above zero.",
     "editRoute": "Edit route",
     "editStop": "Edit stop",
@@ -669,7 +694,12 @@
     "destination": "Destination",
     "frequency": "Frequency",
     "times": "Departure times",
-    "timesHint": "Comma-separated, 24h (e.g. 06:00, 12:00)."
+    "timesHint": "Comma-separated, 24h (e.g. 06:00, 12:00).",
+    "tripRequests": "Agent trip requests",
+    "tripRequestsSub": "Agents reporting estimated demand for a corridor from their station. Dispatching pools every open request on that route into one bus.",
+    "tripRequestsOpenCount": "{{count}} open",
+    "tripRequestsEmpty": "No open trip requests right now.",
+    "tripRequestDenyPrompt": "Reason for denying this trip request?"
   },
   "analytics": {
     "title": "Analytics",
@@ -1014,6 +1044,7 @@
     "noCompanyEditAccess": "Only company admins and managers can change company branding."
   },
   "forms": {
+    "photoN": "Photo {{n}}",
     "cancel": "Cancel",
     "close": "Close",
     "save": "Save changes",

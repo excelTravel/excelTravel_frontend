@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowRightLeft, Star, UserRound, UserX } from 'lucide-react';
+import { ArrowRightLeft, UserRound, UserX } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
@@ -12,7 +12,7 @@ const END_REASONS = ['transferred', 'resigned', 'terminated', 'contract_ended'] 
 
 type Mode = 'edit' | 'transfer' | 'confirmDeactivate';
 
-// PATCH /drivers/{id} (status/rating/license) + DELETE /drivers/{id} (soft deactivate) + POST
+// PATCH /drivers/{id} (status/license) + DELETE /drivers/{id} (soft deactivate) + POST
 // /drivers/{id}/transfer (super_admin only — moves the driver to another company).
 export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver | null; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
@@ -23,7 +23,6 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
   const transfer = useTransferDriver();
   const [mode, setMode] = useState<Mode>('edit');
   const [status, setStatus] = useState<(typeof STATUSES)[number]>('available');
-  const [rating, setRating] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
   const [licenseExpiry, setLicenseExpiry] = useState('');
   const [toCompanyId, setToCompanyId] = useState('');
@@ -33,7 +32,6 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
   useEffect(() => {
     if (driver) {
       setStatus(driver.status as (typeof STATUSES)[number]);
-      setRating(driver.rating != null ? String(driver.rating) : '');
       setLicenseNumber(driver.licenseNumber ?? '');
       setLicenseExpiry(driver.licenseExpiry ? driver.licenseExpiry.slice(0, 10) : '');
       setMode('edit');
@@ -51,7 +49,6 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
       {
         id: driver!.id,
         status,
-        ...(rating.trim() ? { rating: Number(rating) } : {}),
         ...(licenseNumber.trim() ? { licenseNumber: licenseNumber.trim() } : {}),
         ...(licenseExpiry ? { licenseExpiry: new Date(`${licenseExpiry}T00:00:00Z`).toISOString() } : {}),
       },
@@ -131,16 +128,11 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
                 <p className="flex items-center gap-1 text-xs text-muted-foreground"><UserRound className="size-3" /> {driver.phone}</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label={t('forms.status')} htmlFor="ed-status">
-                <Select id="ed-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
-                  {STATUSES.map((s) => <option key={s} value={s}>{t(`drivers.state.${s}`, s)}</option>)}
-                </Select>
-              </Field>
-              <Field label={t('drivers.colRating')} htmlFor="ed-rating" hint={t('drivers.ratingHint')}>
-                <Input id="ed-rating" type="number" min={0} max={5} step={0.1} value={rating} onChange={(e) => setRating(e.target.value)} />
-              </Field>
-            </div>
+            <Field label={t('forms.status')} htmlFor="ed-status">
+              <Select id="ed-status" value={status} onChange={(e) => setStatus(e.target.value as typeof status)}>
+                {STATUSES.map((s) => <option key={s} value={s}>{t(`drivers.state.${s}`, s)}</option>)}
+              </Select>
+            </Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label={t('drivers.licenseNumber')} htmlFor="ed-license">
                 <Input id="ed-license" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} />
@@ -153,7 +145,7 @@ export function EditDriverModal({ driver, open, onClose }: { driver: ApiDriver |
         )}
 
         {mode !== 'transfer' && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Star className="size-3.5" /> {t('drivers.editHint')}</p>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><UserRound className="size-3.5" /> {t('drivers.editHint')}</p>
         )}
       </div>
     </Modal>

@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { Bus, Users, Wrench, TriangleAlert } from 'lucide-react';
+import { Bus, Wrench, TriangleAlert } from 'lucide-react';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { cn } from '@/lib/utils';
-import { useVehicles, useDrivers } from '@/lib/api/hooks';
+import { useVehicles } from '@/lib/api/hooks';
 import { VehiclesPanel } from './VehiclesPanel';
-import { DriversPanel } from './DriversPanel';
 import { MaintenancePanel } from './MaintenancePanel';
 import { AccidentsPanel } from './AccidentsPanel';
 
 const TABS = [
   { key: 'vehicles', icon: Bus },
-  { key: 'drivers', icon: Users },
   { key: 'maintenance', icon: Wrench },
   { key: 'accidents', icon: TriangleAlert },
 ] as const;
@@ -21,26 +19,24 @@ type FleetTab = (typeof TABS)[number]['key'];
 
 // Fleet management console — a stable fleet-wide KPI row, then sub-section tabs, then content. The cards
 // and tab bar stay put when switching tabs (only the content below changes) so nothing shifts vertically.
+// Drivers live in their own "Staff" section (src/features/staff/) — a people concern, not a vehicle one.
 export function FleetPage() {
   const { t } = useTranslation();
   const [tab, setTab] = useState<FleetTab>('vehicles');
   const vehiclesQ = useVehicles();
-  const driversQ = useDrivers();
-  const loading = vehiclesQ.isLoading || driversQ.isLoading;
+  const loading = vehiclesQ.isLoading;
   const vehicles = vehiclesQ.data ?? [];
-  const drivers = driversQ.data ?? [];
 
   // One fixed set of cards across every sub-section — prevents layout shift when switching tabs.
   const cards = [
     { label: t('fleet.totalFleet'), value: vehicles.length },
     { label: t('fleet.activeNow'), value: vehicles.filter((v) => v.status === 'active').length },
-    { label: t('fleet.totalDrivers'), value: drivers.length },
     { label: t('fleet.openMaintenance'), value: vehicles.filter((v) => v.status === 'maintenance').length },
   ];
 
   return (
     <Reveal className="space-y-6">
-      <RevealItem className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {cards.map((c) => (
           <KpiCard key={c.label} loading={loading} label={c.label} value={c.value.toLocaleString()} />
         ))}
@@ -85,7 +81,6 @@ export function FleetPage() {
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         >
           {tab === 'vehicles' && <VehiclesPanel />}
-          {tab === 'drivers' && <DriversPanel />}
           {tab === 'maintenance' && <MaintenancePanel />}
           {tab === 'accidents' && <AccidentsPanel />}
         </motion.div>
