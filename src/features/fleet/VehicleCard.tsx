@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Bus, CalendarDays, MapPin, MoreVertical, Navigation, CalendarClock, Wrench } from 'lucide-react';
+import { Bus, CalendarDays, MapPin, MoreVertical, Navigation, CalendarClock, Wrench, ShieldCheck } from 'lucide-react';
 import { MotionCard } from '@/components/motion/Motion';
 import { StatusPill } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,12 @@ export function VehicleCard({ vehicle, onOpenDetails }: { vehicle: Vehicle; onOp
               <CalendarDays className="size-3" /> {t('vehicles.nextMaintenance')}
             </p>
             <p className="mt-0.5 text-base font-bold">{vehicle.nextServiceDate}</p>
+          </div>
+          <div className="col-span-2 rounded-xl bg-secondary/50 p-3">
+            <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <ShieldCheck className="size-3" /> {t('vehicles.nextInsurance')}
+            </p>
+            <p className="mt-0.5 text-base font-bold">{vehicle.nextInsuranceExpiry}</p>
           </div>
         </div>
 

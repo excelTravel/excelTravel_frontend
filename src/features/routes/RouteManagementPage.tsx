@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Plus, ArrowRight, Info, Coins, Upload, FileText, Bus, Snowflake, AlertTriangle, Pencil } from 'lucide-react';
+import { ChevronRight, Plus, ArrowRight, Info, Coins, Bus, Snowflake, AlertTriangle, Pencil } from 'lucide-react';
 import { Sheet } from '@/components/ui/sheet';
-import { Modal } from '@/components/ui/modal';
 import { GlassCard } from '@/components/ui/card';
 import { KpiCard } from '@/components/ui/kpi-card';
 import { Badge, StatusPill } from '@/components/ui/badge';
@@ -20,7 +19,6 @@ import {
   useIncidents,
   useTripTemplates,
   useTripManifests,
-  useImportFares,
   type ApiRoute,
   type ApiTrip,
   type ApiIncident,
@@ -49,7 +47,6 @@ export function RouteManagementPage() {
   const templatesQ = useTripTemplates();
   const [addRoute, setAddRoute] = useState(false);
   const [addFare, setAddFare] = useState(false);
-  const [uploadFares, setUploadFares] = useState(false);
   const [drillRoute, setDrillRoute] = useState<ApiRoute | null>(null);
   const [editRoute, setEditRoute] = useState<ApiRoute | null>(null);
 
@@ -153,7 +150,6 @@ export function RouteManagementPage() {
     <Reveal className="space-y-6">
       <AddRouteModal open={addRoute} onClose={() => setAddRoute(false)} />
       <AddFareModal open={addFare} onClose={() => setAddFare(false)} />
-      <UploadFaresModal open={uploadFares} onClose={() => setUploadFares(false)} />
       <EditRouteModal route={editRoute} open={editRoute !== null} onClose={() => setEditRoute(null)} />
       <RouteDetailsSheet
         route={drillRoute}
@@ -189,7 +185,6 @@ export function RouteManagementPage() {
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Info className="size-3.5" /> {t('network.ruraNote')}</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setUploadFares(true)}><Upload className="size-4" /> {t('routesMgmt.uploadFares')}</Button>
               <Button size="sm" onClick={() => setAddFare(true)}><Plus className="size-4" /> {t('network.addFare')}</Button>
             </div>
           </div>
@@ -452,59 +447,3 @@ function BusiestBusStat({ buses }: { buses: { plates: string[]; count: number } 
   );
 }
 
-// Upload the RURA fares CSV (origin, destination, fare) → server matches stations by name and upserts the
-// national fare matrix, reporting rows it imported and any it skipped.
-function UploadFaresModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
-  const [file, setFile] = useState<File | null>(null);
-  const importFares = useImportFares();
-  const result = importFares.data;
-
-  function close() {
-    setFile(null);
-    importFares.reset();
-    onClose();
-  }
-
-  return (
-    <Modal
-      open={open}
-      onClose={close}
-      title={t('routesMgmt.uploadFaresTitle')}
-      description={t('routesMgmt.uploadFaresSub')}
-      footer={<><Button variant="outline" onClick={close}>{t('forms.close')}</Button><Button disabled={!file || importFares.isPending} onClick={() => file && importFares.mutate(file)}>{importFares.isPending ? t('forms.saving') : t('routesMgmt.importRows')}</Button></>}
-    >
-      <div className="space-y-4">
-        <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:bg-secondary/40">
-          <Upload className="size-7 text-muted-foreground" />
-          <span className="text-sm font-medium">{file ? file.name : t('routesMgmt.dropPdf')}</span>
-          <span className="text-xs text-muted-foreground">{t('routesMgmt.pdfHint')}</span>
-          <input type="file" accept="text/csv,.csv" className="hidden" onChange={(e) => { setFile(e.target.files?.[0] ?? null); importFares.reset(); }} />
-        </label>
-        {file && !result && (
-          <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3 text-sm"><FileText className="size-4 text-primary" /> {file.name}</div>
-        )}
-        {importFares.isError && (
-          <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive" role="alert">{importFares.error instanceof Error ? importFares.error.message : t('routesMgmt.importRows')}</p>
-        )}
-        {result ? (
-          <div className="space-y-2">
-            <p className="rounded-lg bg-success/10 p-3 text-sm font-medium text-success">{t('routesMgmt.importDone', { imported: result.imported, total: result.totalRows })}</p>
-            {result.skipped.length > 0 && (
-              <div className="rounded-lg bg-warning/10 p-3 text-xs text-warning">
-                <p className="font-semibold">{t('routesMgmt.importSkipped', { n: result.skipped.length })}</p>
-                <ul className="mt-1 max-h-40 space-y-0.5 overflow-y-auto">
-                  {result.skipped.map((s) => <li key={s.line}>#{s.line} {s.origin} → {s.destination}: {s.reason}</li>)}
-                </ul>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-xs text-warning">
-            <Info className="mt-0.5 size-3.5 shrink-0" /> {t('routesMgmt.uploadPending')}
-          </p>
-        )}
-      </div>
-    </Modal>
-  );
-}

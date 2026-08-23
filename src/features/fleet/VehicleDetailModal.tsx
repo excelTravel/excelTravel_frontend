@@ -1,25 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Archive, Bus, Pencil } from 'lucide-react';
+import { Archive, Bus, Pencil, Plus } from 'lucide-react';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select } from '@/components/ui/form';
-import { StatusPill } from '@/components/ui/badge';
+import { StatusPill, Badge } from '@/components/ui/badge';
 import { ImageUpload } from '@/components/ui/image-upload';
-import { useRoutes, useUpdateVehicle, useArchiveVehicle } from '@/lib/api/hooks';
+import { SectionTabs } from '@/components/ui/section-tabs';
+import { useRoutes, useUpdateVehicle, useArchiveVehicle, useMaintenanceLogs, useInsuranceRecords, type ApiMaintenanceLog, type ApiInsuranceRecord } from '@/lib/api/hooks';
 import { CLOUDINARY_FOLDERS } from '@/lib/config';
+import { maintenanceStatus } from '@/lib/fleetStatus';
+import { formatRWF } from '@/lib/utils';
+import { LogMaintenanceModal } from './LogMaintenanceModal';
+import { LogInsuranceModal } from './LogInsuranceModal';
 import type { Vehicle } from './data';
+
+const dateFmt = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
 // View = GET /vehicles/{id}. Edit = PATCH /vehicles/{id} (UpdateVehicle): model, capacity, status, routeId.
 // Archive = DELETE /vehicles/{id} (soft; blocked while on an active trip). plate_number and year are
-// immutable on the backend, so they're read-only.
+// immutable on the backend, so they're read-only. Maintenance/Insurance tabs show the full history +
+// report images for this vehicle (GET /maintenance?vehicleId= / GET /insurance?vehicleId=).
 export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicle | null; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
   const routesQ = useRoutes();
   const update = useUpdateVehicle();
   const archive = useArchiveVehicle();
+  const maintenanceQ = useMaintenanceLogs(vehicle?.id);
+  const insuranceQ = useInsuranceRecords(vehicle?.id);
   const [editing, setEditing] = useState(false);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [tab, setTab] = useState<'details' | 'maintenance' | 'insurance'>('details');
+  const [logMaintenance, setLogMaintenance] = useState(false);
+  const [logInsurance, setLogInsurance] = useState(false);
   const [model, setModel] = useState('');
   const [capacity, setCapacity] = useState('');
   const [status, setStatus] = useState<'active' | 'maintenance' | 'retired'>('active');
@@ -35,6 +48,7 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
       setPhotoUrl(vehicle.photoUrl);
       setEditing(false);
       setConfirmArchive(false);
+      setTab('details');
       setErr(null);
     }
   }, [vehicle]);
@@ -99,6 +113,9 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
       }
     >
       <div className="space-y-5">
+        <LogMaintenanceModal open={logMaintenance} onClose={() => setLogMaintenance(false)} vehicleId={vehicle.id} />
+        <LogInsuranceModal open={logInsurance} onClose={() => setLogInsurance(false)} vehicleId={vehicle.id} />
+
         <div className="flex items-center gap-3">
           {vehicle.photoUrl ? (
             <img src={vehicle.photoUrl} alt="" className="size-12 rounded-xl object-cover" />
@@ -140,24 +157,70 @@ export function VehicleDetailModal({ vehicle, open, onClose }: { vehicle: Vehicl
             </Field>
           </div>
         ) : (
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Detail label={t('vehicles.colCapacity')} value={`${vehicle.capacity} ${t('vehicles.seats')}`} />
-            <Detail label={t('vehicles.nextMaintenance')} value={vehicle.nextServiceDate} />
-            <Detail label={t('forms.year')} value={String(vehicle.year)} />
-            <Detail
-              label={t('vehicles.colStatus')}
-              value={
-                vehicle.currentTrip
-                  ? `${vehicle.currentTrip.code} · ${vehicle.currentTrip.route}`
-                  : vehicle.nextTrip
-                    ? `${vehicle.nextTrip.code} · ${vehicle.nextTrip.route} · ${vehicle.nextTrip.time}`
-                    : vehicle.lastDestination
-                      ? t('vehicles.lastSeenAt', { place: vehicle.lastDestination })
-                      : t(`vehicles.status.${vehicle.status}`)
-              }
-              className="col-span-2"
+          <>
+            <SectionTabs
+              ariaLabel={vehicle.plate}
+              active={tab}
+              onChange={setTab}
+              tabs={[
+                { key: 'details', label: t('vehicles.tabDetails') },
+                { key: 'maintenance', label: t('vehicles.tabMaintenance') },
+                { key: 'insurance', label: t('vehicles.tabInsurance') },
+              ]}
             />
-          </dl>
+
+            {tab === 'details' && (
+              <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Detail label={t('vehicles.colCapacity')} value={`${vehicle.capacity} ${t('vehicles.seats')}`} />
+                <Detail label={t('vehicles.nextMaintenance')} value={vehicle.nextServiceDate} />
+                <Detail label={t('forms.year')} value={String(vehicle.year)} />
+                <Detail label={t('vehicles.nextInsurance')} value={vehicle.nextInsuranceExpiry} />
+                <Detail
+                  label={t('vehicles.colStatus')}
+                  value={
+                    vehicle.currentTrip
+                      ? `${vehicle.currentTrip.code} · ${vehicle.currentTrip.route}`
+                      : vehicle.nextTrip
+                        ? `${vehicle.nextTrip.code} · ${vehicle.nextTrip.route} · ${vehicle.nextTrip.time}`
+                        : vehicle.lastDestination
+                          ? t('vehicles.lastSeenAt', { place: vehicle.lastDestination })
+                          : t(`vehicles.status.${vehicle.status}`)
+                  }
+                  className="col-span-2"
+                />
+              </dl>
+            )}
+
+            {tab === 'maintenance' && (
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => setLogMaintenance(true)}><Plus className="size-4" /> {t('maintenance.logMaintenance')}</Button>
+                </div>
+                {(maintenanceQ.data ?? []).length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">{t('maintenance.empty')}</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {(maintenanceQ.data ?? []).map((log) => <MaintenanceRow key={log.id} log={log} />)}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {tab === 'insurance' && (
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => setLogInsurance(true)}><Plus className="size-4" /> {t('insurance.logInsurance')}</Button>
+                </div>
+                {(insuranceQ.data ?? []).length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">{t('insurance.empty')}</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {(insuranceQ.data ?? []).map((rec) => <InsuranceRow key={rec.id} record={rec} />)}
+                  </ul>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </Modal>
@@ -170,5 +233,63 @@ function Detail({ label, value, className }: { label: string; value: string; cla
       <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-sm font-semibold text-foreground">{value}</dd>
     </div>
+  );
+}
+
+function PhotoStrip({ urls }: { urls: string[] }) {
+  if (urls.length === 0) return null;
+  return (
+    <div className="mt-2 flex gap-2">
+      {urls.map((url, i) => (
+        <a key={i} href={url} target="_blank" rel="noreferrer" className="block size-14 shrink-0 overflow-hidden rounded-lg border border-border">
+          <img src={url} alt="" className="size-full object-cover" />
+        </a>
+      ))}
+    </div>
+  );
+}
+
+function MaintenanceRow({ log }: { log: ApiMaintenanceLog }) {
+  const { t } = useTranslation();
+  const s = maintenanceStatus(log.nextServiceDate);
+  return (
+    <li className="rounded-xl border border-border p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold">{log.serviceType}</p>
+          <p className="text-xs text-muted-foreground">{dateFmt.format(new Date(log.performedAt))}{log.cost != null ? ` · ${formatRWF(log.cost)}` : ''}</p>
+        </div>
+        {log.nextServiceDate && (
+          <Badge tone={s.tone === 'danger' ? 'danger' : s.tone === 'warning' ? 'warning' : 'success'}>
+            {t('vehicles.nextMaintenance')}: {dateFmt.format(new Date(log.nextServiceDate))}
+          </Badge>
+        )}
+      </div>
+      {log.description && <p className="mt-1 text-xs text-muted-foreground">{log.description}</p>}
+      <PhotoStrip urls={log.photoUrls} />
+    </li>
+  );
+}
+
+function InsuranceRow({ record }: { record: ApiInsuranceRecord }) {
+  const { t } = useTranslation();
+  const s = maintenanceStatus(record.expiryDate);
+  return (
+    <li className="rounded-xl border border-border p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold">{record.provider ?? t('insurance.provider')}</p>
+          <p className="text-xs text-muted-foreground">
+            {dateFmt.format(new Date(record.renewedAt))}
+            {record.policyNumber ? ` · ${record.policyNumber}` : ''}
+            {record.cost != null ? ` · ${formatRWF(record.cost)}` : ''}
+          </p>
+        </div>
+        <Badge tone={s.tone === 'danger' ? 'danger' : s.tone === 'warning' ? 'warning' : 'success'}>
+          {t('vehicles.nextInsurance')}: {dateFmt.format(new Date(record.expiryDate))}
+        </Badge>
+      </div>
+      <PhotoStrip urls={record.photoUrls} />
+    </li>
   );
 }

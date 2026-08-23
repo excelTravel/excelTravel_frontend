@@ -7,7 +7,7 @@ import { SegmentedDonut } from '@/components/ui/segmented-donut';
 import { CountUp } from '@/components/ui/count-up';
 import { Async } from '@/components/ui/async';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
-import { useVehicles, useMaintenanceLogs, useTrips, useRoutes, type ApiVehicle, type ApiTrip, type ApiRoute } from '@/lib/api/hooks';
+import { useVehicles, useMaintenanceLogs, useInsuranceRecords, useTrips, useRoutes, type ApiVehicle, type ApiTrip, type ApiRoute } from '@/lib/api/hooks';
 import { VehicleCard } from './VehicleCard';
 import { VehicleDetailModal } from './VehicleDetailModal';
 import { AddVehicleModal } from './AddVehicleModal';
@@ -28,9 +28,16 @@ function endpoints(trip: ApiTrip, route: ApiRoute | undefined): string {
 
 // Map a live /vehicles row onto the Vehicle shape the card renders, joined against this vehicle's own
 // trips (client-side, since /vehicles carries no trip data) to find: a trip in progress right now, else
-// the next scheduled one, else where its last completed trip ended. nextServiceDate is real — the most
-// recent maintenance log's next_service_date for this vehicle, if any.
-function toVehicle(v: ApiVehicle, nextServiceDate: string | null, vehicleTrips: ApiTrip[], routeById: Map<string, ApiRoute>): Vehicle {
+// the next scheduled one, else where its last completed trip ended. nextServiceDate/nextInsuranceExpiry
+// are real — the most recent maintenance log's next_service_date / insurance record's expiry_date for
+// this vehicle, if any.
+function toVehicle(
+  v: ApiVehicle,
+  nextServiceDate: string | null,
+  nextInsuranceExpiry: string | null,
+  vehicleTrips: ApiTrip[],
+  routeById: Map<string, ApiRoute>,
+): Vehicle {
   const status = (['active', 'maintenance', 'retired'].includes(v.status) ? v.status : 'active') as VehicleStatus;
 
   const current = vehicleTrips.find((tr) => LIVE_STATUSES.has(tr.status));
@@ -53,6 +60,7 @@ function toVehicle(v: ApiVehicle, nextServiceDate: string | null, vehicleTrips: 
     year: v.year ?? 0,
     status,
     nextServiceDate: status === 'maintenance' ? 'In service' : status === 'retired' ? '—' : nextServiceDate ? nextServiceFmt.format(new Date(nextServiceDate)) : '—',
+    nextInsuranceExpiry: nextInsuranceExpiry ? nextServiceFmt.format(new Date(nextInsuranceExpiry)) : '—',
     currentTrip: current ? { code: `#${current.tripNo ?? '—'}`, route: endpoints(current, routeById.get(current.routeId)) } : null,
     nextTrip: upcoming
       ? { code: `#${upcoming.tripNo ?? '—'}`, route: endpoints(upcoming, routeById.get(upcoming.routeId)), time: tripTimeFmt.format(new Date(upcoming.departureTime)) }
@@ -73,15 +81,20 @@ export function VehiclesPanel() {
   const { t } = useTranslation();
   const vehiclesQ = useVehicles();
   const maintenanceQ = useMaintenanceLogs();
+  const insuranceQ = useInsuranceRecords();
   const tripsQ = useTrips();
   const routesQ = useRoutes();
   const [selected, setSelected] = useState<Vehicle | null>(null);
   const [addOpen, setAddOpen] = useState(false);
 
-  // Logs come back newest-first, so the first one seen per vehicle is its most recent next-service date.
+  // Logs/records come back newest-first, so the first one seen per vehicle is its most recent date.
   const nextServiceByVehicle = new Map<string, string | null>();
   for (const log of maintenanceQ.data ?? []) {
     if (!nextServiceByVehicle.has(log.vehicleId)) nextServiceByVehicle.set(log.vehicleId, log.nextServiceDate);
+  }
+  const nextInsuranceByVehicle = new Map<string, string>();
+  for (const rec of insuranceQ.data ?? []) {
+    if (!nextInsuranceByVehicle.has(rec.vehicleId)) nextInsuranceByVehicle.set(rec.vehicleId, rec.expiryDate);
   }
 
   const routeById = new Map((routesQ.data ?? []).map((r) => [r.id, r]));
@@ -107,7 +120,9 @@ export function VehiclesPanel() {
 
       <Async query={vehiclesQ} isEmpty={(d) => d.length === 0} skeleton={<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /><div className="shimmer h-56 rounded-2xl" /></div>}>
         {(apiVehicles) => {
-          const vehicles = apiVehicles.map((v) => toVehicle(v, nextServiceByVehicle.get(v.id) ?? null, tripsByVehicle.get(v.id) ?? [], routeById));
+          const vehicles = apiVehicles.map((v) =>
+            toVehicle(v, nextServiceByVehicle.get(v.id) ?? null, nextInsuranceByVehicle.get(v.id) ?? null, tripsByVehicle.get(v.id) ?? [], routeById),
+          );
           const counts = { active: 0, maintenance: 0, retired: 0 } as Record<VehicleStatus, number>;
           for (const v of vehicles) counts[v.status] += 1;
           const total = vehicles.length;

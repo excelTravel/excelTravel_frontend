@@ -201,6 +201,246 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Passenger self-signup (sends a phone OTP by SMS) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RegisterBody"];
+                };
+            };
+            responses: {
+                /** @description Passenger self-signup (sends a phone OTP by SMS) */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingVerification"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/verify-phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify signup OTP and activate the account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["VerifyPhoneBody"];
+                };
+            };
+            responses: {
+                /** @description Verify signup OTP and activate the account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuthTokens"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login/otp/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a login OTP (by email for staff / phone for passengers; code SMS’d to the phone) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OtpRequestBody"];
+                };
+            };
+            responses: {
+                /** @description Request a login OTP (by email for staff / phone for passengers; code SMS’d to the phone) */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PendingVerification"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify a login OTP and log in */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OtpVerifyBody"];
+                };
+            };
+            responses: {
+                /** @description Verify a login OTP and log in */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuthTokens"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate the refresh session and mint a new access token */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RefreshBody"];
+                };
+            };
+            responses: {
+                /** @description Rotate the refresh session and mint a new access token */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RefreshResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke the current refresh session */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["LogoutBody"];
+                };
+            };
+            responses: {
+                /** @description Revoke the current refresh session */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuthMessage"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies": {
         parameters: {
             query?: never;
@@ -267,6 +507,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/me/branding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The caller's own company name + logo
+         * @description Every role can read this (not just STAFF) — used for driver/agent/passenger app chrome.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Branding */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            name: string;
+                            logoUrl: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/companies/{id}": {
         parameters: {
             query?: never;
@@ -313,8 +595,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update a company (super_admin or the company itself)
-         * @description Updates company fields. super_admin, or the company's own company_admin.
+         * Update a company (admin)
+         * @description Updates company fields. super_admin, or the company's own company_admin — not manager.
          */
         patch: {
             parameters: {
@@ -328,6 +610,51 @@ export interface paths {
             requestBody?: {
                 content: {
                     "application/json": components["schemas"]["UpdateCompany"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CompanyResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/parcel-pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update parcel pricing (ops)
+         * @description Sets the base delivery fee + per-kg surcharge parcels auto-price from. Unlike the general company update, this is day-to-day ops config — manager included.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateParcelPricing"];
                 };
             };
             responses: {
@@ -631,52 +958,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fares/import": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import fares from a RURA CSV (admins/managers)
-         * @description Uploads a CSV of station-to-station fares (columns: origin,destination,fare). Each row is matched to a station by name and upserted as source "tapgo"; unmatched or malformed rows are returned in "skipped" rather than failing the whole import. Re-uploading refreshes prices.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "multipart/form-data": {
-                        /** Format: binary */
-                        file: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Import summary */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ImportFaresResponse"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/users": {
         parameters: {
             query?: never;
@@ -686,7 +967,7 @@ export interface paths {
         };
         /**
          * List users (scoped by RLS to the caller company)
-         * @description Lists users in the caller's company (super_admin sees all). Admins/managers.
+         * @description Lists users in the caller's company (super_admin sees all). company_admin/super_admin only — not manager.
          */
         get: {
             parameters: {
@@ -1548,6 +1829,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/trips/{id}/free-seats/segment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Free seats for an arbitrary segment on a trip (crew)
+         * @description Capacity/occupied/available for the segment from ?fromStopId= to ?toStopId= (trip_stop ids, not necessarily adjacent) — the same check_trip_capacity() the booking flow trusts, so it always matches what a booking attempt would allow. Used by agents to see seats available onward from their own station.
+         */
+        get: {
+            parameters: {
+                query: {
+                    fromStopId: string;
+                    toStopId: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Segment free seats */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SegmentFreeSeatsResponse"];
+                    };
+                };
+                /** @description Stops not on this trip, or out of order */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/trips/{id}/log": {
         parameters: {
             query?: never;
@@ -1583,6 +1915,62 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trips/{id}/stops/{stopId}/reached": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark the bus as having reached a stop (driver)
+         * @description Marks a stop reached and starts a 5-minute no-show clock: any booking waiting to board there that has not boarded when the clock elapses is auto-released via auto_release_no_shows(), freeing the segment. Broadcasts a bus:alert over the trip socket room.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    stopId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Marked reached */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MarkStopReachedResponse"];
+                    };
+                };
+                /** @description Not assigned to this trip */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Stop not found on this trip */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1987,14 +2375,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Validate a ticket by phone on a trip (agent)
-         * @description Searches the trip for a booking with this phone and reports whether the ticket is valid (confirmed and not already used). Used to onboard feature-phone passengers.
+         * Validate a ticket by phone or ticket code on a trip (agent/driver)
+         * @description Searches the trip for a booking by phone or ticket code and reports a verdict (ready to board, in transit, journey complete, already used, or invalid) — not just a boolean. Used for QR/code scan and feature-phone onboarding.
          */
         get: {
             parameters: {
                 query: {
                     tripId: string;
-                    phone: string;
+                    phone?: string;
+                    code?: string;
                 };
                 header?: never;
                 path?: never;
@@ -2069,6 +2458,3525 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List agents (with their station assignments)
+         * @description Lists the company's ticketing agents and the stations each is assigned to (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Agents */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Onboard an agent by email
+         * @description Invites a ticketing agent by email; they claim the login on first OTP sign-in with that email. Assign stations separately.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["InviteAgent"];
+                };
+            };
+            responses: {
+                /** @description Onboarded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+                /** @description Email or phone already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an agent
+         * @description Fetches one agent by id (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Agent */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Deactivate an agent (soft-delete)
+         * @description Deactivates the agent login and clears station assignments; never hard-deleted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deactivated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/{id}/stations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign a station to an agent
+         * @description Assigns a station the agent works from (idempotent). The stationId must reference a station, not a stop.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AssignStation"];
+                };
+            };
+            responses: {
+                /** @description Assigned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/{id}/stations/{stationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Unassign a station from an agent
+         * @description Removes a station assignment (soft — sets removed_at).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    stationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Unassigned */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/me/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tickets the agent sold (day|month|all)
+         * @description Count and revenue of tickets the calling agent has sold over the period.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    period?: "day" | "month" | "all";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Sales */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentSalesResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/agents/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get my own agent profile
+         * @description Fetches the calling agent's own profile and station assignments.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Agent */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Agent edits their own name, contact, and photo
+         * @description Self-service update of the agent's name, phone, and profile photo URL. Email is not self-editable — changing it requires an ops manager.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateMyAgent"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/agents/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agent dashboard stats — today's sales, week trend, recent sales history
+         * @description Scoped to the calling agent only (never company-wide): today's tickets sold/revenue/passengers boarded, a 7-day trend, and the last 10 tickets they sold.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Stats */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AgentStatsResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List drivers
+         * @description Lists the company's drivers with their licence + status (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Drivers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Onboard a driver by email
+         * @description Invites a driver (email + licence), creates their profile, and opens their employment record. They claim the login on first OTP sign-in with that email.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["InviteDriver"];
+                };
+            };
+            responses: {
+                /** @description Onboarded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+                /** @description Email or phone already in use */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a driver
+         * @description Fetches one driver by id (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Driver */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Deactivate a driver (soft-delete)
+         * @description Suspends the driver and deactivates their login; never hard-deleted (audit + trip history).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deactivated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update a driver (status, rating, licence)
+         * @description Updates a driver's availability status, rating, or licence details.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateDriver"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/drivers/{id}/transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transfer a driver to another company (super_admin)
+         * @description Closes the current employment period and opens a new one at the destination company. Cross-tenant, so super_admin only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TransferDriver"];
+                };
+            };
+            responses: {
+                /** @description Transferred */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a driver employment history
+         * @description Returns the driver's company employment periods (transfers), newest first.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description History */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/trips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's trips for a day (default today)
+         * @description The calling driver's trips for a day (default today, Kigali time).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Trips */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverTripResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's published schedule (day|week|month)
+         * @description The calling driver's trips over the period.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    period?: "day" | "week" | "month";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Trips */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverTripResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/vehicle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's assigned vehicle today (with maintenance-due)
+         * @description The vehicle on the driver's in-progress or next trip today, plus whether service is due. Null if none.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Vehicle */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverVehicleResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/hours": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Total hours the driver has worked
+         * @description Sum of active-trip durations (actual departure to arrival, or now for in-progress trips).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Hours */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverHoursResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Incidents this driver reported
+         * @description Incident reports filed by the calling driver, newest first.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incidents */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * All-time completed-trip stats + most frequent route
+         * @description Completed-trips-only totals (trips, hours) plus the route the driver has completed the most trips on. Deliberately excludes in-progress trips, unlike /me/hours.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Stats */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's own weekly shift template
+         * @description One row per day-of-week the driver is scheduled (0=Monday..6=Sunday); a day with no row is a day off.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Shifts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me/maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Service history for the driver's assigned vehicle
+         * @description Maintenance/service log for the vehicle on the driver's in-progress or next trip today (own vehicle only, no cost/vendor detail). Empty if no vehicle assigned.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Maintenance logs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverMaintenanceLogResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/drivers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The calling driver's own profile
+         * @description Self-read: license number/expiry, photo, and contact — the same shape PATCH /drivers/me returns, without requiring an edit first.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Driver */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Driver edits their own contact and media
+         * @description Self-service update of the driver phone and uploaded photo/licence/ID image URLs.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateMyDriver"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/driver-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the weekly driver roster (filter by driverId)
+         * @description Lists the company's recurring weekly shifts, one row per driver per day-of-week that has one set. Filter with ?driverId=.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    driverId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Shifts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverShiftResponse"][];
+                    };
+                };
+            };
+        };
+        /**
+         * Set (or replace) a driver's shift for one day of the week
+         * @description Upserts the driver's recurring shift for that day-of-week (0=Monday..6=Sunday). Setting a shift that already exists replaces its start/end time.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["SetDriverShift"];
+                };
+            };
+            responses: {
+                /** @description Set */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DriverShiftResponse"];
+                    };
+                };
+                /** @description Driver not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/driver-shifts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Clear a driver shift
+         * @description Removes one recurring shift entry.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/passengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the company's passengers (staff)
+         * @description Passengers who have booked with the caller's company, with booking count, last booking and total spend. Derived from bookings (RLS-scoped), so it never leaks another company's customers.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Passengers */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PassengerSummaryResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/passengers/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Look up a passenger name by phone (staff)
+         * @description Returns the name last used for this phone on a company booking, for booking auto-fill. Staff only.
+         */
+        get: {
+            parameters: {
+                query: {
+                    phone: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Lookup result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PassengerLookupResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List packages (filter by status)
+         * @description Lists the company's parcels and their custody status (RLS-scoped). Optional ?from=&to= (range, filters on created_at) in addition to existing filter.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Packages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Register a package (agent or passenger)
+         * @description An agent registers a parcel at the desk, or a passenger sends one themselves from the app. Records the first custody event (received_by_agent/received_by_driver).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RegisterPackage"];
+                };
+            };
+            responses: {
+                /** @description Registered */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The caller's own sent parcels (passenger)
+         * @description Self-service list, scoped to parcels this passenger registered themselves — mirrors /drivers/me and /agents/me.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Packages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a package with its custody timeline
+         * @description Returns the parcel and its ordered chain-of-custody events (received → handed to driver → delivered → collected). Staff see any of their company's parcels; a passenger only their own.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Package */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/hand-to-driver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hand a package to a driver (agent)
+         * @description Advances the parcel through its custody chain, recording an event + audit at each step.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HandoffBody"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Invalid custody transition */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/deliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a package delivered to the destination agent (driver)
+         * @description Advances the parcel through its custody chain, recording an event + audit at each step.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HandoffBody"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Invalid custody transition */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/collect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Release a package to its recipient (agent)
+         * @description Advances the parcel through its custody chain, recording an event + audit at each step.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HandoffBody"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Invalid custody transition */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a package (ops)
+         * @description Advances the parcel through its custody chain, recording an event + audit at each step.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["HandoffBody"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+                /** @description Invalid custody transition */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/fee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Set the package price (ops)
+         * @description The ops manager sets the fee the sender is charged.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["SetFee"];
+                };
+            };
+            responses: {
+                /** @description Fee set */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/packages/{id}/pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark the sender as paid (agent)
+         * @description Records that the sender paid the fee (cash at the desk). The mobile-money rail is added with payments.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Paid */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PackageResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List trip incidents (filter by tripId)
+         * @description Lists the company's on-road incident reports and their transfer status (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    tripId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incidents */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Report a trip incident (driver)
+         * @description A driver reports an incident (accident) on their trip with a description and an optional image URL, requesting a bus transfer. Starts pending.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ReportIncident"];
+                };
+            };
+            responses: {
+                /** @description Reported */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"];
+                    };
+                };
+                /** @description Trip not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/incidents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an incident
+         * @description Fetches one incident by id (RLS-scoped), including the old/new vehicle if resolved.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incident */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Add or edit the ops comment/resolution on an incident (ops)
+         * @description Records the operations manager's comment and resolution on a reported incident without changing its status.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateIncident"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/incidents/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve an incident and reassign the bus (ops)
+         * @description Approves the transfer: reassigns the trip to the new vehicle and notifies every passenger on the trip of the new plate. Tickets are unaffected — our system is the source of truth for the current bus.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ApproveIncident"];
+                };
+            };
+            responses: {
+                /** @description Approved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"];
+                    };
+                };
+                /** @description Incident already resolved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/incidents/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject an incident (ops)
+         * @description Rejects the transfer request; no vehicle change occurs. Ops may attach a comment and resolution note.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RejectIncident"];
+                };
+            };
+            responses: {
+                /** @description Rejected */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IncidentResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/maintenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List maintenance logs (filter by vehicleId)
+         * @description Lists the company's maintenance/service records, newest first. Filter with ?vehicleId=.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    vehicleId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Logs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MaintenanceResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Record a maintenance/service event
+         * @description Logs a service or repair against a vehicle, including cost, odometer, and the next-service reminder.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateMaintenance"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MaintenanceResponse"];
+                    };
+                };
+                /** @description Vehicle not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/maintenance/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a maintenance log
+         * @description Fetches one maintenance record by id (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MaintenanceResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List notifications visible to the caller
+         * @description Returns the caller's own notifications (and, for staff, those tied to company bookings), newest first.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Notifications */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Dispatch a notification
+         * @description Queues an SMS/push/email notification for a user and/or booking (proximity, arrival, delay, or cancellation). Starts as pending.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateNotification"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Mark my own notification as read
+         * @description Self-service — any role, but only for a notification addressed to the caller (403 otherwise).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/notifications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Mark a notification sent or failed
+         * @description Updates delivery status after the provider responds; stamps sent_at when marked sent.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateNotificationStatus"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["NotificationResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/tracking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every vehicle's latest location (fleet map)
+         * @description Returns the newest fix for each vehicle in the caller's company (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Locations */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Ingest a GPS reading (overwrites live location, appends to history)
+         * @description Records a vehicle's current position: upserts its one live row, appends to the partitioned history log, caches the latest fix, and pushes it to passengers watching the trip. Rate-limited per the GPS tier.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["IngestLocation"];
+                };
+            };
+            responses: {
+                /** @description Recorded */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tracking/{vehicleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get one vehicle's latest location
+         * @description Returns the latest fix for a vehicle from the hot cache, falling back to the database.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Location */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LocationResponse"];
+                    };
+                };
+                /** @description No location for this vehicle */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dashboard overview KPIs
+         * @description Daily + month-to-date revenue, tickets sold today, trips today, buses active now, top routes by combined trip revenue, and booking-source split. RLS-scoped to the caller's company.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    companyId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Overview KPIs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OverviewResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/routes/revenue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Per-route revenue rollup
+         * @description Every route with its combined trip revenue (Σ non-cancelled booking fares across all its trips), highest first.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    companyId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Route revenue rows */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RouteRevenueRow"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/peak-travel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Peak travel hours (when buses run full)
+         * @description Aggregates historical occupancy by day-of-week and hour, optionally for one route. Use it to plan schedules. Defaults to the last 90 days.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    routeId?: string;
+                    since?: string;
+                    companyId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Peak travel rows */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PeakTravelRow"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/peak-booking": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Peak booking hours (when people buy)
+         * @description Aggregates when tickets are actually purchased by day-of-week and hour. Use it to staff sales channels. Defaults to the last 90 days.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    since?: string;
+                    companyId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Peak booking rows */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PeakBookingRow"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/trips/{tripId}/seat-map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Per-segment occupancy for a trip
+         * @description Returns each leg of a trip with capacity, occupied, and available seats — the segment-based capacity view. RLS-scoped to the trip's company.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tripId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Seat map rows */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SeatMapRow"][];
+                    };
+                };
+                /** @description Trip not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List recurring trip templates
+         * @description Lists the company's recurring trip schedules (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Templates */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripTemplateResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a recurring trip template (ops)
+         * @description Defines a repeating schedule (daily/weekly/monthly at given times) on a route. Generate concrete trips from it with the generate endpoint.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTripTemplate"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripTemplateResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a trip template */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Template */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripTemplateResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a trip template (ops)
+         * @description Removes the template. Trips already generated from it are kept (detached), not deleted.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a trip template (ops) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateTripTemplate"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripTemplateResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/trip-templates/{id}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generate and publish trips from a template (ops)
+         * @description Materializes concrete trips for every matching date in [from, to] at the template times. Idempotent — trips already generated for the template are skipped, so re-running only fills gaps.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["GenerateTrips"];
+                };
+            };
+            responses: {
+                /** @description Generation summary */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["GenerateTripsResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/waitlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List route waitlists (ops)
+         * @description Lists route waitlists with their joiners and phones (defaults to open ones). Filter with ?status=.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "dispatched" | "denied";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Waitlists */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/waitlist/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join a route's shared waitlist
+         * @description Adds a joiner (name, phone, current origin stop) to the route's single open waitlist, opening one if none is open.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["JoinWaitlist"];
+                };
+            };
+            responses: {
+                /** @description Joined */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"];
+                    };
+                };
+                /** @description Route not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Already on the waitlist */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/waitlist/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a waitlist with its joiners (ops) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Waitlist */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/waitlist/{id}/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dispatch a bus for the waitlist (ops)
+         * @description Creates a bookable trip from the route, closes the waitlist, and notifies every joiner.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DispatchWaitlist"];
+                };
+            };
+            responses: {
+                /** @description Dispatched */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"];
+                    };
+                };
+                /** @description Already resolved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/waitlist/{id}/deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deny a waitlist with a reason (ops)
+         * @description Closes the waitlist as denied and notifies every joiner with the reason.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DenyWaitlist"];
+                };
+            };
+            responses: {
+                /** @description Denied */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WaitlistResponse"];
+                    };
+                };
+                /** @description Already resolved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List agent trip requests (ops)
+         * @description Lists agent-submitted demand-pooling requests (defaults to open ones). Filter with ?status=.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "dispatched" | "denied";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Trip requests */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripRequestResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Submit a trip request (agent)
+         * @description Reports an estimated passenger count wanting a route from the agent's own station. One open request per agent per route.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateTripRequest"];
+                };
+            };
+            responses: {
+                /** @description Submitted */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripRequestResponse"];
+                    };
+                };
+                /** @description Route not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Already has an open request for this route */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a trip request (ops) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Trip request */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripRequestResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-requests/{id}/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dispatch a bus for the pooled requests on this route (ops)
+         * @description Creates a bookable trip from the route and closes every open request on that route against it, not just this one.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DispatchTripRequest"];
+                };
+            };
+            responses: {
+                /** @description Dispatched */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripRequestResponse"];
+                    };
+                };
+                /** @description Already resolved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trip-requests/{id}/deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deny a trip request with a reason (ops) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DenyTripRequest"];
+                };
+            };
+            responses: {
+                /** @description Denied */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TripRequestResponse"];
+                    };
+                };
+                /** @description Already resolved */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/private-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List whole-bus hire requests (filter by status)
+         * @description Lists the company's private (charter) booking requests, newest date first. Filter with ?status=.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "pending" | "approved" | "rejected" | "completed" | "cancelled";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Requests */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivateBookingResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a whole-bus hire request
+         * @description Logs a charter request (wedding, corporate, school, etc.) with pickup, destination, date, and party size. Starts as pending.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreatePrivateBooking"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivateBookingResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/private-bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a hire request
+         * @description Fetches one private booking by id (RLS-scoped).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Request */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivateBookingResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Approve/reject, assign a bus, or invoice a hire request
+         * @description Updates status (approving stamps the approver), assigns a vehicle, and drives the invoice amount/status/due-date. Managers and admins only.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePrivateBooking"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PrivateBookingResponse"];
+                    };
+                };
+                /** @description Not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the audit trail (admin)
+         * @description Returns recorded actions (who did what, when, from where), newest first. Filter by entityType, entityId, action, or userId. RLS-scoped to the company.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    entityType?: string;
+                    entityId?: string;
+                    action?: string;
+                    userId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Audit logs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AuditLogResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/zones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rwanda's administrative geography (province/district/sector/cell)
+         * @description Lists admin_zones, optionally filtered by ?level= and/or ?parentZoneId= (for drilling into one zone's children). Boundary geometry (GeoJSON, simplified for map rendering) is only included when ?withBoundary=true — omit it for the plain grouped-list view. Staff only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    level?: "province" | "district" | "sector" | "cell";
+                    parentZoneId?: string;
+                    withBoundary?: boolean | null;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Zones */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminZoneResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/zones/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Resolve a coordinate to its province/district/sector/cell
+         * @description Point-in-polygon lookup for a lat/lng, used to show a stop/station pin's zone immediately, before it's saved. Staff only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    latitude?: number | null;
+                    longitude?: number | null;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Zone hierarchy */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ZoneHierarchyResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2090,17 +5998,72 @@ export interface components {
             /** Format: uuid */
             companyId: string | null;
             status: string;
+            avatarUrl: string | null;
+            preferredLanguage: string | null;
         };
         UpdateProfile: {
             name?: string;
             phone?: string;
             /** Format: email */
             email?: string | null;
+            /** Format: uri */
+            avatarUrl?: string | null;
             preferredLanguage?: string;
             accessibilityNeeds?: string;
         };
         DeviceToken: {
             fcmToken: string;
+        };
+        PendingVerification: {
+            /** @enum {string} */
+            status: "pending_verification";
+            devCode?: string;
+        };
+        RegisterBody: {
+            name: string;
+            phone: string;
+            /** Format: email */
+            email?: string;
+        };
+        AuthTokens: {
+            accessToken: string;
+            refreshToken: string;
+            expiresAt: string;
+            user: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                email: string | null;
+                phone: string;
+                role: string;
+                /** Format: uuid */
+                companyId: string | null;
+            };
+        };
+        VerifyPhoneBody: {
+            phone: string;
+            code: string;
+        };
+        OtpRequestBody: {
+            identifier: string;
+        };
+        OtpVerifyBody: {
+            identifier: string;
+            code: string;
+        };
+        RefreshResponse: {
+            accessToken: string;
+            refreshToken: string;
+            expiresAt: string;
+        };
+        RefreshBody: {
+            refreshToken: string;
+        };
+        AuthMessage: {
+            message: string;
+        };
+        LogoutBody: {
+            refreshToken: string;
         };
         CompanyResponse: {
             /** Format: uuid */
@@ -2124,7 +6087,7 @@ export interface components {
             phone?: string;
             address?: string;
             /** Format: uri */
-            logoUrl?: string;
+            logoUrl?: string | null;
             commissionRate?: number;
             parcelBaseFeeRwf?: number;
             parcelSurchargePerKgRwf?: number;
@@ -2137,11 +6100,15 @@ export interface components {
             phone?: string;
             address?: string;
             /** Format: uri */
-            logoUrl?: string;
+            logoUrl?: string | null;
             commissionRate?: number;
             parcelBaseFeeRwf?: number;
             parcelSurchargePerKgRwf?: number;
             driverWeeklyHourCap?: number;
+        };
+        UpdateParcelPricing: {
+            parcelBaseFeeRwf?: number;
+            parcelSurchargePerKgRwf?: number;
         };
         StopResponse: {
             /** Format: uuid */
@@ -2154,6 +6121,8 @@ export interface components {
             longitude: number;
             phone: string | null;
             address: string | null;
+            /** Format: uuid */
+            adminZoneId: string | null;
         };
         CreateStop: {
             name: string;
@@ -2192,16 +6161,6 @@ export interface components {
             /** @enum {string} */
             fareSource?: "manual" | "tapgo";
         };
-        ImportFaresResponse: {
-            totalRows: number;
-            imported: number;
-            skipped: {
-                line: number;
-                origin: string;
-                destination: string;
-                reason: string;
-            }[];
-        };
         UserResponse: {
             /** Format: uuid */
             id: string;
@@ -2214,6 +6173,7 @@ export interface components {
             companyId: string | null;
             lastLoginAt: string | null;
             loginCount: number;
+            updatedAt: string;
         };
         UpdateUser: {
             /** @enum {string} */
@@ -2245,8 +6205,8 @@ export interface components {
             /** Format: uuid */
             companyId: string;
             name: string;
-            origin: string;
-            destination: string;
+            origin: string | null;
+            destination: string | null;
             distanceKm: number | null;
             estimatedDurationMin: number | null;
             departureTimes: string[];
@@ -2256,9 +6216,6 @@ export interface components {
         CreateRoute: {
             /** Format: uuid */
             companyId?: string;
-            name: string;
-            origin: string;
-            destination: string;
             distanceKm?: number;
             estimatedDurationMin?: number;
             departureTimes?: string[];
@@ -2270,9 +6227,6 @@ export interface components {
             }[];
         };
         UpdateRoute: {
-            name?: string;
-            origin?: string;
-            destination?: string;
             distanceKm?: number;
             estimatedDurationMin?: number;
             departureTimes?: string[];
@@ -2292,6 +6246,7 @@ export interface components {
             year: number | null;
             status: string;
             currentKm: number | null;
+            photoUrl: string | null;
         };
         CreateVehicle: {
             /** Format: uuid */
@@ -2311,6 +6266,8 @@ export interface components {
             /** @enum {string} */
             status?: "active" | "maintenance" | "retired";
             currentKm?: number;
+            /** Format: uri */
+            photoUrl?: string | null;
         };
         TripStopResponse: {
             /** Format: uuid */
@@ -2320,6 +6277,8 @@ export interface components {
             stopName: string;
             stopOrder: number;
             status: string;
+            latitude: number;
+            longitude: number;
             estimatedArrival: string | null;
             actualArrival: string | null;
         };
@@ -2351,7 +6310,10 @@ export interface components {
             capacity: number | null;
             revenue: number;
             driverName: string | null;
+            driverPhone: string | null;
             vehiclePlate: string | null;
+            routeOrigin: string | null;
+            routeDestination: string | null;
             stops?: components["schemas"]["TripStopResponse"][];
             seatMap?: components["schemas"]["SeatMapLegResponse"][];
         };
@@ -2384,6 +6346,12 @@ export interface components {
             alightStopId: string;
             fare: number | null;
             availableSeats: number;
+            /** Format: uuid */
+            vehicleId: string | null;
+            vehicleModel: string | null;
+            vehicleCapacity: number | null;
+            vehicleYear: number | null;
+            vehiclePhotoUrl: string | null;
         };
         TripEtaResponse: {
             /** Format: uuid */
@@ -2413,11 +6381,21 @@ export interface components {
             boardedAt: string | null;
             alightedAt: string | null;
         };
+        SegmentFreeSeatsResponse: {
+            capacity: number;
+            occupied: number;
+            available: number;
+            isFull: boolean;
+        };
         TripLogEntryResponse: {
             /** @enum {string} */
             type: "published" | "first_booking" | "departed" | "stop_arrival" | "completed";
             at: string;
             stopName: string | null;
+        };
+        MarkStopReachedResponse: {
+            stop: components["schemas"]["TripStopResponse"];
+            noShowReleaseAt: string;
         };
         UpdateTrip: {
             /** Format: uuid */
@@ -2452,7 +6430,9 @@ export interface components {
             paymentMethod: string | null;
             paymentStatus: string;
             status: string;
+            bookingSource: string;
             dailyTicketNumberStation: number | null;
+            ticketCode: string | null;
         };
         CreateBooking: {
             /** Format: uuid */
@@ -2484,12 +6464,710 @@ export interface components {
         TicketValidationResponse: {
             found: boolean;
             valid: boolean;
+            /** @enum {string} */
+            verdict: "ready_to_board" | "in_transit" | "journey_complete" | "already_used" | "invalid";
             reason: string;
             /** Format: uuid */
             bookingId?: string;
             passengerName?: string;
+            boardStopName?: string;
+            alightStopName?: string;
             paymentStatus?: string;
             boarded?: boolean;
+        };
+        AgentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            companyId: string;
+            name: string;
+            email: string | null;
+            phone: string;
+            photoUrl: string | null;
+            stationIds: string[];
+        };
+        InviteAgent: {
+            /** Format: email */
+            email: string;
+            phone: string;
+            name: string;
+            /** Format: uuid */
+            companyId?: string;
+        };
+        AssignStation: {
+            /** Format: uuid */
+            stationId: string;
+        };
+        AgentSalesResponse: {
+            period: string;
+            ticketsSold: number;
+            revenue: number;
+        };
+        AgentDayTrendResponse: {
+            date: string;
+            ticketsSold: number;
+            revenue: number;
+        };
+        AgentSaleEntryResponse: {
+            /** Format: uuid */
+            bookingId: string;
+            passengerName: string;
+            fareAmount: number;
+            /** Format: uuid */
+            tripId: string;
+            boardStopName: string;
+            alightStopName: string;
+            createdAt: string;
+        };
+        AgentStatsResponse: {
+            today: {
+                ticketsSold: number;
+                revenue: number;
+                passengersBoarded: number;
+            };
+            weekTrend: components["schemas"]["AgentDayTrendResponse"][];
+            recentSales: components["schemas"]["AgentSaleEntryResponse"][];
+        };
+        UpdateMyAgent: {
+            name?: string;
+            phone?: string;
+            /** Format: uri */
+            photoUrl?: string | null;
+        };
+        DriverResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            /** Format: uuid */
+            companyId: string;
+            name: string;
+            email: string | null;
+            phone: string;
+            licenseNumber: string;
+            licenseExpiry: string;
+            rating: number | null;
+            status: string;
+            photoUrl: string | null;
+            licenseImageUrl: string | null;
+            idImageUrl: string | null;
+        };
+        InviteDriver: {
+            /** Format: email */
+            email: string;
+            phone: string;
+            name: string;
+            licenseNumber: string;
+            /** Format: date-time */
+            licenseExpiry: string;
+            /** Format: uuid */
+            companyId?: string;
+        };
+        UpdateDriver: {
+            /** @enum {string} */
+            status?: "available" | "on_trip" | "off_duty" | "suspended";
+            rating?: number;
+            licenseNumber?: string;
+            /** Format: date-time */
+            licenseExpiry?: string;
+        };
+        TransferDriver: {
+            /** Format: uuid */
+            toCompanyId: string;
+            /**
+             * @default transferred
+             * @enum {string}
+             */
+            endReason: "resigned" | "terminated" | "transferred" | "contract_ended";
+            notes?: string;
+        };
+        DriverTripResponse: {
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            routeId: string;
+            direction: string;
+            departureTime: string;
+            status: string;
+            vehiclePlate: string | null;
+            booked: number;
+        };
+        DriverVehicleResponse: {
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            vehicleId: string;
+            plateNumber: string;
+            model: string | null;
+            capacity: number;
+            currentKm: number | null;
+            maintenanceDue: boolean;
+            nextServiceDate: string | null;
+            nextServiceKm: number | null;
+        } | null;
+        DriverHoursResponse: {
+            totalHours: number;
+            tripsCounted: number;
+        };
+        DriverMaintenanceLogResponse: {
+            /** Format: uuid */
+            id: string;
+            serviceType: string;
+            description: string | null;
+            performedAt: string;
+            nextServiceDate: string | null;
+            nextServiceKm: number | null;
+        };
+        UpdateMyDriver: {
+            phone?: string;
+            /** Format: uri */
+            photoUrl?: string | null;
+            /** Format: uri */
+            licenseImageUrl?: string | null;
+            /** Format: uri */
+            idImageUrl?: string | null;
+        };
+        DriverShiftResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            driverId: string;
+            /** Format: uuid */
+            companyId: string;
+            dayOfWeek: number;
+            startTime: string;
+            endTime: string;
+            /** Format: uuid */
+            createdBy: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        SetDriverShift: {
+            /** Format: uuid */
+            driverId: string;
+            dayOfWeek: number;
+            startTime: string;
+            endTime: string;
+        };
+        PassengerSummaryResponse: {
+            /** Format: uuid */
+            passengerId: string | null;
+            name: string;
+            phone: string;
+            bookings: number;
+            lastBookingAt: string | null;
+            totalSpend: number;
+        };
+        PassengerLookupResponse: {
+            found: boolean;
+            name?: string;
+            source?: string;
+        };
+        PackageEventResponse: {
+            /** Format: uuid */
+            id: string;
+            event: string;
+            /** Format: uuid */
+            actorUserId: string | null;
+            /** Format: uuid */
+            stopId: string | null;
+            photoUrl: string | null;
+            notes: string | null;
+            createdAt: string;
+        };
+        PackageResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            senderName: string;
+            senderPhone: string;
+            recipientName: string;
+            recipientPhone: string;
+            /** Format: uuid */
+            fromStopId: string;
+            /** Format: uuid */
+            toStopId: string;
+            description: string;
+            /** Format: uuid */
+            tripId: string | null;
+            weightKg: number | null;
+            fee: number | null;
+            paymentStatus: string;
+            status: string;
+            createdAt: string;
+            events?: components["schemas"]["PackageEventResponse"][];
+        };
+        RegisterPackage: {
+            senderName: string;
+            senderPhone: string;
+            recipientName: string;
+            recipientPhone: string;
+            /** Format: uuid */
+            fromStopId: string;
+            /** Format: uuid */
+            toStopId: string;
+            description: string;
+            /** Format: uuid */
+            tripId?: string;
+            weightKg?: number;
+            fee?: number;
+            /** Format: uuid */
+            companyId?: string;
+        };
+        HandoffBody: {
+            /** Format: uuid */
+            stopId?: string;
+            /** Format: uri */
+            photoUrl?: string;
+            notes?: string;
+        };
+        SetFee: {
+            fee: number;
+        };
+        /** @enum {string} */
+        IncidentCategory: "mechanical" | "collision" | "medical" | "road_hazard" | "weather" | "delay" | "passenger_issue" | "other";
+        IncidentResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tripId: string;
+            /** Format: uuid */
+            companyId: string;
+            /** Format: uuid */
+            reportedBy: string | null;
+            imageUrl: string | null;
+            description: string;
+            category: components["schemas"]["IncidentCategory"];
+            status: string;
+            /** Format: uuid */
+            oldVehicleId: string | null;
+            /** Format: uuid */
+            newVehicleId: string | null;
+            /** Format: uuid */
+            approvedBy: string | null;
+            opsComment: string | null;
+            resolution: string | null;
+            resolvedAt: string | null;
+            createdAt: string;
+            updatedAt: string;
+        };
+        ReportIncident: {
+            /** Format: uuid */
+            tripId: string;
+            description: string;
+            category?: components["schemas"]["IncidentCategory"] & unknown;
+            /** Format: uri */
+            imageUrl?: string;
+        };
+        ApproveIncident: {
+            /** Format: uuid */
+            newVehicleId: string;
+            opsComment?: string;
+            resolution?: string;
+        };
+        RejectIncident: {
+            opsComment?: string;
+            resolution?: string;
+        };
+        UpdateIncident: {
+            opsComment?: string;
+            resolution?: string;
+        };
+        MaintenanceResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            vehicleId: string;
+            /** Format: uuid */
+            companyId: string;
+            serviceType: string;
+            description: string | null;
+            cost: number | null;
+            odometerKm: number | null;
+            performedBy: string | null;
+            performedAt: string;
+            nextServiceDate: string | null;
+            nextServiceKm: number | null;
+            photoUrl: string | null;
+            createdAt: string;
+        };
+        CreateMaintenance: {
+            /** Format: uuid */
+            vehicleId: string;
+            serviceType: string;
+            description?: string;
+            cost?: number;
+            odometerKm?: number;
+            performedBy?: string;
+            /** Format: date-time */
+            performedAt: string;
+            /** Format: date-time */
+            nextServiceDate?: string;
+            nextServiceKm?: number;
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uri */
+            photoUrl?: string;
+        };
+        NotificationResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string | null;
+            /** Format: uuid */
+            bookingId: string | null;
+            type: string;
+            triggerType: string;
+            message: string;
+            status: string;
+            sentAt: string | null;
+            readAt: string | null;
+            createdAt: string;
+        };
+        CreateNotification: {
+            /** Format: uuid */
+            userId?: string;
+            /** Format: uuid */
+            bookingId?: string;
+            /** @enum {string} */
+            type: "sms" | "push" | "email";
+            /** @enum {string} */
+            triggerType: "5km" | "2km" | "arrived" | "delay" | "cancellation";
+            message: string;
+        };
+        UpdateNotificationStatus: {
+            /** @enum {string} */
+            status?: "sent" | "failed";
+            /** Format: date-time */
+            sentAt?: string;
+            read?: boolean;
+        };
+        LocationResponse: {
+            /** Format: uuid */
+            vehicleId: string;
+            /** Format: uuid */
+            driverId: string | null;
+            latitude: number;
+            longitude: number;
+            speed: number | null;
+            heading: number | null;
+            timestamp: string;
+        };
+        IngestLocation: {
+            /** Format: uuid */
+            vehicleId: string;
+            latitude: number;
+            longitude: number;
+            speed?: number;
+            heading?: number;
+            accuracy?: number;
+            /** Format: uuid */
+            tripId?: string;
+        };
+        RouteRevenueRow: {
+            /** Format: uuid */
+            routeId: string;
+            name: string;
+            origin: string | null;
+            destination: string | null;
+            revenue: number;
+            bookings: number;
+        };
+        SourceSplitRow: {
+            source: string;
+            count: number;
+        };
+        OverviewResponse: {
+            dailyRevenue: number;
+            revenueMtd: number;
+            ticketsToday: number;
+            tripsToday: number;
+            busesActive: number;
+            topRoutes: components["schemas"]["RouteRevenueRow"][];
+            sourceSplit: components["schemas"]["SourceSplitRow"][];
+        };
+        PeakTravelRow: {
+            /** Format: uuid */
+            routeId: string | null;
+            routeName: string | null;
+            dayOfWeek: number;
+            dayName: string;
+            hourOfDay: number;
+            passengerCount: number;
+        };
+        PeakBookingRow: {
+            dayOfWeek: number;
+            dayName: string;
+            hourOfDay: number;
+            bookingCount: number;
+        };
+        SeatMapRow: {
+            legOrder: number;
+            fromStopName: string;
+            toStopName: string;
+            capacity: number;
+            occupied: number;
+            available: number;
+        };
+        TripTemplateResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            /** Format: uuid */
+            routeId: string;
+            direction: string;
+            frequency: string;
+            daysOfWeek: number[];
+            dayOfMonth: number | null;
+            departureTimes: string[];
+            /** Format: uuid */
+            vehicleId: string | null;
+            /** Format: uuid */
+            driverId: string | null;
+            active: boolean;
+            createdAt: string;
+        };
+        CreateTripTemplate: {
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            routeId: string;
+            /** @enum {string} */
+            direction?: "outbound" | "return";
+            /** @enum {string} */
+            frequency: "daily" | "weekly" | "monthly";
+            daysOfWeek?: number[];
+            dayOfMonth?: number;
+            departureTimes: string[];
+            /** Format: uuid */
+            vehicleId?: string | null;
+            /** Format: uuid */
+            driverId?: string | null;
+            active?: boolean;
+        };
+        UpdateTripTemplate: {
+            /** Format: uuid */
+            companyId?: string;
+            /** Format: uuid */
+            routeId?: string;
+            /** @enum {string} */
+            direction?: "outbound" | "return";
+            /** @enum {string} */
+            frequency?: "daily" | "weekly" | "monthly";
+            daysOfWeek?: number[];
+            dayOfMonth?: number;
+            departureTimes?: string[];
+            /** Format: uuid */
+            vehicleId?: string | null;
+            /** Format: uuid */
+            driverId?: string | null;
+            active?: boolean;
+        };
+        GenerateTripsResponse: {
+            from: string;
+            to: string;
+            created: number;
+            skipped: number;
+        };
+        GenerateTrips: {
+            from: string;
+            to: string;
+        };
+        WaitlistJoinerResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            passengerId: string | null;
+            passengerName: string;
+            passengerPhone: string;
+            /** Format: uuid */
+            currentOriginStopId: string;
+            joinedAt: string;
+        };
+        WaitlistResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            /** Format: uuid */
+            routeId: string;
+            status: string;
+            denyReason: string | null;
+            /** Format: uuid */
+            dispatchedTripId: string | null;
+            resolvedAt: string | null;
+            createdAt: string;
+            joinerCount: number;
+            joiners: components["schemas"]["WaitlistJoinerResponse"][];
+        };
+        JoinWaitlist: {
+            /** Format: uuid */
+            routeId: string;
+            /** Format: uuid */
+            currentOriginStopId: string;
+            /** Format: uuid */
+            passengerId?: string | null;
+            passengerName: string;
+            passengerPhone: string;
+        };
+        DispatchWaitlist: {
+            /** Format: date-time */
+            departureTime: string;
+            /** Format: uuid */
+            vehicleId?: string | null;
+            /** Format: uuid */
+            driverId?: string | null;
+            /** @enum {string} */
+            direction?: "outbound" | "return";
+        };
+        DenyWaitlist: {
+            reason: string;
+        };
+        TripRequestResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            /** Format: uuid */
+            routeId: string;
+            /** Format: uuid */
+            agentId: string;
+            agentName: string;
+            /** Format: uuid */
+            originStopId: string;
+            passengerCount: number;
+            notes: string | null;
+            status: string;
+            denyReason: string | null;
+            /** Format: uuid */
+            dispatchedTripId: string | null;
+            resolvedAt: string | null;
+            createdAt: string;
+        };
+        CreateTripRequest: {
+            /** Format: uuid */
+            routeId: string;
+            /** Format: uuid */
+            originStopId: string;
+            passengerCount: number;
+            notes?: string | null;
+        };
+        DispatchTripRequest: {
+            /** Format: date-time */
+            departureTime: string;
+            /** Format: uuid */
+            vehicleId?: string | null;
+            /** Format: uuid */
+            driverId?: string | null;
+            /** @enum {string} */
+            direction?: "outbound" | "return";
+        };
+        DenyTripRequest: {
+            reason: string;
+        };
+        PrivateBookingResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            requesterName: string;
+            requesterPhone: string;
+            requesterEmail: string | null;
+            pickupLocation: string;
+            destination: string;
+            bookingDate: string;
+            passengerCount: number;
+            purpose: string;
+            specialRequests: string | null;
+            status: string;
+            /** Format: uuid */
+            approvedBy: string | null;
+            /** Format: uuid */
+            vehicleId: string | null;
+            invoiceAmount: number | null;
+            invoiceStatus: string | null;
+            invoiceDueDate: string | null;
+            notes: string | null;
+            createdAt: string;
+        };
+        CreatePrivateBooking: {
+            requesterName: string;
+            requesterPhone: string;
+            /** Format: email */
+            requesterEmail?: string;
+            pickupLocation: string;
+            destination: string;
+            /** Format: date-time */
+            bookingDate: string;
+            passengerCount: number;
+            /** @enum {string} */
+            purpose?: "wedding" | "conference" | "school" | "corporate" | "other";
+            specialRequests?: string;
+            notes?: string;
+            /** Format: uuid */
+            companyId?: string;
+        };
+        UpdatePrivateBooking: {
+            /** @enum {string} */
+            status?: "pending" | "approved" | "rejected" | "completed" | "cancelled";
+            /** Format: uuid */
+            vehicleId?: string | null;
+            invoiceAmount?: number;
+            invoiceStatus?: string;
+            /** Format: date-time */
+            invoiceDueDate?: string;
+            notes?: string;
+        };
+        AuditLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string | null;
+            action: string;
+            entityType: string;
+            /** Format: uuid */
+            entityId: string | null;
+            oldValues?: unknown;
+            newValues?: unknown;
+            ipAddress: string | null;
+            createdAt: string;
+        };
+        AdminZoneResponse: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            level: "province" | "district" | "sector" | "cell";
+            name: string;
+            /** Format: uuid */
+            parentZoneId: string | null;
+            externalCode: string | null;
+            boundary?: unknown;
+        };
+        ZoneHierarchyResponse: {
+            province: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            district: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            sector: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
+            cell: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            } | null;
         };
     };
     responses: never;

@@ -9,6 +9,7 @@ import { DataTable, type Column } from '@/components/ui/data-table';
 import { Reveal, RevealItem } from '@/components/motion/Motion';
 import { Async } from '@/components/ui/async';
 import { WaitlistBoard } from './WaitlistBoard';
+import { TripRequestsBoard } from './TripRequestsBoard';
 import { TripSchedule } from './TripSchedule';
 import { NewTripModal } from './TripManagement';
 import { useTripRows } from './useTripRows';
@@ -109,6 +110,9 @@ export function TripsPage() {
 
       {/* Agent & passenger waitlist */}
       <RevealItem><WaitlistBoard /></RevealItem>
+
+      {/* Agent demand-pooling trip requests */}
+      <RevealItem><TripRequestsBoard /></RevealItem>
     </Reveal>
   );
 }

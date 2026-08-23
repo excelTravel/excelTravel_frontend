@@ -22,6 +22,7 @@ import {
   type ApiBooking,
 } from '@/lib/api/hooks';
 import { useDateRange, rangeToQuery } from '@/store/dateRange';
+import { PrivateBookingsPanel } from './PrivateBookingsPanel';
 
 const K = (n: number): string => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1_000 ? `${Math.round(n / 1_000)}K` : String(n));
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -68,6 +69,7 @@ export function BookingsPage() {
   const cancelBooking = useCancelBooking();
   const [velMode, setVelMode] = useState<'hours' | 'days'>('hours');
   const [dateScope, setDateScope] = useState<DateScope>('all');
+  const [view, setView] = useState<'seats' | 'charter'>('seats');
   const o = overviewQ.data;
 
   // Join bookings -> trip -> route so the table shows route / time / bus from live data.
@@ -150,6 +152,28 @@ export function BookingsPage() {
 
   return (
     <Reveal className="space-y-6">
+      <RevealItem>
+        <div role="tablist" aria-label={t('bookings.title', 'Bookings')} className="inline-flex gap-1 rounded-lg bg-secondary/60 p-1">
+          {(['seats', 'charter'] as const).map((v) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => setView(v)}
+              className={cn('rounded-md px-3 py-1.5 text-sm font-medium transition-colors', view === v ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {v === 'seats' ? t('bookings.viewSeats', 'Seat bookings') : t('bookings.viewCharter', 'Charter requests')}
+            </button>
+          ))}
+        </div>
+      </RevealItem>
+
+      {view === 'charter' ? (
+        <RevealItem>
+          <PrivateBookingsPanel />
+        </RevealItem>
+      ) : (
+        <>
       {/* KPI row — live from GET /analytics/overview */}
       <RevealItem className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard loading={overviewQ.isLoading} label={t('overview.ticketsToday')} value={o ? String(o.ticketsToday) : '—'} />
@@ -277,6 +301,8 @@ export function BookingsPage() {
           )}
         </GlassCard>
       </RevealItem>
+        </>
+      )}
     </Reveal>
   );
 }

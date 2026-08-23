@@ -21,6 +21,7 @@ export const CLOUDINARY_FOLDERS = {
   licenses: 'excelTravel/licenses', // driver license + ID document images
   incidents: 'excelTravel/incidents', // accident/incident report photos
   maintenance: 'excelTravel/maintenance', // maintenance log photos
+  insurance: 'excelTravel/insurance', // insurance renewal report photos
   busPictures: 'excelTravel/bus-pictures', // vehicle photos
   branding: 'excelTravel/branding', // company logo
   parcels: 'excelTravel/parcels', // parcel custody handoff photos

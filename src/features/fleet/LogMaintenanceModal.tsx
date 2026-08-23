@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Select, Textarea } from '@/components/ui/form';
-import { ImageUpload } from '@/components/ui/image-upload';
+import { PhotoGallery } from '@/components/ui/photo-gallery';
 import { useVehicles, useCreateMaintenance } from '@/lib/api/hooks';
 import { CLOUDINARY_FOLDERS } from '@/lib/config';
 
@@ -21,7 +21,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
   const [odometerKm, setOdometerKm] = useState('');
   const [nextServiceDate, setNextServiceDate] = useState('');
   const [nextServiceKm, setNextServiceKm] = useState('');
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
   const effectiveVehicle = vehicleId ?? vehicle;
@@ -36,7 +36,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
     setOdometerKm('');
     setNextServiceDate('');
     setNextServiceKm('');
-    setPhotoUrl(null);
+    setPhotoUrls([]);
     setErr(null);
   }
 
@@ -53,7 +53,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
         ...(odometerKm.trim() ? { odometerKm: Number(odometerKm) } : {}),
         ...(nextServiceDate ? { nextServiceDate: new Date(`${nextServiceDate}T00:00:00Z`).toISOString() } : {}),
         ...(nextServiceKm.trim() ? { nextServiceKm: Number(nextServiceKm) } : {}),
-        ...(photoUrl ? { photoUrl } : {}),
+        ...(photoUrls.length ? { photoUrls } : {}),
       },
       { onSuccess: () => { reset(); onClose(); }, onError: (e) => setErr(e instanceof Error ? e.message : t('forms.checkFields')) },
     );
@@ -109,7 +109,7 @@ export function LogMaintenanceModal({ open, onClose, vehicleId }: { open: boolea
             <Input id="lm-next-km" type="number" min={0} value={nextServiceKm} onChange={(e) => setNextServiceKm(e.target.value)} />
           </Field>
         </div>
-        <ImageUpload value={photoUrl} onChange={setPhotoUrl} shape="square" folder={CLOUDINARY_FOLDERS.maintenance} hint={t('maintenance.photoHint')} />
+        <PhotoGallery value={photoUrls} onChange={setPhotoUrls} folder={CLOUDINARY_FOLDERS.maintenance} hint={t('maintenance.photoHint')} />
       </div>
     </Modal>
   );
