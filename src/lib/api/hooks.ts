@@ -261,6 +261,7 @@ export const qk = {
   tripRequests: ['tripRequests'] as const,
   incidents: ['incidents'] as const,
   driverShifts: ['driverShifts'] as const,
+  privateBookings: ['privateBookings'] as const,
 };
 
 // Header date-range picker's selected bounds, as accepted by the `from`/`to`-aware list/analytics
@@ -741,6 +742,67 @@ export const useDispatchTripRequest = () =>
   );
 export const useDenyTripRequest = () =>
   useApiMutation<{ id: string; reason: string }, ApiTripRequest>(({ id, ...b }) => apiFetch<ApiTripRequest>(`/trip-requests/${id}/deny`, jsonBody(b)), [qk.tripRequests]);
+
+// Private (charter) bookings — whole-bus hire requests. Passengers self-submit from the mobile app
+// (POST /private-bookings/mine); ops reviews/assigns buses/invoices here.
+export interface ApiPrivateBookingLeg {
+  id: string;
+  legNo: number;
+  vehicleId: string | null;
+  driverId: string | null;
+  status: string;
+  driverNotifiedAt: string | null;
+}
+export interface ApiPrivateBooking {
+  id: string;
+  companyId: string;
+  requesterUserId: string | null;
+  requesterName: string;
+  requesterPhone: string;
+  requesterEmail: string | null;
+  pickupLocation: string;
+  destination: string;
+  bookingDate: string;
+  requestedTime: string;
+  durationDays: number;
+  passengerCount: number;
+  busSize: string | null;
+  busCount: number;
+  purpose: string;
+  specialRequests: string | null;
+  status: string;
+  approvedBy: string | null;
+  invoiceAmount: number | null;
+  invoiceStatus: string | null;
+  invoiceInstructions: string | null;
+  invoiceDueDate: string | null;
+  invoicePaidAt: string | null;
+  proofUrl: string | null;
+  proofSubmittedAt: string | null;
+  paymentNote: string | null;
+  notes: string | null;
+  legs: ApiPrivateBookingLeg[];
+  createdAt: string;
+}
+export const usePrivateBookings = (status?: string) =>
+  useQuery({
+    queryKey: [...qk.privateBookings, status ?? 'all'],
+    queryFn: () => apiFetch<ApiPrivateBooking[]>(`/private-bookings${status ? `?status=${status}` : ''}`),
+  });
+export const usePrivateBooking = (id?: string) =>
+  useQuery({ queryKey: [...qk.privateBookings, id], enabled: Boolean(id), queryFn: () => apiFetch<ApiPrivateBooking>(`/private-bookings/${id}`) });
+export const useCreatePrivateBooking = () =>
+  useApiMutation<Record<string, unknown>, ApiPrivateBooking>((b) => apiFetch<ApiPrivateBooking>('/private-bookings', jsonBody(b)), [qk.privateBookings]);
+export const useUpdatePrivateBooking = () =>
+  useApiMutation<{ id: string } & Record<string, unknown>, ApiPrivateBooking>(
+    ({ id, ...b }) => apiFetch<ApiPrivateBooking>(`/private-bookings/${id}`, patchBody(b)),
+    [qk.privateBookings],
+  );
+export const useAssignPrivateBookingLeg = () =>
+  useApiMutation<{ id: string; legId: string; vehicleId?: string | null; driverId?: string | null }, ApiPrivateBooking>(
+    ({ id, legId, ...b }) => apiFetch<ApiPrivateBooking>(`/private-bookings/${id}/legs/${legId}`, patchBody(b)),
+    [qk.privateBookings],
+  );
 
 // Staff invitations — each pre-creates the row and fires an email invite. Managers/admins use
 // /users/invite; agents and drivers use their own endpoints so the extension row is created too.

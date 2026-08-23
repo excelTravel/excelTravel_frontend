@@ -128,9 +128,12 @@ tracking realtime (socket): bus:location · bus:alert · trip:status · notifica
    `mobile: agent_trip_request_sheet.dart`); the combined visualization itself hasn't been built.
 
 ## Deliberately out of scope for this build
-- **Companies / Audit-log / Private-bookings admin section** — removed from this per-company ops console;
-  reserved for a future system-admin surface across the multi-tenant platform. Backend modules for all
-  three still exist and work (`GET /companies`, `GET /audit-logs`, `GET /private-bookings`).
+- **Companies / Audit-log admin section** — removed from this per-company ops console; reserved for a
+  future system-admin surface across the multi-tenant platform. Backend modules for both still exist and
+  work (`GET /companies`, `GET /audit-logs`). **Private-bookings was reactivated** — whole-bus charter
+  requests are now managed from the Bookings page's "Charter requests" tab
+  (`src/features/bookings/PrivateBookingsPanel.tsx` + `PrivateBookingDetailModal.tsx`), covering the full
+  passenger-request → invoice → payment-proof → confirm → driver-notify lifecycle.
 - **Map-pinned stop coordinates** are UI-only by design — `POST /stops` already accepts `latitude`/
   `longitude`, so dropping a pin on the map just fills those fields; no backend change was ever needed here.
 - **Fares** are shown per-route in the UI but still read from the single national RURA station-to-station

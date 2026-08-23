@@ -89,8 +89,9 @@ origin-bus check) + detail + per-trip Manage [x] Booking desk (Bookings → Desk
 Auth: [x] Login (email/phone + OTP) · Passenger/Driver/Agent portals: built, but in `excelTravel_mobile`
 (Flutter), not this repo — manager/company_admin/super_admin have no native app by design and use this
 web console, so it needs to be genuinely mobile-responsive too, not just desktop.
-Removed from ops build: standalone Live Map (now Network→Map), Admin/Companies/Audit/Private-bookings
-(→ future system-admin surface). Plates are formatted `RAA-000-A`.
+Removed from ops build: standalone Live Map (now Network→Map), Admin/Companies/Audit (→ future
+system-admin surface). Private-bookings (whole-bus charter) was reactivated into Bookings → "Charter
+requests" tab. Plates are formatted `RAA-000-A`.
 
 **Screens are wired to the live API** via `src/lib/api/hooks.ts` (TanStack Query, ~840 lines, consumed from
 37+ page/feature files) — this is stale-doc territory to double-check before trusting: verify with
