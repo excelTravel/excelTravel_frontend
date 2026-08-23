@@ -15,10 +15,12 @@ export default defineConfig({
         // Splits stable third-party deps into their own chunk, separate from app code (which changes
         // every deploy) — browsers keep this cached across releases instead of re-downloading it.
         // Route-level code (pages, Recharts, MapLibre) is already split via React.lazy in App.tsx.
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-i18n': ['i18next', 'react-i18next'],
+        // A function keeps vendor chunk assignment stable as dependencies are added or removed.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (/[\\/](react|react-dom|react-router-dom)[\\/]/.test(id)) return 'vendor-react';
+          if (id.includes('@tanstack/react-query')) return 'vendor-query';
+          if (/[\\/](i18next|react-i18next)[\\/]/.test(id)) return 'vendor-i18n';
         },
       },
     },
